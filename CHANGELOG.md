@@ -1,6 +1,6 @@
 # Changelog
 
-This is an unpublished local alpha. No remote repository, application deployment, or GitHub release has been created. Validation claims belong in [the validation record](docs/validation.md).
+The [public repository](https://github.com/Gaoyuan-0423/blot-workbench) exists. The alpha release and hosted deployment remain pending verification. Validation claims belong in [the validation record](docs/validation.md).
 
 ## 0.1.0-alpha.1 — Unreleased
 
@@ -14,6 +14,15 @@ Initial synthetic-data browser workflow demonstration.
 - Preset illustrative normalization values, project recovery, and export workflows.
 - Chinese/English interface and introductory documentation.
 - MIT license, citation metadata, contribution guidance, and explicit validation boundaries.
+
+### Pre-release fixes
+
+- Commit notes, sample names, and project names after a typing pause, without requiring focus to leave the input.
+- Show pending input/storage work as **Saving** and request a browser confirmation before leaving with unsaved work.
+- Restore the previous valid value when a required field is left blank and loses focus.
+- Validate project archives before showing an explicit workspace-replacement confirmation, with options to export the current project or cancel.
+
+Validation evidence is tied to each recorded source commit; see [the validation record](docs/validation.md) for the tested behavior and environments.
 
 ### Limitations
 
