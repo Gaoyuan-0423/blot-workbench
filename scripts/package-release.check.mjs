@@ -81,3 +81,19 @@ test('license inventory preserves available text and labels missing information 
   assert.doesNotMatch(notices, /example-build@/);
   assert.match(await generateNotices({ root, includeDev: true }), /example-build@2.0.0/);
 });
+
+
+test('web packages preserve documentation and public example paths used by README links', async (t) => {
+  const root = await fixture(t);
+  await mkdir(join(root, 'public/examples'), {recursive:true});
+  await mkdir(join(root, 'docs'), {recursive:true});
+  await writeFile(join(root, 'public/examples/project.zip'), 'example archive');
+  await writeFile(join(root, 'docs/guide.md'), 'local guide');
+  await writeFile(join(root, 'DISTRIBUTION.md'), 'static hosting instructions');
+  const result = await packageRelease({root,allowDirty:true});
+  const entries = unzipSync(await readFile(result.archive));
+  const prefix = 'blot-workbench-0.1.0-alpha.1/';
+  assert.equal(strFromU8(entries[`${prefix}public/examples/project.zip`]), 'example archive');
+  assert.equal(strFromU8(entries[`${prefix}docs/guide.md`]), 'local guide');
+  assert.ok(entries[`${prefix}DISTRIBUTION.md`]);
+});
