@@ -1,0 +1,100 @@
+name: Deploy verified build to Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: Full 40-character commit SHA with successful CI on main
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      run-id: ${{ steps.verify.outputs.run-id }}
+      commit: ${{ steps.verify.outputs.commit }}
+    steps:
+      - name: Require successful CI for this exact main-branch commit
+        id: verify
+        uses: actions/github-script@v7
+        env:
+          DEPLOY_COMMIT: ${{ inputs.commit }}
+        with:
+          script: |
+            if (context.ref !== 'refs/heads/main') {
+              throw new Error('Dispatch the deployment workflow from main.');
+            }
+            const sha = process.env.DEPLOY_COMMIT.trim().toLowerCase();
+            if (!/^[0-9a-f]{40}$/.test(sha)) {
+              throw new Error('A complete 40-character commit SHA is required.');
+            }
+            const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+              ...context.repo,
+              workflow_id: 'ci.yml',
+              head_sha: sha,
+              branch: 'main',
+              status: 'success',
+              per_page: 100,
+            });
+            const run = runs.find((candidate) =>
+              candidate.head_sha === sha &&
+              candidate.head_branch === 'main' &&
+              candidate.head_repository?.full_name === `${context.repo.owner}/${context.repo.repo}` &&
+              ['push', 'workflow_dispatch'].includes(candidate.event)
+            );
+            if (!run) throw new Error('No successful complete CI run was found for this commit on main.');
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+              ...context.repo, run_id: run.id, per_page: 100,
+            });
+            if (!artifacts.some((artifact) => artifact.name === 'web-dist' && !artifact.expired)) {
+              throw new Error('The tested web-dist artifact is unavailable. Rerun CI before deployment.');
+            }
+            core.setOutput('run-id', String(run.id));
+            core.setOutput('commit', sha);
+            await core.summary.addHeading('Verified deployment')
+              .addRaw(`Commit: ${sha}\n\nCI: ${run.html_url}\n`).write();
+
+  prepare:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/configure-pages@v5
+      - name: Download exactly the build that passed CI
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: dist
+          run-id: ${{ needs.verify.outputs.run-id }}
+          github-token: ${{ github.token }}
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: [verify, prepare]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
