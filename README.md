@@ -1,12 +1,12 @@
 # Blot Workbench / 印迹工作台
 
-[English](README.en.md) · [GitHub 仓库](https://github.com/Gaoyuan-0423/blot-workbench) · [本地启动](#本地运行与开发) · [使用指南](docs/user-guide.md) · [问题反馈](https://github.com/Gaoyuan-0423/blot-workbench/issues)
+[English](README.en.md) · [在线演示](https://gaoyuan-0423.github.io/blot-workbench/) · [GitHub 仓库](https://github.com/Gaoyuan-0423/blot-workbench) · [使用指南](docs/user-guide.md) · [问题反馈](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
 面向实验室的 Western blot 项目工作台。先把多图整理、样本关系、人工检查和间隔后继续分析的流程做好，再验证真实图像定量。
 
 **当前版本：`0.1.0-alpha.1`，纯合成数据的网页演示。数值是固定合成图在预设区域下的示例测量，不会随 ROI 修改重新定量。当前不能导入真实 TIFF/PNG，也不能用于实验结论或论文中的定量。**
 
-**发布状态：公开 GitHub 仓库已建立，网页演示与 alpha 预发布仍待完成和核验。当前可按下文在本机运行。**
+**[打开在线演示](https://gaoyuan-0423.github.io/blot-workbench/)**，无需安装。版本日期：2026-10-10；版本归档与最终构建证据见 [alpha 预发布记录](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1)。也可按下文在本机运行。
 
 ![Blot Workbench 网页演示](docs/screenshots/app-home.jpg)
 
@@ -25,7 +25,7 @@
 
 ## 开始体验
 
-1. 按下方[本地运行说明](#本地运行与开发)启动网页，打开终端显示的本机地址；首次打开会载入内置示例。
+1. 打开[在线演示](https://gaoyuan-0423.github.io/blot-workbench/)；首次打开会载入内置示例。需要本机运行时，按下方[本地运行说明](#本地运行与开发)启动。
 2. 从项目概览进入一张图，检查 ROI、曝光、样本和内参关系。
 3. 修改一项 ROI 或配对，确认原有模拟结果被标记为需要重新处理；这一步不会运行真实定量。
 4. 保存并导出项目，刷新页面或重新导入，检查能否回到先前状态。
@@ -40,11 +40,11 @@
 
 真实 TIFF/PNG 解码与定量、已验证的高位深处理、自动条带识别、统计检验、正式发表组图、免疫荧光分析、桌面安装包和 Wisp Science 插件均未在此版本实现。它们在[路线图](docs/architecture.md)中单独列为后续工作。
 
-Windows 与 macOS 是目标平台；浏览器和系统的实际验证结果应查阅[验证记录](docs/validation.md)。没有记录的组合不视为已通过。
+已在 [M1 主线 CI](https://github.com/Gaoyuan-0423/blot-workbench/actions/runs/38060883807) 通过 18 项核心测试、12 项脚本测试，以及 Windows/macOS × Chrome/Edge 四个组合各 7 项端到端测试。这些检查验证演示流程，不验证科研定量准确性，也不覆盖未记录的浏览器组合。环境与提交见[验证记录](docs/validation.md)。
 
 ## 数据与方法
 
-演示的项目状态在浏览器中处理；应用没有账号或图像上传服务。目前页面由本机开发/预览服务器提供；未来若托管到 GitHub Pages，浏览器仍会向托管方请求静态资源。详见[隐私说明](docs/privacy.md)。
+演示的项目状态在浏览器中处理与保存；应用没有账号或图像上传服务。在线版本由 GitHub Pages 提供页面、脚本与合成示例，浏览器会向托管方请求这些静态资源。本地计算不等于访问页面时没有网络请求。详见[隐私说明](docs/privacy.md)。
 
 修改 ROI、配对或分析参数后，旧模拟数值不能继续作为当前结果。模板更新不会悄悄重写旧分析快照。当前版本主要用于讨论这些交互与数据关系，算法正确性和真实图像可靠性需要另外验证。[方法说明](docs/methods.md)
 
@@ -76,4 +76,4 @@ npm run test:e2e
 
 软件采用 [MIT 许可证](LICENSE)。使用或讨论此演示时请引用具体版本；[CITATION.cff](CITATION.cff)提供元数据。项目目前没有软件论文或 DOI，开源、自动化与项目保存也不被主张为独有创新。相关工具见[方法说明](docs/methods.md#相关工作)。
 
-[更新记录](CHANGELOG.md) · [本版本说明草稿](docs/releases/v0.1.0-alpha.1.md) · [发布准备](docs/publishing-plan.md) · [文档目录](docs/README.md)
+[更新记录](CHANGELOG.md) · [本版本说明](docs/releases/v0.1.0-alpha.1.md) · [发布记录与复现](docs/publishing-plan.md) · [文档目录](docs/README.md)

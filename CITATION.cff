@@ -5,8 +5,9 @@ type: software
 authors:
   - name: "Gaoyuan"
 repository-code: "https://github.com/Gaoyuan-0423/blot-workbench"
-url: "https://github.com/Gaoyuan-0423/blot-workbench"
+url: "https://gaoyuan-0423.github.io/blot-workbench/"
 version: "0.1.0-alpha.1"
+date-released: "2026-10-10"
 license: MIT
 abstract: >-
   A browser-based Western blot workflow demonstration using synthetic images

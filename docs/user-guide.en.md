@@ -4,7 +4,7 @@ Applies to `0.1.0-alpha.1`. All images and numbers are synthetic demonstration m
 
 ## 1. Open a project
 
-Start the local server as described in the [README](../README.en.md#local-use-and-development) and open its printed address. No hosted demo is available. On first opening, the page loads the built-in example; on later visits it attempts to restore the current workspace. Use **Open project** to import a `.wbproj.zip` archive exported by this version. **Project import does not support arbitrary TIFF/PNG images.**
+Open the [live demo](https://gaoyuan-0423.github.io/blot-workbench/) without installing software, or follow the [README](../README.en.md#local-use-and-development) to run it locally. On first opening, the page loads the built-in example; on later visits it attempts to restore the current workspace. Use **Open project** to import a `.wbproj.zip` archive exported by this version. **Project import does not support arbitrary TIFF/PNG images.**
 
 Only one workspace is stored in the browser. Creating a project, loading the example, or importing another project replaces it. Use **Export project** first to preserve your work. An empty project demonstrates the entry point; real images cannot yet be added.
 
@@ -56,7 +56,7 @@ Export a project archive for long-term backup and migration. The archive preserv
 
 Return to the same origin in the same browser to inspect the restored project, selected image, and analysis status, or import an exported archive. Start by reviewing outstanding and stale items and notes.
 
-Browser storage is tied to the browser and site origin. Private browsing, clearing site data, or changing browsers or domains can make previous work unavailable. Use an archive for migration and backup.
+Browser storage is tied to the browser and site origin. The hosted demo and a local server have separate storage and do not synchronize automatically. Private browsing, clearing site data, or changing browsers or domains can make previous work unavailable. Use an archive for migration and backup.
 
 ## Report a problem
 
