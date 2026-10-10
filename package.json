@@ -5,6 +5,12 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
+    "reviewer:dev": "tsx reviewer/server/index.ts",
+    "reviewer:build": "tsc -p reviewer/tsconfig.json && vite build --config reviewer/vite.config.ts",
+    "reviewer:start": "tsx reviewer/server/index.ts --production",
+    "reviewer:test": "vitest run --config reviewer/vitest.config.ts",
+    "reviewer:e2e": "playwright test --config reviewer/playwright.config.ts",
+    "reviewer:evaluate": "tsx reviewer/scripts/evaluate.ts",
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 127.0.0.1",

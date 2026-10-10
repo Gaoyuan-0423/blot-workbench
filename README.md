@@ -1,5 +1,17 @@
 # Blot Workbench / 印迹工作台
 
+## BlotLens：真实截图趋势核对（本机子应用）
+
+新增独立子应用 [BlotLens](reviewer/README.md)，支持截图粘贴／导入、整图或框选区域 AI 识别、可编辑取样框、本地灰度测量、内参与对照归一化，以及 PNG/SVG/CSV/可复算 JSON 导出。包含撤销、多选、键盘微调、补框、背景处理切换及可自定义的柱状图配色。
+
+```sh
+npm ci
+npm run reviewer:dev
+```
+
+默认地址为 `http://127.0.0.1:4317`。识别时图片发送到用户配置的视觉服务，密钥仅保留在本机服务内存；无 API 也可使用合成示例或人工取样。该 Node 子应用需要本机启动，与下方 GitHub Pages 合成演示入口分开。它只辅助截图趋势核对，不生成 P 值或自动判断论文结论。见 [方法与限制](reviewer/docs/methods.md) 和 [验证记录](reviewer/docs/browser-validation.md)。
+
+
 [English](README.en.md) · [在线演示](https://gaoyuan-0423.github.io/blot-workbench/) · [GitHub 仓库](https://github.com/Gaoyuan-0423/blot-workbench) · [使用指南](docs/user-guide.md) · [问题反馈](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
 面向实验室的 Western blot 项目工作台。先把多图整理、样本关系、人工检查和间隔后继续分析的流程做好，再验证真实图像定量。

@@ -1,5 +1,12 @@
 # Blot Workbench / 印迹工作台
 
+## BlotLens: local screenshot trend reviewer
+
+The independent [BlotLens application](reviewer/README.md) accepts real PNG/JPEG screenshots, obtains editable layouts from a configurable vision service, measures original pixels locally, and exports charts, CSV and reproducible analysis files. It supports region recognition, manual ROI correction, undo, background modes and customizable chart colors.
+
+Run `npm ci` and `npm run reviewer:dev`, then open `http://127.0.0.1:4317`. This Node application runs locally, separately from the GitHub Pages synthetic demo below. Recognition sends the selected input to the configured provider; manual analysis and the synthetic example require no cloud call. Results support trend inspection, not statistical inference or automated verdicts about a paper. See [methods](reviewer/docs/methods.md) and [validation](reviewer/docs/browser-validation.md).
+
+
 [中文](README.md) · [Live demo](https://gaoyuan-0423.github.io/blot-workbench/) · [GitHub repository](https://github.com/Gaoyuan-0423/blot-workbench) · [User guide](docs/user-guide.en.md) · [Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
 A Western blot project workbench for laboratories. The first step is to make image organization, sample relationships, review, and returning to unfinished work easier, before validating experimental-image quantification.
