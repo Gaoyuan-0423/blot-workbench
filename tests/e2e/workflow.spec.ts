@@ -231,13 +231,14 @@ test("invalid archives preserve current project and empty projects round-trip", 
 
 test("project actions make no network requests and emit no application errors", async ({
   page,
+  baseURL,
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   const external: string[] = [];
   page.on("request", (request) => {
     if (
-      !request.url().startsWith("http://127.0.0.1:4173/") &&
+      !request.url().startsWith(`${baseURL}/`) &&
       !request.url().startsWith("data:")
     )
       external.push(request.url());

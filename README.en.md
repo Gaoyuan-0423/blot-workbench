@@ -1,5 +1,14 @@
 # Blot Workbench / 印迹工作台
 
+## BlotLens: an independent project embedded in the workbench
+
+The independent public MIT [BlotLens project](https://github.com/Gaoyuan-0423/blotlens) accepts real PNG/JPEG screenshots, obtains editable layouts from a configurable vision service, measures original pixels locally, and exports charts, CSV and reproducible analysis files. It supports region recognition, manual ROI correction, undo, background modes and customizable chart colors. The workbench pins its source through the `reviewer` Git submodule.
+
+Clone with `git clone --recurse-submodules https://github.com/Gaoyuan-0423/blot-workbench.git` (existing clones: `git submodule update --init --recursive`), then run `npm ci` and `npm run dev`. Open `http://127.0.0.1:4316` and select Screenshot review in the sidebar. Navigation preserves the analysis; export its JSON separately before refreshing, since the experiment project archive does not contain it. `npm run reviewer:dev` still opens the standalone app on port 4317.
+
+Recognition sends the selected image to the configured provider; manual analysis and the synthetic example require no cloud call. Static builds also include the embedded reviewer, but AI requires the local Node service. Results support trend inspection, not statistical inference or automated verdicts about a paper. See [integration](docs/blotlens-integration.md), [methods](https://github.com/Gaoyuan-0423/blotlens/blob/b20ec340701ca35a33956c9e2ed1590ea7cedaf3/docs/methods.md) and [validation](https://github.com/Gaoyuan-0423/blotlens/blob/b20ec340701ca35a33956c9e2ed1590ea7cedaf3/docs/browser-validation.md). The alpha limitations below describe the original experiment-project demo.
+
+
 [中文](README.md) · [Live demo](https://gaoyuan-0423.github.io/blot-workbench/) · [GitHub repository](https://github.com/Gaoyuan-0423/blot-workbench) · [User guide](docs/user-guide.en.md) · [Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
 A Western blot project workbench for laboratories. The first step is to make image organization, sample relationships, review, and returning to unfinished work easier, before validating experimental-image quantification.
@@ -57,7 +66,7 @@ npm ci
 npm run dev
 ```
 
-The development server listens on the local machine. Open the address printed in the terminal, usually `http://127.0.0.1:5173`, and press `Ctrl+C` to stop. Opening `index.html` directly is not a substitute for the server.
+The development server listens on the local machine. Open the address printed in the terminal, usually `http://127.0.0.1:4316`, and press `Ctrl+C` to stop. Opening `index.html` directly is not a substitute for the server.
 
 Build and verification commands:
 

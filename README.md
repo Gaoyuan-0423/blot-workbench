@@ -1,5 +1,21 @@
 # Blot Workbench / 印迹工作台
 
+## BlotLens：独立项目，工作台内直接使用
+
+独立的公开 MIT 项目 [BlotLens](https://github.com/Gaoyuan-0423/blotlens) 支持截图粘贴／导入、整图或框选区域 AI 识别、可编辑取样框、本地灰度测量、内参与对照归一化，以及 PNG/SVG/CSV/可复算 JSON 导出。包含撤销、多选、键盘微调、补框、背景处理切换及可自定义的柱状图配色。工作台通过 `reviewer` Git 子模块引用固定提交，复用同一套代码。
+
+```sh
+git clone --recurse-submodules https://github.com/Gaoyuan-0423/blot-workbench.git
+cd blot-workbench
+npm ci
+npm run dev
+```
+
+默认打开 `http://127.0.0.1:4316`，点击侧栏「截图趋势核对」，从工作台导入截图后在页面内识别、改框和导出。切换工作台页面会保留分析；刷新前需单独导出分析 JSON，工作台项目包不包含截图分析。已有克隆先运行 `git submodule update --init --recursive`。独立启动仍可用 `npm run reviewer:dev`（4317）；也可以直接克隆 BlotLens 仓库。
+
+识别时图片发送到用户配置的视觉服务，密钥仅保留在本机服务内存；无 API 也可使用合成示例或人工取样。静态构建也包含内嵌入口，支持手工分析，AI 需要本机 Node 服务。它只辅助截图趋势核对，不生成 P 值或自动判断论文结论。见 [集成说明](docs/blotlens-integration.md)、[方法与限制](https://github.com/Gaoyuan-0423/blotlens/blob/b20ec340701ca35a33956c9e2ed1590ea7cedaf3/docs/methods.md) 和 [验证记录](https://github.com/Gaoyuan-0423/blotlens/blob/b20ec340701ca35a33956c9e2ed1590ea7cedaf3/docs/browser-validation.md)。下文的 alpha 版本边界特指原实验项目演示流程。
+
+
 [English](README.en.md) · [在线演示](https://gaoyuan-0423.github.io/blot-workbench/) · [GitHub 仓库](https://github.com/Gaoyuan-0423/blot-workbench) · [使用指南](docs/user-guide.md) · [问题反馈](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
 面向实验室的 Western blot 项目工作台。先把多图整理、样本关系、人工检查和间隔后继续分析的流程做好，再验证真实图像定量。
@@ -57,7 +73,7 @@ npm ci
 npm run dev
 ```
 
-开发服务器仅监听本机。打开终端打印的地址，通常为 `http://127.0.0.1:5173`；结束时按 `Ctrl+C`。不要通过双击 `index.html` 代替开发服务器。
+开发服务器仅监听本机。打开终端打印的地址，通常为 `http://127.0.0.1:4316`；结束时按 `Ctrl+C`。不要通过双击 `index.html` 代替开发服务器。
 
 构建与检查命令：
 
