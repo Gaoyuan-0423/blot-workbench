@@ -83,6 +83,25 @@ test('license inventory preserves available text and labels missing information 
 });
 
 
+test('workspace source licenses are collected once and undeclared paths remain rejected', async (t) => {
+  const root = await fixture(t);
+  const lockPath = join(root, 'package-lock.json');
+  const lock = JSON.parse(await readFile(lockPath, 'utf8'));
+  lock.packages[''].workspaces = ['reviewer'];
+  lock.packages.reviewer = { name: 'blotlens', version: '0.1.0', license: 'MIT' };
+  lock.packages['node_modules/blotlens'] = { resolved: 'reviewer', link: true };
+  await mkdir(join(root, 'reviewer'));
+  await writeFile(join(root, 'reviewer/package.json'), JSON.stringify(lock.packages.reviewer));
+  await writeFile(join(root, 'reviewer/LICENSE'), 'Workspace MIT license fixture.');
+  await writeFile(lockPath, JSON.stringify(lock));
+  const notices = await generateNotices({ root });
+  assert.equal(notices.match(/blotlens@0.1.0/g)?.length, 1);
+  assert.match(notices, /Workspace MIT license fixture/);
+  lock.packages['unlisted-source'] = {};
+  await writeFile(lockPath, JSON.stringify(lock));
+  await assert.rejects(generateNotices({ root }), /Unsupported dependency path/);
+});
+
 test('web packages preserve documentation and public example paths used by README links', async (t) => {
   const root = await fixture(t);
   await mkdir(join(root, 'public/examples'), {recursive:true});

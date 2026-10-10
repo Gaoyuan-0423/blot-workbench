@@ -13,6 +13,7 @@ export async function generateNotices({ root = process.cwd(), includeDev = false
   const lockText = await readFile(resolve(root, 'package-lock.json'), 'utf8');
   const lock = JSON.parse(lockText);
   if (!lock.packages) throw new Error('A package-lock.json with a packages inventory is required.');
+  const workspaces = new Set(lock.packages['']?.workspaces ?? []);
   const lines = [
     'THIRD-PARTY NOTICES', '',
     `Project: ${lock.name ?? 'blot-workbench'} ${lock.version ?? ''}`,
@@ -24,7 +25,11 @@ export async function generateNotices({ root = process.cwd(), includeDev = false
   ];
   for (const [packagePath, entry] of Object.entries(lock.packages).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) {
     if (!packagePath || (!includeDev && entry.dev === true)) continue;
-    if (!packagePath.startsWith('node_modules/') || packagePath.split('/').includes('..')) throw new Error(`Unsupported dependency path: ${packagePath}`);
+    // A workspace is listed twice: its source directory and its node_modules link.
+    // Read the declared source once, including its own LICENSE file.
+    if (entry.link === true && workspaces.has(entry.resolved)) continue;
+    const workspace = workspaces.has(packagePath) && /^[a-zA-Z0-9@._/-]+$/.test(packagePath) && !packagePath.startsWith('/');
+    if ((!packagePath.startsWith('node_modules/') && !workspace) || packagePath.split('/').includes('..')) throw new Error(`Unsupported dependency path: ${packagePath}`);
     const directory = resolve(root, packagePath);
     let manifest = null;
     try { manifest = JSON.parse(await readFile(resolve(directory, 'package.json'), 'utf8')); }
