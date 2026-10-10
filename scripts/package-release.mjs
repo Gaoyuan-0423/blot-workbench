@@ -47,10 +47,12 @@ export async function packageRelease({ root = process.cwd(), outputDir = '.relea
   if (!exampleDirectory) throw new Error('Expected examples/ or public/examples/ containing the release examples.');
   await addDirectory(resolve(root, exampleDirectory), exampleDirectory);
   if (!Object.keys(files).some((path) => path.startsWith(`${exampleDirectory}/`))) throw new Error('The release examples directory is empty.');
-  try { await addDirectory(resolve(root, 'docs'), 'docs'); }
-  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  for (const directory of ['docs', '.github/ISSUE_TEMPLATE']) {
+    try { await addDirectory(resolve(root, directory), directory); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+  }
   for (const file of ['README.md', 'LICENSE']) await addFile(resolve(root, file), file);
-  for (const file of ['README.en.md', 'README.zh-CN.md', 'CHANGELOG.md', 'CITATION.cff', 'DISTRIBUTION.md']) {
+  for (const file of ['README.en.md', 'README.zh-CN.md', 'CHANGELOG.md', 'CITATION.cff', 'DISTRIBUTION.md', 'CONTRIBUTING.md']) {
     try { await addFile(resolve(root, file), file); }
     catch (error) { if (error.code !== 'ENOENT') throw error; }
   }
