@@ -1,10 +1,10 @@
 name: BlotLens reviewer
 on:
   pull_request:
-    paths: ["reviewer/**", "package*.json", ".github/workflows/reviewer.yml"]
+    paths: ["reviewer", ".gitmodules", "reviewer/**", "package*.json", ".github/workflows/reviewer.yml"]
   push:
     branches: [main]
-    paths: ["reviewer/**", "package*.json", ".github/workflows/reviewer.yml"]
+    paths: ["reviewer", ".gitmodules", "reviewer/**", "package*.json", ".github/workflows/reviewer.yml"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,6 +16,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          submodules: recursive
       - uses: actions/setup-node@v4
         with:
           node-version: 22

@@ -1,3 +1,4 @@
+import { BlotLensPanel } from "./BlotLensPanel";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ArrowRight,
@@ -70,6 +71,9 @@ function download(blob: Blob, name: string) {
 }
 function App() {
   const [project, setProject] = useState<Project | null>(null);
+  const [reviewerOpen, setReviewerOpen] = useState(false);
+  const [reviewerMounted, setReviewerMounted] = useState(false);
+  const openReviewer = () => { setReviewerMounted(true); setReviewerOpen(true); };
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [saveState, setSaveState] = useState<"saving" | "saved" | "error">(
@@ -217,7 +221,7 @@ function App() {
   }, [modal]);
   const ui = (patch: Partial<Project["ui"]>) =>
     mutate((p) => ({ ...p, ui: { ...p.ui, ...patch } }));
-  const changeView = (view: View) => ui({ view });
+  const changeView = (view: View) => { setReviewerOpen(false); ui({ view }); };
   const openImage = (id: string) => {
     ui({ view: "analysis", selectedImageId: id });
     setSelectedRoi("");
@@ -373,7 +377,7 @@ function App() {
           {nav.map((n) => (
             <button
               key={n.view}
-              className={`nav-item ${activeView === n.view ? "active" : ""}`}
+              className={`nav-item ${!reviewerOpen && activeView === n.view ? "active" : ""}`}
               onClick={() => changeView(n.view)}
             >
               <n.icon size={18} />
@@ -381,6 +385,9 @@ function App() {
               {n.count && <small>{n.count}</small>}
             </button>
           ))}
+          <button className={`nav-item ${reviewerOpen ? "active" : ""}`} onClick={openReviewer}>
+            <FileImage size={18} /><span>{t("截图趋势核对", "Screenshot review")}</span><small>BlotLens</small>
+          </button>
         </nav>
         <div className="sidebar-divider" />
         <div className="workspace-label row-between">
@@ -407,8 +414,8 @@ function App() {
         <div className="sidebar-bottom">
           <div className="local-note">
             <ShieldCheck size={18} />
-            <strong>{t("数据留在你的设备", "Your data stays here")}</strong>
-            <p>{t("无需账号 · 无图片上传", "No account. No image uploads.")}</p>
+            <strong>{t("本地工作空间", "Local workspace")}</strong>
+            <p>{t("项目在本机 · AI 识别需上传选图", "Local projects. AI uploads selected images.")}</p>
           </div>
           <button className="nav-item" onClick={() => setModal("help")}>
             <BookOpen size={17} />
@@ -431,10 +438,10 @@ function App() {
             <Folder size={16} />
             <span className="crumb-project">{project.name}</span>
             <ChevronRight size={13} />
-            <strong>{viewLabel[activeView]}</strong>
+            <strong>{reviewerOpen ? "BlotLens" : viewLabel[activeView]}</strong>
           </div>
           <div className="top-actions">
-            <span className={`save-status ${displayedSaveState}`} role="status">
+            <span hidden={reviewerOpen} className={`save-status ${displayedSaveState}`} role="status">
               {displayedSaveState === "saved" ? (
                 <Check size={13} />
               ) : displayedSaveState === "saving" ? (
@@ -468,7 +475,7 @@ function App() {
             </button>
           </div>
         </header>
-        <div className="demo-banner">
+        <div className="demo-banner" hidden={reviewerOpen}>
           <span className="demo-pill">DEMO</span>
           <span>
             {t(
@@ -494,7 +501,8 @@ function App() {
             </button>
           </div>
         )}
-        <main>
+        {reviewerMounted && <BlotLensPanel active={reviewerOpen} english={project.ui.language === "en"} />}
+        <main hidden={reviewerOpen}>
           <div className="page-heading">
             <div>
               <div className="eyebrow">
@@ -527,6 +535,7 @@ function App() {
               </p>
             </div>
             <div className="heading-actions">
+              {button(<><FileImage size={16} />{t("截图趋势核对", "Screenshot review")}</>, openReviewer)}
               {button(
                 <>
                   <ArrowUpFromLine size={16} />

@@ -5,21 +5,22 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "reviewer:dev": "tsx reviewer/server/index.ts",
-    "reviewer:build": "tsc -p reviewer/tsconfig.json && vite build --config reviewer/vite.config.ts",
-    "reviewer:start": "tsx reviewer/server/index.ts --production",
-    "reviewer:test": "vitest run --config reviewer/vitest.config.ts",
-    "reviewer:e2e": "playwright test --config reviewer/playwright.config.ts",
-    "reviewer:evaluate": "tsx reviewer/scripts/evaluate.ts",
-    "dev": "vite --host 127.0.0.1",
-    "build": "tsc -b && vite build",
+    "reviewer:dev": "npm run dev --workspace blotlens",
+    "reviewer:build": "npm run build --workspace blotlens",
+    "reviewer:start": "npm run start --workspace blotlens",
+    "reviewer:test": "npm run test --workspace blotlens",
+    "reviewer:e2e": "npm run test:e2e --workspace blotlens",
+    "reviewer:evaluate": "npm run evaluate --workspace blotlens",
+    "dev": "tsx scripts/local-workbench.ts",
+    "build": "tsc -b && vite build && npm run reviewer:build && node scripts/copy-blotlens.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "check": "npm run test && npm run build",
     "examples": "tsx scripts/generate-examples.ts",
     "test:scripts": "node --test scripts/*.check.mjs",
-    "format": "prettier --write src tests scripts/generate-examples.ts *.ts"
+    "format": "prettier --write src tests scripts/generate-examples.ts *.ts",
+    "start": "tsx scripts/local-workbench.ts --production"
   },
   "dependencies": {
     "fflate": "0.8.3",
@@ -43,5 +44,8 @@
   },
   "engines": {
     "node": ">=22.12.0"
-  }
+  },
+  "workspaces": [
+    "reviewer"
+  ]
 }
