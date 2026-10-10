@@ -166,6 +166,9 @@ test("review notes, confirmation, CSV and project migration work across isolated
   await destination
     .getByLabel("Import project archive", { exact: true })
     .setInputFiles(path);
+  await destination
+    .getByRole("button", { name: "确认导入", exact: true })
+    .click();
   await expect(
     destination.getByRole("heading", { name: "结果与记录", exact: true }),
   ).toBeVisible();
@@ -220,6 +223,7 @@ test("invalid archives preserve current project and empty projects round-trip", 
   await page
     .getByLabel("Import project archive", { exact: true })
     .setInputFiles(path);
+  await page.getByRole("button", { name: "确认导入", exact: true }).click();
   await expect(
     page.getByRole("textbox", { name: "项目名称", exact: true }),
   ).toHaveValue("My multi-batch project");
@@ -254,4 +258,30 @@ test("project actions make no network requests and emit no application errors", 
   expect(external).toEqual([]);
   expect(operations).toEqual([]);
   expect(errors).toEqual([]);
+});
+
+test("unblurred notes and sample labels autosave before a direct refresh", async ({
+  page,
+}) => {
+  await ready(page);
+  await analysis(page);
+  await page
+    .getByRole("textbox", { name: "复核备注", exact: true })
+    .fill("Persist this without leaving the field");
+  await expect(page.locator(".save-status")).toContainText("正在保存");
+  await expect(page.locator(".save-status")).toContainText("已保存到本机");
+  await page.reload();
+  await expect(
+    page.getByRole("textbox", { name: "复核备注", exact: true }),
+  ).toHaveValue("Persist this without leaving the field");
+  await page.getByRole("button", { name: "样本与分组", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "sample-1 label", exact: true })
+    .fill("Renamed synthetic sample");
+  await expect(page.locator(".save-status")).toContainText("正在保存");
+  await expect(page.locator(".save-status")).toContainText("已保存到本机");
+  await page.reload();
+  await expect(
+    page.getByRole("textbox", { name: "sample-1 label", exact: true }),
+  ).toHaveValue("Renamed synthetic sample");
 });

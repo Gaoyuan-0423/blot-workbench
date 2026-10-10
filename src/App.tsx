@@ -76,9 +76,29 @@ function App() {
     "saving",
   );
   const [modal, setModal] = useState<
-    "new" | "template" | "help" | "example" | null
+    "new" | "template" | "help" | "example" | "import" | null
   >(null);
   const [name, setName] = useState("");
+  const [pendingImport, setPendingImport] = useState<Project | null>(null);
+  const [draftFields, setDraftFields] = useState<Set<string>>(new Set());
+  const draftDirty = (key: string, dirty: boolean) =>
+    setDraftFields((previous) => {
+      if (previous.has(key) === dirty) return previous;
+      const next = new Set(previous);
+      if (dirty) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  const displayedSaveState = draftFields.size ? "saving" : saveState;
+  useEffect(() => {
+    if (!project || (saveState === "saved" && !draftFields.size)) return;
+    const guard = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", guard);
+    return () => window.removeEventListener("beforeunload", guard);
+  }, [project, saveState, draftFields.size]);
   const [busy, setBusy] = useState(false);
   const [checked, setChecked] = useState<string[]>([]);
   const [selectedRoi, setSelectedRoi] = useState("");
@@ -154,6 +174,7 @@ function App() {
     if (!currentProject.current) return;
     try {
       const next = f(currentProject.current);
+      if (next !== currentProject.current) setSaveState("saving");
       currentProject.current = next;
       setProject(next);
     } catch (e) {
@@ -413,18 +434,18 @@ function App() {
             <strong>{viewLabel[activeView]}</strong>
           </div>
           <div className="top-actions">
-            <span className={`save-status ${saveState}`} role="status">
-              {saveState === "saved" ? (
+            <span className={`save-status ${displayedSaveState}`} role="status">
+              {displayedSaveState === "saved" ? (
                 <Check size={13} />
-              ) : saveState === "saving" ? (
+              ) : displayedSaveState === "saving" ? (
                 <LoaderCircle size={13} className="spin" />
               ) : (
                 <TriangleAlert size={13} />
               )}
               <span>
-                {saveState === "saved"
+                {displayedSaveState === "saved"
                   ? t("已保存到本机", "Saved locally")
-                  : saveState === "saving"
+                  : displayedSaveState === "saving"
                     ? t("正在保存", "Saving")
                     : t("保存失败", "Save failed")}
               </span>
@@ -536,9 +557,8 @@ function App() {
               if (f)
                 void run(async () => {
                   const next = await importProject(f);
-                  setProject(next);
-                  setChecked([]);
-                  setNotice(t("项目已导入", "Project imported"));
+                  setPendingImport(next);
+                  setModal("import");
                 });
               e.target.value = "";
             }}
@@ -618,14 +638,17 @@ function App() {
                   </div>
                   <label className="field-label">
                     {t("项目名称", "Project name")}
-                    <input
-                      aria-label={t("项目名称", "Project name")}
+                    <BufferedField
+                      label={t("项目名称", "Project name")}
                       className="project-title-input"
                       value={project.name}
-                      onChange={(e) =>
+                      maxLength={100}
+                      required
+                      onDirty={(dirty) => draftDirty("project-name", dirty)}
+                      onCommit={(name) =>
                         mutate((p) => ({
                           ...p,
-                          name: e.target.value.slice(0, 100),
+                          name,
                           updatedAt: new Date().toISOString(),
                         }))
                       }
@@ -998,7 +1021,10 @@ function App() {
                         )}
                       </div>
                     )}
-                    <ReviewNotes
+                    <BufferedField
+                      multiline
+                      maxLength={10000}
+                      onDirty={(dirty) => draftDirty(`note-${image.id}`, dirty)}
                       key={image.id}
                       value={analysis.note}
                       label={t("复核备注", "Review notes")}
@@ -1351,19 +1377,19 @@ function App() {
                             ] as const
                           ).map((k) => (
                             <td key={k}>
-                              <input
-                                aria-label={`${s.id} ${k}`}
-                                key={`${s.id}-${k}-${s[k]}`}
-                                defaultValue={s[k]}
+                              <BufferedField
+                                label={`${s.id} ${k}`}
+                                value={s[k]}
                                 maxLength={80}
-                                onBlur={(e) => {
-                                  const v = e.target.value.trim();
-                                  if (v && v !== s[k])
-                                    mutate((p) =>
-                                      updateSample(p, s.id, { [k]: v }),
-                                    );
-                                  else e.target.value = s[k];
-                                }}
+                                required
+                                onDirty={(dirty) =>
+                                  draftDirty(`${s.id}-${k}`, dirty)
+                                }
+                                onCommit={(value) =>
+                                  mutate((p) =>
+                                    updateSample(p, s.id, { [k]: value }),
+                                  )
+                                }
                               />
                             </td>
                           ))}
@@ -1665,6 +1691,49 @@ function App() {
             >
               <X size={20} />
             </button>
+            {modal === "import" && pendingImport && (
+              <>
+                <div className="modal-icon">
+                  <FileArchive size={26} />
+                </div>
+                <h2 id="modal-title">
+                  {t("替换当前工作区？", "Replace the current workspace?")}
+                </h2>
+                <p>
+                  {t(
+                    "项目包已通过校验。导入后会替换本机当前工作区；请先导出需要保留的项目。",
+                    "The archive passed validation. Importing replaces this browser's current workspace. Export the current project first if you need to keep it.",
+                  )}
+                </p>
+                <div className="info-note">{pendingImport.name}</div>
+                <div className="modal-actions">
+                  {button(<>{t("取消", "Cancel")}</>, () => {
+                    setModal(null);
+                    setPendingImport(null);
+                  })}
+                  {button(
+                    <>
+                      <FileArchive size={15} />
+                      {t("先导出当前项目", "Export current project")}
+                    </>,
+                    () => {
+                      void archive();
+                    },
+                  )}
+                  {button(
+                    <>{t("确认导入", "Import project")}</>,
+                    () => {
+                      setProject(pendingImport);
+                      setPendingImport(null);
+                      setChecked([]);
+                      setModal(null);
+                      setNotice(t("项目已导入", "Project imported"));
+                    },
+                    "button primary",
+                  )}
+                </div>
+              </>
+            )}
             {modal === "new" && (
               <>
                 <div className="modal-icon">
@@ -1935,31 +2004,67 @@ function App() {
     </div>
   );
 }
-function ReviewNotes({
+function BufferedField({
   value,
   label,
   placeholder,
   onCommit,
+  onDirty,
+  multiline = false,
+  required = false,
+  maxLength = 200,
+  className,
 }: {
   value: string;
   label: string;
-  placeholder: string;
-  onCommit: (note: string) => void;
+  placeholder?: string;
+  onCommit: (value: string) => void;
+  onDirty: (dirty: boolean) => void;
+  multiline?: boolean;
+  required?: boolean;
+  maxLength?: number;
+  className?: string;
 }) {
   const [draft, setDraft] = useState(value);
-  useEffect(() => setDraft(value), [value]);
-  return (
-    <textarea
-      aria-label={label}
-      placeholder={placeholder}
-      maxLength={10000}
-      value={draft}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={() => {
-        if (draft !== value) onCommit(draft);
-      }}
-    />
-  );
+  const callbacks = useRef({ onCommit, onDirty });
+  callbacks.current = { onCommit, onDirty };
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    setDraft(value);
+    callbacks.current.onDirty(false);
+  }, [value]);
+  useEffect(() => {
+    if (draft === value || (required && !draft.trim())) return;
+    timer.current = setTimeout(() => {
+      callbacks.current.onCommit(required ? draft.trim() : draft);
+      callbacks.current.onDirty(false);
+    }, 350);
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, [draft, value, required]);
+  useEffect(() => () => callbacks.current.onDirty(false), []);
+  const props = {
+    "aria-label": label,
+    placeholder,
+    maxLength,
+    className,
+    value: draft,
+    onChange: (
+      event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    ) => {
+      setDraft(event.target.value);
+      callbacks.current.onDirty(event.target.value !== value);
+    },
+    onBlur: () => {
+      if (timer.current) clearTimeout(timer.current);
+      const next = required ? draft.trim() : draft;
+      if (required && !next) setDraft(value);
+      else if (next !== value) callbacks.current.onCommit(next);
+      callbacks.current.onDirty(false);
+    },
+  };
+  return multiline ? <textarea {...props} /> : <input {...props} />;
 }
 function Empty({
   t,
