@@ -1,12 +1,12 @@
 # Blot Workbench / 印迹工作台
 
-[中文](README.md) · [GitHub repository](https://github.com/Gaoyuan-0423/blot-workbench) · [Run locally](#local-use-and-development) · [User guide](docs/user-guide.en.md) · [Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues)
+[中文](README.md) · [Live demo](https://gaoyuan-0423.github.io/blot-workbench/) · [GitHub repository](https://github.com/Gaoyuan-0423/blot-workbench) · [User guide](docs/user-guide.en.md) · [Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
 A Western blot project workbench for laboratories. The first step is to make image organization, sample relationships, review, and returning to unfinished work easier, before validating experimental-image quantification.
 
 **Version `0.1.0-alpha.1` is a browser demonstration with synthetic data. Numbers are fixed example measurements for the synthetic images and their preset regions; edits do not run fresh quantification. Real TIFF/PNG import is not implemented. This version must not be used for experimental conclusions or publication quantification.**
 
-**Publication status: the public GitHub repository exists. The hosted demo and alpha prerelease still await completion and verification. Run the current version locally as described below.**
+**[Open the live demo](https://gaoyuan-0423.github.io/blot-workbench/)** without installing software. Version date: 2026-10-10. See the [alpha prerelease record](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1) for the version archive and final build evidence. Local startup instructions are also available below.
 
 ![Blot Workbench browser demonstration](docs/screenshots/app-home.jpg)
 
@@ -25,7 +25,7 @@ The demonstration contains **8 synthetic images, 2 batches, a target and referen
 
 ## Try the workflow
 
-1. Follow [local startup](#local-use-and-development), then open the local address printed by the terminal. The first visit loads the built-in example.
+1. Open the [live demo](https://gaoyuan-0423.github.io/blot-workbench/). The first visit loads the built-in example. To run it on your own machine, follow [local startup](#local-use-and-development).
 2. Select an image and review ROIs, exposure, sample assignments, and reference pairing.
 3. Change an ROI or a pairing and inspect the resulting stale state. This does not trigger scientific quantification.
 4. Save and export the project, then reload the page or import the archive to inspect recovery.
@@ -40,11 +40,11 @@ Browser storage holds one current workspace. Creating a project, loading the exa
 
 Real TIFF/PNG import and quantification, validated high-bit-depth processing, automatic band detection, statistical tests, publication figure composition, immunofluorescence analysis, desktop installers, and Wisp Science integration are future work. See the [architecture and roadmap](docs/architecture.md).
 
-Windows and macOS are target platforms. Only combinations with recorded evidence in the [validation record](docs/validation.md) should be considered tested.
+The [M1 main-branch CI run](https://github.com/Gaoyuan-0423/blot-workbench/actions/runs/38060883807) passed 18 core tests, 12 script tests, and 7 end-to-end tests in each of four combinations: Windows/macOS × Chrome/Edge. These checks cover the demonstration workflow, not scientific quantification accuracy or unrecorded browsers. See the [validation record](docs/validation.md) for environments and commits.
 
 ## Data and methods
 
-Project state is processed in the browser. There is no account or image-upload service. The current page is served by a local development/preview server. A future GitHub Pages deployment would still request static assets from the hosting provider. See [privacy](docs/privacy.md).
+Project state is processed and saved in the browser. There is no account or image-upload service. GitHub Pages serves the online page, scripts, and synthetic examples, so the browser requests those static assets from the hosting provider. Local computation does not mean that visiting the page makes no network requests. See [privacy](docs/privacy.md).
 
 Changes to ROIs, pairing, or analysis parameters must invalidate prior illustrative results. Updating a template must not silently alter an existing analysis snapshot. This version supports discussion of these workflow and data-model decisions; numerical correctness and experimental-image reliability require separate validation. See [methods](docs/methods.md).
 
@@ -76,4 +76,4 @@ We welcome reproducible reports about the workflow, recovery, and terminology th
 
 The software is distributed under the [MIT license](LICENSE). Cite the exact version using [CITATION.cff](CITATION.cff). There is no software paper or DOI at present. Open source, automation, and project saving are not claimed as unique innovations; related tools are linked in [methods](docs/methods.md#相关工作).
 
-[Changelog](CHANGELOG.md) · [Draft release notes](docs/releases/v0.1.0-alpha.1.md) · [Publication preparation](docs/publishing-plan.md) · [Documentation index](docs/README.md)
+[Changelog](CHANGELOG.md) · [Release notes](docs/releases/v0.1.0-alpha.1.md) · [Publication and reproducibility](docs/publishing-plan.md) · [Documentation index](docs/README.md)

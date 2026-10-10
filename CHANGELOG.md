@@ -1,8 +1,8 @@
 # Changelog
 
-The [public repository](https://github.com/Gaoyuan-0423/blot-workbench) exists. The alpha release and hosted deployment remain pending verification. Validation claims belong in [the validation record](docs/validation.md).
+The [public repository](https://github.com/Gaoyuan-0423/blot-workbench) and [live demo](https://gaoyuan-0423.github.io/blot-workbench/) are available. See [the prerelease record](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1) for the version archive and final build evidence, and [the validation record](docs/validation.md) for test scope and limitations.
 
-## 0.1.0-alpha.1 — Unreleased
+## 0.1.0-alpha.1 — 2026-10-10 (alpha)
 
 Initial synthetic-data browser workflow demonstration.
 
@@ -15,18 +15,18 @@ Initial synthetic-data browser workflow demonstration.
 - Chinese/English interface and introductory documentation.
 - MIT license, citation metadata, contribution guidance, and explicit validation boundaries.
 
-### Pre-release fixes
+### Workflow safeguards
 
 - Commit notes, sample names, and project names after a typing pause, without requiring focus to leave the input.
 - Show pending input/storage work as **Saving** and request a browser confirmation before leaving with unsaved work.
 - Restore the previous valid value when a required field is left blank and loses focus.
 - Validate project archives before showing an explicit workspace-replacement confirmation, with options to export the current project or cancel.
 
-Validation evidence is tied to each recorded source commit; see [the validation record](docs/validation.md) for the tested behavior and environments.
+The [M1 main-branch CI run](https://github.com/Gaoyuan-0423/blot-workbench/actions/runs/38060883807) passed 18 core tests, 12 script tests, and 7 end-to-end tests in each Windows/macOS × Chrome/Edge combination. Evidence is tied to each recorded source commit; see [the validation record](docs/validation.md) for the tested behavior and environments.
 
 ### Limitations
 
 - No real TIFF/PNG import or scientific image quantification.
 - No inferential statistics, publication figure builder, IF analysis, desktop installer, or Wisp plugin.
 - Quality labels and numerical outputs are fixtures, not algorithmic findings.
-- Platform coverage requires recorded test evidence; target platforms are not automatically validated platforms.
+- Recorded platform coverage applies to the tested workflow and environments, not all browser/system versions or scientific quantification.
