@@ -4,7 +4,7 @@
 
 ## 反馈前
 
-先查看 [README](README.md) 和[演示边界](docs/demo-boundary.md)。真实图像导入与定量未实现，不要把预置演示值用于评价算法误差。当前尚未创建远端仓库；`.github/` 下的 issue/PR 模板是待发布材料，可先用于整理本地反馈。请提供版本、系统、浏览器和最短复现步骤；尽可能使用内置示例。
+先查看 [README](README.md) 和[演示边界](docs/demo-boundary.md)。真实图像导入与定量未实现，不要把预置演示值用于评价算法误差。使用 [GitHub Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues) 和 `.github/` 下的 issue/PR 模板整理反馈。请提供版本、系统、浏览器和最短复现步骤；尽可能使用内置示例。
 
 不要提交未获授权的原始图像、样本标识、凭据或本机路径。公开 issue 和 PR 会被他人看到。外部数据应先确认共享范围与许可证，再讨论引入方式。
 
@@ -26,4 +26,4 @@
 
 ## English
 
-The remote repository has not been created. Issue/PR templates are publication-preparation materials and can be used to organize local feedback. Prefer the built-in synthetic example for reproduction and include exact versions and environments. Do not post unpublished data, credentials, private identifiers, or third-party assets without permission. Discuss substantial changes first, keep patches focused, and report tests actually run. Changes to methods, schema, or languages require corresponding documentation. Preserve older analysis snapshots and describe migrations. Contributions must be yours to share under MIT; dependencies retain their own licenses. Never present a planned feature or an unexecuted test as complete.
+Use [GitHub Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues) and the issue/PR templates to organize feedback. Prefer the built-in synthetic example for reproduction and include exact versions and environments. Do not post unpublished data, credentials, private identifiers, or third-party assets without permission. Discuss substantial changes first, keep patches focused, and report tests actually run. Changes to methods, schema, or languages require corresponding documentation. Preserve older analysis snapshots and describe migrations. Contributions must be yours to share under MIT; dependencies retain their own licenses. Never present a planned feature or an unexecuted test as complete.

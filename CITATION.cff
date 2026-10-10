@@ -1,13 +1,15 @@
 cff-version: 1.2.0
-message: "Unpublished local alpha. If you discuss or reuse it, identify the exact version and commit and describe it as a synthetic-data workflow demonstration."
+message: "If you discuss or reuse this alpha, identify the exact version and commit and describe it as a synthetic-data workflow demonstration."
 title: "Blot Workbench / 印迹工作台"
 type: software
 authors:
   - name: "Gaoyuan"
+repository-code: "https://github.com/Gaoyuan-0423/blot-workbench"
+url: "https://github.com/Gaoyuan-0423/blot-workbench"
 version: "0.1.0-alpha.1"
 license: MIT
 abstract: >-
-  An unpublished local browser-based Western blot workflow demonstration using synthetic images
+  A browser-based Western blot workflow demonstration using synthetic images
   and preset illustrative results. This alpha explores project organization,
   sample identity, ROI review, parameter snapshots, and resumable work.
   It is not a validated tool for quantifying experimental images.

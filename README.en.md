@@ -1,14 +1,14 @@
 # Blot Workbench / 印迹工作台
 
-[中文](README.md) · [Run locally](#local-use-and-development) · [User guide](docs/user-guide.en.md) · [Feedback and contributions](CONTRIBUTING.md)
+[中文](README.md) · [GitHub repository](https://github.com/Gaoyuan-0423/blot-workbench) · [Run locally](#local-use-and-development) · [User guide](docs/user-guide.en.md) · [Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
 A Western blot project workbench for laboratories. The first step is to make image organization, sample relationships, review, and returning to unfinished work easier, before validating experimental-image quantification.
 
 **Version `0.1.0-alpha.1` is a browser demonstration with synthetic data. Numbers are fixed example measurements for the synthetic images and their preset regions; edits do not run fresh quantification. Real TIFF/PNG import is not implemented. This version must not be used for experimental conclusions or publication quantification.**
 
-**Publication status: the public repository, browser demo, and alpha prerelease are being prepared. Verified live destinations will be added after publication checks. You can run the current version locally as described below.**
+**Publication status: the public GitHub repository exists. The hosted demo and alpha prerelease still await completion and verification. Run the current version locally as described below.**
 
-![Blot Workbench browser demonstration](docs/screenshots/app-home.png)
+![Blot Workbench browser demonstration](docs/screenshots/app-home.jpg)
 
 See the [screenshot record](docs/screenshots/README.md) for version and environment evidence. A screenshot is not evidence of algorithm accuracy or cross-platform compatibility.
 
@@ -31,6 +31,8 @@ The demonstration contains **8 synthetic images, 2 batches, a target and referen
 4. Save and export the project, then reload the page or import the archive to inspect recovery.
 
 Download the [example project](public/examples/example.wbproj.zip), [illustrative results CSV](public/examples/example-results.csv), and [example manifest](public/examples/manifest.json). All examples are synthetic; see their provenance and limitations in [demo boundaries](docs/demo-boundary.md).
+
+The archive starts with unreviewed analyses. The example CSV is the expected output after confirming all 7 eligible images: 3 target/reference pairs × 6 samples = 18 rows. The saturated image produces no result; 18 measurement rows do not mean 18 independent samples. [Example file notes](public/examples/README.md)
 
 Browser storage holds one current workspace. Creating a project, loading the example, or importing an archive replaces it; export work you want to keep first. Clearing site data, changing browsers or origins, and private browsing can make saved work unavailable. Local storage is not a backup. [Full user guide](docs/user-guide.en.md)
 
@@ -70,7 +72,7 @@ End-to-end tests require the browser environment matching the project's Playwrig
 
 ## Contributing and citation
 
-We welcome reproducible reports about the workflow, recovery, and terminology. Read [CONTRIBUTING.md](CONTRIBUTING.md) and use the local issue templates to prepare feedback; a remote issue tracker has not been created. Do not post experimental images or sample information publicly without permission.
+We welcome reproducible reports about the workflow, recovery, and terminology through [GitHub Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues). Read [CONTRIBUTING.md](CONTRIBUTING.md). Do not post experimental images or sample information publicly without permission.
 
 The software is distributed under the [MIT license](LICENSE). Cite the exact version using [CITATION.cff](CITATION.cff). There is no software paper or DOI at present. Open source, automation, and project saving are not claimed as unique innovations; related tools are linked in [methods](docs/methods.md#相关工作).
 

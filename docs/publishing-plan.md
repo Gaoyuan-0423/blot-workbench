@@ -2,11 +2,11 @@
 
 本次发布范围包括公开 GitHub 仓库、GitHub Pages 网页和 alpha 预发布。**发布已获授权；本文记录准备事项，实际仓库、部署和 release 状态在核验后更新。** 在出现运行证据前，不把配置或拟用地址当成已上线结果。
 
-## 拟用标识
+## 地址与版本状态
 
 | 项目 | 拟用值 | 状态 |
 | --- | --- | --- |
-| GitHub 仓库 | `Gaoyuan-0423/blot-workbench` | 尚未创建；不作为可访问仓库链接 |
+| GitHub 仓库 | [Gaoyuan-0423/blot-workbench](https://github.com/Gaoyuan-0423/blot-workbench) | 已创建；main 基线已推送，完整应用通过功能分支/PR 集成 |
 | GitHub Pages 地址 | `gaoyuan-0423.github.io/blot-workbench/` | 尚未部署；不作为在线演示入口 |
 | 版本 | `0.1.0-alpha.1` | 本地 alpha 标识；未发布 release |
 | 作者 | Gaoyuan | 引用文件使用这一名称，不推断姓名拆分或 DOI |
@@ -23,4 +23,4 @@
 
 ## English
 
-Publication of a public repository, GitHub Pages demo, and alpha prerelease is authorized. The identifiers above remain proposed until their actual state is verified. CI files and release notes alone are not evidence of publication. Create the repository, run and record the actual platform matrix, produce verified assets, deploy and inspect the site, then add verified live links, citation URLs, release metadata, and a genuine repository screenshot.
+Publication of a public repository, GitHub Pages demo, and alpha prerelease is authorized. The public repository exists; the Pages deployment and alpha release remain pending verification. CI files and release notes alone are not evidence of publication. Create the repository, run and record the actual platform matrix, produce verified assets, deploy and inspect the site, then add verified live links, citation URLs, release metadata, and a genuine repository screenshot.

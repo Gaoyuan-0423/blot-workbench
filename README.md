@@ -1,14 +1,14 @@
 # Blot Workbench / 印迹工作台
 
-[English](README.en.md) · [本地启动](#本地运行与开发) · [使用指南](docs/user-guide.md) · [反馈与贡献](CONTRIBUTING.md)
+[English](README.en.md) · [GitHub 仓库](https://github.com/Gaoyuan-0423/blot-workbench) · [本地启动](#本地运行与开发) · [使用指南](docs/user-guide.md) · [问题反馈](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
 面向实验室的 Western blot 项目工作台。先把多图整理、样本关系、人工检查和间隔后继续分析的流程做好，再验证真实图像定量。
 
 **当前版本：`0.1.0-alpha.1`，纯合成数据的网页演示。数值是固定合成图在预设区域下的示例测量，不会随 ROI 修改重新定量。当前不能导入真实 TIFF/PNG，也不能用于实验结论或论文中的定量。**
 
-**发布状态：公开仓库、网页演示和 alpha 预发布正在准备；实际地址将在核验后提供。当前可按下文在本机运行。**
+**发布状态：公开 GitHub 仓库已建立，网页演示与 alpha 预发布仍待完成和核验。当前可按下文在本机运行。**
 
-![Blot Workbench 网页演示](docs/screenshots/app-home.png)
+![Blot Workbench 网页演示](docs/screenshots/app-home.jpg)
 
 截图的环境、版本和证据状态见[截图记录](docs/screenshots/README.md)。截图展示界面，不构成算法或跨平台验证。
 
@@ -31,6 +31,8 @@
 4. 保存并导出项目，刷新页面或重新导入，检查能否回到先前状态。
 
 可下载[示例项目包](public/examples/example.wbproj.zip)、[示例结果 CSV](public/examples/example-results.csv)和[示例清单](public/examples/manifest.json)。示例只含本项目生成的合成数据；其图像和数值的来源与限制见[演示说明](docs/demo-boundary.md)。
+
+项目包从“待复核”状态开始；示例 CSV 则是确认全部 7 张可用图后的预期输出，含 3 个目标/内参图对 × 6 个样本的 18 行。饱和图不产生结果，18 行不代表 18 个独立样本。[示例文件说明](public/examples/README.md)
 
 浏览器只保存一个当前工作区；新建、载入示例或导入项目会替换它，请先导出需要保留的项目。清除站点数据、切换浏览器/域名或使用无痕模式都可能使保存不可用，本地保存不是备份。[完整指南](docs/user-guide.md)
 
@@ -70,7 +72,7 @@ npm run test:e2e
 
 ## 参与与引用
 
-欢迎反馈任务流程、恢复体验、中英术语和可重现的问题。请阅读[贡献指南](CONTRIBUTING.md)，当前可用本地 issue 模板整理反馈；远端问题反馈入口尚未建立。未来公开反馈中也不要附上未获授权的实验图像或样本信息。
+欢迎通过 [GitHub Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues) 反馈任务流程、恢复体验、中英术语和可重现的问题。请阅读[贡献指南](CONTRIBUTING.md)，公开反馈中不要附上未获授权的实验图像或样本信息。
 
 软件采用 [MIT 许可证](LICENSE)。使用或讨论此演示时请引用具体版本；[CITATION.cff](CITATION.cff)提供元数据。项目目前没有软件论文或 DOI，开源、自动化与项目保存也不被主张为独有创新。相关工具见[方法说明](docs/methods.md#相关工作)。
 

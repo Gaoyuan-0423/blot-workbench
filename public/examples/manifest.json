@@ -1,0 +1,1449 @@
+{
+  "format": "blot-workbench-demo",
+  "archiveVersion": 1,
+  "project": {
+    "schemaVersion": 1,
+    "appVersion": "0.1.0-alpha.1",
+    "id": "00000000-0000-4000-8000-000000000001",
+    "name": "WB 示例项目 / Demonstration",
+    "description": "Alpha demonstration project. Synthetic images and fixture values only. / 仅含合成示例与预设演示值。",
+    "createdAt": "2026-10-10T00:00:00.000Z",
+    "updatedAt": "2026-10-10T00:00:00.000Z",
+    "demo": true,
+    "batches": [
+      {
+        "id": "batch-a",
+        "label": "Batch A / 批次 A",
+        "date": "2026-09-01"
+      },
+      {
+        "id": "batch-b",
+        "label": "Batch B / 批次 B",
+        "date": "2026-09-08"
+      }
+    ],
+    "samples": [
+      {
+        "id": "sample-1",
+        "label": "S1",
+        "group": "Control",
+        "experimentalUnitId": "unit-1",
+        "technicalReplicateSetId": "technical-1"
+      },
+      {
+        "id": "sample-2",
+        "label": "S2",
+        "group": "Control",
+        "experimentalUnitId": "unit-2",
+        "technicalReplicateSetId": "technical-2"
+      },
+      {
+        "id": "sample-3",
+        "label": "S3",
+        "group": "Control",
+        "experimentalUnitId": "unit-3",
+        "technicalReplicateSetId": "technical-3"
+      },
+      {
+        "id": "sample-4",
+        "label": "S4",
+        "group": "Treatment",
+        "experimentalUnitId": "unit-4",
+        "technicalReplicateSetId": "technical-4"
+      },
+      {
+        "id": "sample-5",
+        "label": "S5",
+        "group": "Treatment",
+        "experimentalUnitId": "unit-5",
+        "technicalReplicateSetId": "technical-5"
+      },
+      {
+        "id": "sample-6",
+        "label": "S6",
+        "group": "Treatment",
+        "experimentalUnitId": "unit-6",
+        "technicalReplicateSetId": "technical-6"
+      }
+    ],
+    "lanes": [
+      {
+        "id": "lane-1",
+        "number": 1,
+        "sampleId": "sample-1"
+      },
+      {
+        "id": "lane-2",
+        "number": 2,
+        "sampleId": "sample-2"
+      },
+      {
+        "id": "lane-3",
+        "number": 3,
+        "sampleId": "sample-3"
+      },
+      {
+        "id": "lane-4",
+        "number": 4,
+        "sampleId": "sample-4"
+      },
+      {
+        "id": "lane-5",
+        "number": 5,
+        "sampleId": "sample-5"
+      },
+      {
+        "id": "lane-6",
+        "number": 6,
+        "sampleId": "sample-6"
+      }
+    ],
+    "template": {
+      "id": "wb-basic",
+      "name": "WB demo / 基础矩形",
+      "version": 1,
+      "bandWidth": 72,
+      "bandHeight": 36,
+      "backgroundGap": 12
+    },
+    "analyses": [
+      {
+        "imageId": "a-target-1000",
+        "revision": 1,
+        "status": "unreviewed",
+        "rois": [
+          {
+            "id": "band-1",
+            "laneId": "lane-1",
+            "kind": "band",
+            "rect": {
+              "x": 48,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-1",
+            "laneId": "lane-1",
+            "kind": "background",
+            "rect": {
+              "x": 48,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-2",
+            "laneId": "lane-2",
+            "kind": "band",
+            "rect": {
+              "x": 152,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-2",
+            "laneId": "lane-2",
+            "kind": "background",
+            "rect": {
+              "x": 152,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-3",
+            "laneId": "lane-3",
+            "kind": "band",
+            "rect": {
+              "x": 256,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-3",
+            "laneId": "lane-3",
+            "kind": "background",
+            "rect": {
+              "x": 256,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-4",
+            "laneId": "lane-4",
+            "kind": "band",
+            "rect": {
+              "x": 360,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-4",
+            "laneId": "lane-4",
+            "kind": "background",
+            "rect": {
+              "x": 360,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-5",
+            "laneId": "lane-5",
+            "kind": "band",
+            "rect": {
+              "x": 464,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-5",
+            "laneId": "lane-5",
+            "kind": "background",
+            "rect": {
+              "x": 464,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-6",
+            "laneId": "lane-6",
+            "kind": "band",
+            "rect": {
+              "x": 568,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-6",
+            "laneId": "lane-6",
+            "kind": "background",
+            "rect": {
+              "x": 568,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          }
+        ],
+        "templateSnapshot": {
+          "id": "wb-basic",
+          "name": "WB demo / 基础矩形",
+          "version": 1,
+          "bandWidth": 72,
+          "bandHeight": 36,
+          "backgroundGap": 12
+        },
+        "referenceImageId": "a-reference-1000",
+        "excluded": false,
+        "note": "",
+        "fixtureSignature": "demo-v1:a-target-1000:{\"rois\":[{\"id\":\"band-1\",\"laneId\":\"lane-1\",\"kind\":\"band\",\"rect\":{\"x\":48,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-1\",\"laneId\":\"lane-1\",\"kind\":\"background\",\"rect\":{\"x\":48,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-2\",\"laneId\":\"lane-2\",\"kind\":\"band\",\"rect\":{\"x\":152,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-2\",\"laneId\":\"lane-2\",\"kind\":\"background\",\"rect\":{\"x\":152,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-3\",\"laneId\":\"lane-3\",\"kind\":\"band\",\"rect\":{\"x\":256,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-3\",\"laneId\":\"lane-3\",\"kind\":\"background\",\"rect\":{\"x\":256,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-4\",\"laneId\":\"lane-4\",\"kind\":\"band\",\"rect\":{\"x\":360,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-4\",\"laneId\":\"lane-4\",\"kind\":\"background\",\"rect\":{\"x\":360,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-5\",\"laneId\":\"lane-5\",\"kind\":\"band\",\"rect\":{\"x\":464,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-5\",\"laneId\":\"lane-5\",\"kind\":\"background\",\"rect\":{\"x\":464,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-6\",\"laneId\":\"lane-6\",\"kind\":\"band\",\"rect\":{\"x\":568,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-6\",\"laneId\":\"lane-6\",\"kind\":\"background\",\"rect\":{\"x\":568,\"y\":156,\"width\":72,\"height\":36}}],\"template\":{\"id\":\"wb-basic\",\"name\":\"WB demo / 基础矩形\",\"version\":1,\"bandWidth\":72,\"bandHeight\":36,\"backgroundGap\":12},\"design\":[{\"id\":\"sample-1\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-1\",\"technicalReplicateSetId\":\"technical-1\"},{\"id\":\"sample-2\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-2\",\"technicalReplicateSetId\":\"technical-2\"},{\"id\":\"sample-3\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-3\",\"technicalReplicateSetId\":\"technical-3\"},{\"id\":\"sample-4\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-4\",\"technicalReplicateSetId\":\"technical-4\"},{\"id\":\"sample-5\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-5\",\"technicalReplicateSetId\":\"technical-5\"},{\"id\":\"sample-6\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-6\",\"technicalReplicateSetId\":\"technical-6\"}]}"
+      },
+      {
+        "imageId": "a-target-4000",
+        "revision": 1,
+        "status": "unreviewed",
+        "rois": [
+          {
+            "id": "band-1",
+            "laneId": "lane-1",
+            "kind": "band",
+            "rect": {
+              "x": 48,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-1",
+            "laneId": "lane-1",
+            "kind": "background",
+            "rect": {
+              "x": 48,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-2",
+            "laneId": "lane-2",
+            "kind": "band",
+            "rect": {
+              "x": 152,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-2",
+            "laneId": "lane-2",
+            "kind": "background",
+            "rect": {
+              "x": 152,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-3",
+            "laneId": "lane-3",
+            "kind": "band",
+            "rect": {
+              "x": 256,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-3",
+            "laneId": "lane-3",
+            "kind": "background",
+            "rect": {
+              "x": 256,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-4",
+            "laneId": "lane-4",
+            "kind": "band",
+            "rect": {
+              "x": 360,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-4",
+            "laneId": "lane-4",
+            "kind": "background",
+            "rect": {
+              "x": 360,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-5",
+            "laneId": "lane-5",
+            "kind": "band",
+            "rect": {
+              "x": 464,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-5",
+            "laneId": "lane-5",
+            "kind": "background",
+            "rect": {
+              "x": 464,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-6",
+            "laneId": "lane-6",
+            "kind": "band",
+            "rect": {
+              "x": 568,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-6",
+            "laneId": "lane-6",
+            "kind": "background",
+            "rect": {
+              "x": 568,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          }
+        ],
+        "templateSnapshot": {
+          "id": "wb-basic",
+          "name": "WB demo / 基础矩形",
+          "version": 1,
+          "bandWidth": 72,
+          "bandHeight": 36,
+          "backgroundGap": 12
+        },
+        "referenceImageId": "a-reference-4000",
+        "excluded": true,
+        "note": "",
+        "fixtureSignature": "demo-v1:a-target-4000:{\"rois\":[{\"id\":\"band-1\",\"laneId\":\"lane-1\",\"kind\":\"band\",\"rect\":{\"x\":48,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-1\",\"laneId\":\"lane-1\",\"kind\":\"background\",\"rect\":{\"x\":48,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-2\",\"laneId\":\"lane-2\",\"kind\":\"band\",\"rect\":{\"x\":152,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-2\",\"laneId\":\"lane-2\",\"kind\":\"background\",\"rect\":{\"x\":152,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-3\",\"laneId\":\"lane-3\",\"kind\":\"band\",\"rect\":{\"x\":256,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-3\",\"laneId\":\"lane-3\",\"kind\":\"background\",\"rect\":{\"x\":256,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-4\",\"laneId\":\"lane-4\",\"kind\":\"band\",\"rect\":{\"x\":360,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-4\",\"laneId\":\"lane-4\",\"kind\":\"background\",\"rect\":{\"x\":360,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-5\",\"laneId\":\"lane-5\",\"kind\":\"band\",\"rect\":{\"x\":464,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-5\",\"laneId\":\"lane-5\",\"kind\":\"background\",\"rect\":{\"x\":464,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-6\",\"laneId\":\"lane-6\",\"kind\":\"band\",\"rect\":{\"x\":568,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-6\",\"laneId\":\"lane-6\",\"kind\":\"background\",\"rect\":{\"x\":568,\"y\":156,\"width\":72,\"height\":36}}],\"template\":{\"id\":\"wb-basic\",\"name\":\"WB demo / 基础矩形\",\"version\":1,\"bandWidth\":72,\"bandHeight\":36,\"backgroundGap\":12},\"design\":[{\"id\":\"sample-1\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-1\",\"technicalReplicateSetId\":\"technical-1\"},{\"id\":\"sample-2\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-2\",\"technicalReplicateSetId\":\"technical-2\"},{\"id\":\"sample-3\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-3\",\"technicalReplicateSetId\":\"technical-3\"},{\"id\":\"sample-4\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-4\",\"technicalReplicateSetId\":\"technical-4\"},{\"id\":\"sample-5\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-5\",\"technicalReplicateSetId\":\"technical-5\"},{\"id\":\"sample-6\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-6\",\"technicalReplicateSetId\":\"technical-6\"}]}"
+      },
+      {
+        "imageId": "a-reference-1000",
+        "revision": 1,
+        "status": "unreviewed",
+        "rois": [
+          {
+            "id": "band-1",
+            "laneId": "lane-1",
+            "kind": "band",
+            "rect": {
+              "x": 48,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-1",
+            "laneId": "lane-1",
+            "kind": "background",
+            "rect": {
+              "x": 48,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-2",
+            "laneId": "lane-2",
+            "kind": "band",
+            "rect": {
+              "x": 152,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-2",
+            "laneId": "lane-2",
+            "kind": "background",
+            "rect": {
+              "x": 152,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-3",
+            "laneId": "lane-3",
+            "kind": "band",
+            "rect": {
+              "x": 256,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-3",
+            "laneId": "lane-3",
+            "kind": "background",
+            "rect": {
+              "x": 256,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-4",
+            "laneId": "lane-4",
+            "kind": "band",
+            "rect": {
+              "x": 360,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-4",
+            "laneId": "lane-4",
+            "kind": "background",
+            "rect": {
+              "x": 360,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-5",
+            "laneId": "lane-5",
+            "kind": "band",
+            "rect": {
+              "x": 464,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-5",
+            "laneId": "lane-5",
+            "kind": "background",
+            "rect": {
+              "x": 464,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-6",
+            "laneId": "lane-6",
+            "kind": "band",
+            "rect": {
+              "x": 568,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-6",
+            "laneId": "lane-6",
+            "kind": "background",
+            "rect": {
+              "x": 568,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          }
+        ],
+        "templateSnapshot": {
+          "id": "wb-basic",
+          "name": "WB demo / 基础矩形",
+          "version": 1,
+          "bandWidth": 72,
+          "bandHeight": 36,
+          "backgroundGap": 12
+        },
+        "referenceImageId": null,
+        "excluded": false,
+        "note": "",
+        "fixtureSignature": "demo-v1:a-reference-1000:{\"rois\":[{\"id\":\"band-1\",\"laneId\":\"lane-1\",\"kind\":\"band\",\"rect\":{\"x\":48,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-1\",\"laneId\":\"lane-1\",\"kind\":\"background\",\"rect\":{\"x\":48,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-2\",\"laneId\":\"lane-2\",\"kind\":\"band\",\"rect\":{\"x\":152,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-2\",\"laneId\":\"lane-2\",\"kind\":\"background\",\"rect\":{\"x\":152,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-3\",\"laneId\":\"lane-3\",\"kind\":\"band\",\"rect\":{\"x\":256,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-3\",\"laneId\":\"lane-3\",\"kind\":\"background\",\"rect\":{\"x\":256,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-4\",\"laneId\":\"lane-4\",\"kind\":\"band\",\"rect\":{\"x\":360,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-4\",\"laneId\":\"lane-4\",\"kind\":\"background\",\"rect\":{\"x\":360,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-5\",\"laneId\":\"lane-5\",\"kind\":\"band\",\"rect\":{\"x\":464,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-5\",\"laneId\":\"lane-5\",\"kind\":\"background\",\"rect\":{\"x\":464,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-6\",\"laneId\":\"lane-6\",\"kind\":\"band\",\"rect\":{\"x\":568,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-6\",\"laneId\":\"lane-6\",\"kind\":\"background\",\"rect\":{\"x\":568,\"y\":156,\"width\":72,\"height\":36}}],\"template\":{\"id\":\"wb-basic\",\"name\":\"WB demo / 基础矩形\",\"version\":1,\"bandWidth\":72,\"bandHeight\":36,\"backgroundGap\":12},\"design\":[{\"id\":\"sample-1\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-1\",\"technicalReplicateSetId\":\"technical-1\"},{\"id\":\"sample-2\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-2\",\"technicalReplicateSetId\":\"technical-2\"},{\"id\":\"sample-3\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-3\",\"technicalReplicateSetId\":\"technical-3\"},{\"id\":\"sample-4\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-4\",\"technicalReplicateSetId\":\"technical-4\"},{\"id\":\"sample-5\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-5\",\"technicalReplicateSetId\":\"technical-5\"},{\"id\":\"sample-6\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-6\",\"technicalReplicateSetId\":\"technical-6\"}]}"
+      },
+      {
+        "imageId": "a-reference-4000",
+        "revision": 1,
+        "status": "unreviewed",
+        "rois": [
+          {
+            "id": "band-1",
+            "laneId": "lane-1",
+            "kind": "band",
+            "rect": {
+              "x": 48,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-1",
+            "laneId": "lane-1",
+            "kind": "background",
+            "rect": {
+              "x": 48,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-2",
+            "laneId": "lane-2",
+            "kind": "band",
+            "rect": {
+              "x": 152,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-2",
+            "laneId": "lane-2",
+            "kind": "background",
+            "rect": {
+              "x": 152,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-3",
+            "laneId": "lane-3",
+            "kind": "band",
+            "rect": {
+              "x": 256,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-3",
+            "laneId": "lane-3",
+            "kind": "background",
+            "rect": {
+              "x": 256,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-4",
+            "laneId": "lane-4",
+            "kind": "band",
+            "rect": {
+              "x": 360,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-4",
+            "laneId": "lane-4",
+            "kind": "background",
+            "rect": {
+              "x": 360,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-5",
+            "laneId": "lane-5",
+            "kind": "band",
+            "rect": {
+              "x": 464,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-5",
+            "laneId": "lane-5",
+            "kind": "background",
+            "rect": {
+              "x": 464,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-6",
+            "laneId": "lane-6",
+            "kind": "band",
+            "rect": {
+              "x": 568,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-6",
+            "laneId": "lane-6",
+            "kind": "background",
+            "rect": {
+              "x": 568,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          }
+        ],
+        "templateSnapshot": {
+          "id": "wb-basic",
+          "name": "WB demo / 基础矩形",
+          "version": 1,
+          "bandWidth": 72,
+          "bandHeight": 36,
+          "backgroundGap": 12
+        },
+        "referenceImageId": null,
+        "excluded": false,
+        "note": "",
+        "fixtureSignature": "demo-v1:a-reference-4000:{\"rois\":[{\"id\":\"band-1\",\"laneId\":\"lane-1\",\"kind\":\"band\",\"rect\":{\"x\":48,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-1\",\"laneId\":\"lane-1\",\"kind\":\"background\",\"rect\":{\"x\":48,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-2\",\"laneId\":\"lane-2\",\"kind\":\"band\",\"rect\":{\"x\":152,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-2\",\"laneId\":\"lane-2\",\"kind\":\"background\",\"rect\":{\"x\":152,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-3\",\"laneId\":\"lane-3\",\"kind\":\"band\",\"rect\":{\"x\":256,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-3\",\"laneId\":\"lane-3\",\"kind\":\"background\",\"rect\":{\"x\":256,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-4\",\"laneId\":\"lane-4\",\"kind\":\"band\",\"rect\":{\"x\":360,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-4\",\"laneId\":\"lane-4\",\"kind\":\"background\",\"rect\":{\"x\":360,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-5\",\"laneId\":\"lane-5\",\"kind\":\"band\",\"rect\":{\"x\":464,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-5\",\"laneId\":\"lane-5\",\"kind\":\"background\",\"rect\":{\"x\":464,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-6\",\"laneId\":\"lane-6\",\"kind\":\"band\",\"rect\":{\"x\":568,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-6\",\"laneId\":\"lane-6\",\"kind\":\"background\",\"rect\":{\"x\":568,\"y\":156,\"width\":72,\"height\":36}}],\"template\":{\"id\":\"wb-basic\",\"name\":\"WB demo / 基础矩形\",\"version\":1,\"bandWidth\":72,\"bandHeight\":36,\"backgroundGap\":12},\"design\":[{\"id\":\"sample-1\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-1\",\"technicalReplicateSetId\":\"technical-1\"},{\"id\":\"sample-2\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-2\",\"technicalReplicateSetId\":\"technical-2\"},{\"id\":\"sample-3\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-3\",\"technicalReplicateSetId\":\"technical-3\"},{\"id\":\"sample-4\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-4\",\"technicalReplicateSetId\":\"technical-4\"},{\"id\":\"sample-5\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-5\",\"technicalReplicateSetId\":\"technical-5\"},{\"id\":\"sample-6\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-6\",\"technicalReplicateSetId\":\"technical-6\"}]}"
+      },
+      {
+        "imageId": "b-target-1000",
+        "revision": 1,
+        "status": "unreviewed",
+        "rois": [
+          {
+            "id": "band-1",
+            "laneId": "lane-1",
+            "kind": "band",
+            "rect": {
+              "x": 48,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-1",
+            "laneId": "lane-1",
+            "kind": "background",
+            "rect": {
+              "x": 48,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-2",
+            "laneId": "lane-2",
+            "kind": "band",
+            "rect": {
+              "x": 152,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-2",
+            "laneId": "lane-2",
+            "kind": "background",
+            "rect": {
+              "x": 152,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-3",
+            "laneId": "lane-3",
+            "kind": "band",
+            "rect": {
+              "x": 256,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-3",
+            "laneId": "lane-3",
+            "kind": "background",
+            "rect": {
+              "x": 256,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-4",
+            "laneId": "lane-4",
+            "kind": "band",
+            "rect": {
+              "x": 360,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-4",
+            "laneId": "lane-4",
+            "kind": "background",
+            "rect": {
+              "x": 360,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-5",
+            "laneId": "lane-5",
+            "kind": "band",
+            "rect": {
+              "x": 464,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-5",
+            "laneId": "lane-5",
+            "kind": "background",
+            "rect": {
+              "x": 464,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-6",
+            "laneId": "lane-6",
+            "kind": "band",
+            "rect": {
+              "x": 568,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-6",
+            "laneId": "lane-6",
+            "kind": "background",
+            "rect": {
+              "x": 568,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          }
+        ],
+        "templateSnapshot": {
+          "id": "wb-basic",
+          "name": "WB demo / 基础矩形",
+          "version": 1,
+          "bandWidth": 72,
+          "bandHeight": 36,
+          "backgroundGap": 12
+        },
+        "referenceImageId": "b-reference-1000",
+        "excluded": false,
+        "note": "",
+        "fixtureSignature": "demo-v1:b-target-1000:{\"rois\":[{\"id\":\"band-1\",\"laneId\":\"lane-1\",\"kind\":\"band\",\"rect\":{\"x\":48,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-1\",\"laneId\":\"lane-1\",\"kind\":\"background\",\"rect\":{\"x\":48,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-2\",\"laneId\":\"lane-2\",\"kind\":\"band\",\"rect\":{\"x\":152,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-2\",\"laneId\":\"lane-2\",\"kind\":\"background\",\"rect\":{\"x\":152,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-3\",\"laneId\":\"lane-3\",\"kind\":\"band\",\"rect\":{\"x\":256,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-3\",\"laneId\":\"lane-3\",\"kind\":\"background\",\"rect\":{\"x\":256,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-4\",\"laneId\":\"lane-4\",\"kind\":\"band\",\"rect\":{\"x\":360,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-4\",\"laneId\":\"lane-4\",\"kind\":\"background\",\"rect\":{\"x\":360,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-5\",\"laneId\":\"lane-5\",\"kind\":\"band\",\"rect\":{\"x\":464,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-5\",\"laneId\":\"lane-5\",\"kind\":\"background\",\"rect\":{\"x\":464,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-6\",\"laneId\":\"lane-6\",\"kind\":\"band\",\"rect\":{\"x\":568,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-6\",\"laneId\":\"lane-6\",\"kind\":\"background\",\"rect\":{\"x\":568,\"y\":156,\"width\":72,\"height\":36}}],\"template\":{\"id\":\"wb-basic\",\"name\":\"WB demo / 基础矩形\",\"version\":1,\"bandWidth\":72,\"bandHeight\":36,\"backgroundGap\":12},\"design\":[{\"id\":\"sample-1\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-1\",\"technicalReplicateSetId\":\"technical-1\"},{\"id\":\"sample-2\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-2\",\"technicalReplicateSetId\":\"technical-2\"},{\"id\":\"sample-3\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-3\",\"technicalReplicateSetId\":\"technical-3\"},{\"id\":\"sample-4\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-4\",\"technicalReplicateSetId\":\"technical-4\"},{\"id\":\"sample-5\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-5\",\"technicalReplicateSetId\":\"technical-5\"},{\"id\":\"sample-6\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-6\",\"technicalReplicateSetId\":\"technical-6\"}]}"
+      },
+      {
+        "imageId": "b-target-4000",
+        "revision": 1,
+        "status": "unreviewed",
+        "rois": [
+          {
+            "id": "band-1",
+            "laneId": "lane-1",
+            "kind": "band",
+            "rect": {
+              "x": 48,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-1",
+            "laneId": "lane-1",
+            "kind": "background",
+            "rect": {
+              "x": 48,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-2",
+            "laneId": "lane-2",
+            "kind": "band",
+            "rect": {
+              "x": 152,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-2",
+            "laneId": "lane-2",
+            "kind": "background",
+            "rect": {
+              "x": 152,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-3",
+            "laneId": "lane-3",
+            "kind": "band",
+            "rect": {
+              "x": 256,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-3",
+            "laneId": "lane-3",
+            "kind": "background",
+            "rect": {
+              "x": 256,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-4",
+            "laneId": "lane-4",
+            "kind": "band",
+            "rect": {
+              "x": 360,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-4",
+            "laneId": "lane-4",
+            "kind": "background",
+            "rect": {
+              "x": 360,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-5",
+            "laneId": "lane-5",
+            "kind": "band",
+            "rect": {
+              "x": 464,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-5",
+            "laneId": "lane-5",
+            "kind": "background",
+            "rect": {
+              "x": 464,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-6",
+            "laneId": "lane-6",
+            "kind": "band",
+            "rect": {
+              "x": 568,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-6",
+            "laneId": "lane-6",
+            "kind": "background",
+            "rect": {
+              "x": 568,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          }
+        ],
+        "templateSnapshot": {
+          "id": "wb-basic",
+          "name": "WB demo / 基础矩形",
+          "version": 1,
+          "bandWidth": 72,
+          "bandHeight": 36,
+          "backgroundGap": 12
+        },
+        "referenceImageId": "b-reference-4000",
+        "excluded": false,
+        "note": "",
+        "fixtureSignature": "demo-v1:b-target-4000:{\"rois\":[{\"id\":\"band-1\",\"laneId\":\"lane-1\",\"kind\":\"band\",\"rect\":{\"x\":48,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-1\",\"laneId\":\"lane-1\",\"kind\":\"background\",\"rect\":{\"x\":48,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-2\",\"laneId\":\"lane-2\",\"kind\":\"band\",\"rect\":{\"x\":152,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-2\",\"laneId\":\"lane-2\",\"kind\":\"background\",\"rect\":{\"x\":152,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-3\",\"laneId\":\"lane-3\",\"kind\":\"band\",\"rect\":{\"x\":256,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-3\",\"laneId\":\"lane-3\",\"kind\":\"background\",\"rect\":{\"x\":256,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-4\",\"laneId\":\"lane-4\",\"kind\":\"band\",\"rect\":{\"x\":360,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-4\",\"laneId\":\"lane-4\",\"kind\":\"background\",\"rect\":{\"x\":360,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-5\",\"laneId\":\"lane-5\",\"kind\":\"band\",\"rect\":{\"x\":464,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-5\",\"laneId\":\"lane-5\",\"kind\":\"background\",\"rect\":{\"x\":464,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-6\",\"laneId\":\"lane-6\",\"kind\":\"band\",\"rect\":{\"x\":568,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-6\",\"laneId\":\"lane-6\",\"kind\":\"background\",\"rect\":{\"x\":568,\"y\":156,\"width\":72,\"height\":36}}],\"template\":{\"id\":\"wb-basic\",\"name\":\"WB demo / 基础矩形\",\"version\":1,\"bandWidth\":72,\"bandHeight\":36,\"backgroundGap\":12},\"design\":[{\"id\":\"sample-1\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-1\",\"technicalReplicateSetId\":\"technical-1\"},{\"id\":\"sample-2\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-2\",\"technicalReplicateSetId\":\"technical-2\"},{\"id\":\"sample-3\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-3\",\"technicalReplicateSetId\":\"technical-3\"},{\"id\":\"sample-4\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-4\",\"technicalReplicateSetId\":\"technical-4\"},{\"id\":\"sample-5\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-5\",\"technicalReplicateSetId\":\"technical-5\"},{\"id\":\"sample-6\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-6\",\"technicalReplicateSetId\":\"technical-6\"}]}"
+      },
+      {
+        "imageId": "b-reference-1000",
+        "revision": 1,
+        "status": "unreviewed",
+        "rois": [
+          {
+            "id": "band-1",
+            "laneId": "lane-1",
+            "kind": "band",
+            "rect": {
+              "x": 48,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-1",
+            "laneId": "lane-1",
+            "kind": "background",
+            "rect": {
+              "x": 48,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-2",
+            "laneId": "lane-2",
+            "kind": "band",
+            "rect": {
+              "x": 152,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-2",
+            "laneId": "lane-2",
+            "kind": "background",
+            "rect": {
+              "x": 152,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-3",
+            "laneId": "lane-3",
+            "kind": "band",
+            "rect": {
+              "x": 256,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-3",
+            "laneId": "lane-3",
+            "kind": "background",
+            "rect": {
+              "x": 256,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-4",
+            "laneId": "lane-4",
+            "kind": "band",
+            "rect": {
+              "x": 360,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-4",
+            "laneId": "lane-4",
+            "kind": "background",
+            "rect": {
+              "x": 360,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-5",
+            "laneId": "lane-5",
+            "kind": "band",
+            "rect": {
+              "x": 464,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-5",
+            "laneId": "lane-5",
+            "kind": "background",
+            "rect": {
+              "x": 464,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-6",
+            "laneId": "lane-6",
+            "kind": "band",
+            "rect": {
+              "x": 568,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-6",
+            "laneId": "lane-6",
+            "kind": "background",
+            "rect": {
+              "x": 568,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          }
+        ],
+        "templateSnapshot": {
+          "id": "wb-basic",
+          "name": "WB demo / 基础矩形",
+          "version": 1,
+          "bandWidth": 72,
+          "bandHeight": 36,
+          "backgroundGap": 12
+        },
+        "referenceImageId": null,
+        "excluded": false,
+        "note": "",
+        "fixtureSignature": "demo-v1:b-reference-1000:{\"rois\":[{\"id\":\"band-1\",\"laneId\":\"lane-1\",\"kind\":\"band\",\"rect\":{\"x\":48,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-1\",\"laneId\":\"lane-1\",\"kind\":\"background\",\"rect\":{\"x\":48,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-2\",\"laneId\":\"lane-2\",\"kind\":\"band\",\"rect\":{\"x\":152,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-2\",\"laneId\":\"lane-2\",\"kind\":\"background\",\"rect\":{\"x\":152,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-3\",\"laneId\":\"lane-3\",\"kind\":\"band\",\"rect\":{\"x\":256,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-3\",\"laneId\":\"lane-3\",\"kind\":\"background\",\"rect\":{\"x\":256,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-4\",\"laneId\":\"lane-4\",\"kind\":\"band\",\"rect\":{\"x\":360,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-4\",\"laneId\":\"lane-4\",\"kind\":\"background\",\"rect\":{\"x\":360,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-5\",\"laneId\":\"lane-5\",\"kind\":\"band\",\"rect\":{\"x\":464,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-5\",\"laneId\":\"lane-5\",\"kind\":\"background\",\"rect\":{\"x\":464,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-6\",\"laneId\":\"lane-6\",\"kind\":\"band\",\"rect\":{\"x\":568,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-6\",\"laneId\":\"lane-6\",\"kind\":\"background\",\"rect\":{\"x\":568,\"y\":156,\"width\":72,\"height\":36}}],\"template\":{\"id\":\"wb-basic\",\"name\":\"WB demo / 基础矩形\",\"version\":1,\"bandWidth\":72,\"bandHeight\":36,\"backgroundGap\":12},\"design\":[{\"id\":\"sample-1\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-1\",\"technicalReplicateSetId\":\"technical-1\"},{\"id\":\"sample-2\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-2\",\"technicalReplicateSetId\":\"technical-2\"},{\"id\":\"sample-3\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-3\",\"technicalReplicateSetId\":\"technical-3\"},{\"id\":\"sample-4\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-4\",\"technicalReplicateSetId\":\"technical-4\"},{\"id\":\"sample-5\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-5\",\"technicalReplicateSetId\":\"technical-5\"},{\"id\":\"sample-6\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-6\",\"technicalReplicateSetId\":\"technical-6\"}]}"
+      },
+      {
+        "imageId": "b-reference-4000",
+        "revision": 1,
+        "status": "unreviewed",
+        "rois": [
+          {
+            "id": "band-1",
+            "laneId": "lane-1",
+            "kind": "band",
+            "rect": {
+              "x": 48,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-1",
+            "laneId": "lane-1",
+            "kind": "background",
+            "rect": {
+              "x": 48,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-2",
+            "laneId": "lane-2",
+            "kind": "band",
+            "rect": {
+              "x": 152,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-2",
+            "laneId": "lane-2",
+            "kind": "background",
+            "rect": {
+              "x": 152,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-3",
+            "laneId": "lane-3",
+            "kind": "band",
+            "rect": {
+              "x": 256,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-3",
+            "laneId": "lane-3",
+            "kind": "background",
+            "rect": {
+              "x": 256,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-4",
+            "laneId": "lane-4",
+            "kind": "band",
+            "rect": {
+              "x": 360,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-4",
+            "laneId": "lane-4",
+            "kind": "background",
+            "rect": {
+              "x": 360,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-5",
+            "laneId": "lane-5",
+            "kind": "band",
+            "rect": {
+              "x": 464,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-5",
+            "laneId": "lane-5",
+            "kind": "background",
+            "rect": {
+              "x": 464,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "band-6",
+            "laneId": "lane-6",
+            "kind": "band",
+            "rect": {
+              "x": 568,
+              "y": 108,
+              "width": 72,
+              "height": 36
+            }
+          },
+          {
+            "id": "background-6",
+            "laneId": "lane-6",
+            "kind": "background",
+            "rect": {
+              "x": 568,
+              "y": 156,
+              "width": 72,
+              "height": 36
+            }
+          }
+        ],
+        "templateSnapshot": {
+          "id": "wb-basic",
+          "name": "WB demo / 基础矩形",
+          "version": 1,
+          "bandWidth": 72,
+          "bandHeight": 36,
+          "backgroundGap": 12
+        },
+        "referenceImageId": null,
+        "excluded": false,
+        "note": "",
+        "fixtureSignature": "demo-v1:b-reference-4000:{\"rois\":[{\"id\":\"band-1\",\"laneId\":\"lane-1\",\"kind\":\"band\",\"rect\":{\"x\":48,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-1\",\"laneId\":\"lane-1\",\"kind\":\"background\",\"rect\":{\"x\":48,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-2\",\"laneId\":\"lane-2\",\"kind\":\"band\",\"rect\":{\"x\":152,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-2\",\"laneId\":\"lane-2\",\"kind\":\"background\",\"rect\":{\"x\":152,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-3\",\"laneId\":\"lane-3\",\"kind\":\"band\",\"rect\":{\"x\":256,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-3\",\"laneId\":\"lane-3\",\"kind\":\"background\",\"rect\":{\"x\":256,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-4\",\"laneId\":\"lane-4\",\"kind\":\"band\",\"rect\":{\"x\":360,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-4\",\"laneId\":\"lane-4\",\"kind\":\"background\",\"rect\":{\"x\":360,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-5\",\"laneId\":\"lane-5\",\"kind\":\"band\",\"rect\":{\"x\":464,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-5\",\"laneId\":\"lane-5\",\"kind\":\"background\",\"rect\":{\"x\":464,\"y\":156,\"width\":72,\"height\":36}},{\"id\":\"band-6\",\"laneId\":\"lane-6\",\"kind\":\"band\",\"rect\":{\"x\":568,\"y\":108,\"width\":72,\"height\":36}},{\"id\":\"background-6\",\"laneId\":\"lane-6\",\"kind\":\"background\",\"rect\":{\"x\":568,\"y\":156,\"width\":72,\"height\":36}}],\"template\":{\"id\":\"wb-basic\",\"name\":\"WB demo / 基础矩形\",\"version\":1,\"bandWidth\":72,\"bandHeight\":36,\"backgroundGap\":12},\"design\":[{\"id\":\"sample-1\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-1\",\"technicalReplicateSetId\":\"technical-1\"},{\"id\":\"sample-2\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-2\",\"technicalReplicateSetId\":\"technical-2\"},{\"id\":\"sample-3\",\"group\":\"Control\",\"experimentalUnitId\":\"unit-3\",\"technicalReplicateSetId\":\"technical-3\"},{\"id\":\"sample-4\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-4\",\"technicalReplicateSetId\":\"technical-4\"},{\"id\":\"sample-5\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-5\",\"technicalReplicateSetId\":\"technical-5\"},{\"id\":\"sample-6\",\"group\":\"Treatment\",\"experimentalUnitId\":\"unit-6\",\"technicalReplicateSetId\":\"technical-6\"}]}"
+      }
+    ],
+    "history": [],
+    "ui": {
+      "view": "overview",
+      "selectedImageId": "a-target-1000",
+      "batchFilter": "all",
+      "language": "zh"
+    },
+    "images": [
+      {
+        "id": "a-target-1000",
+        "name": "Demo A · target · 1s",
+        "batchId": "batch-a",
+        "membraneId": "membrane-a",
+        "protein": "Target-demo",
+        "role": "target",
+        "exposureMs": 1000,
+        "width": 720,
+        "height": 280,
+        "hash": "80636cbd2f44c56a4d1630bfad4be574a602f09c869fce2833f32d976d38eb93",
+        "source": "synthetic",
+        "qc": "normal",
+        "path": "images/a-target-1000.png"
+      },
+      {
+        "id": "a-target-4000",
+        "name": "Demo A · target · 4s",
+        "batchId": "batch-a",
+        "membraneId": "membrane-a",
+        "protein": "Target-demo",
+        "role": "target",
+        "exposureMs": 4000,
+        "width": 720,
+        "height": 280,
+        "hash": "e74e41c847533f6ac398b47194133d27057c9a48d087ff4b069e256d7ae379e8",
+        "source": "synthetic",
+        "qc": "saturated",
+        "path": "images/a-target-4000.png"
+      },
+      {
+        "id": "a-reference-1000",
+        "name": "Demo A · reference · 1s",
+        "batchId": "batch-a",
+        "membraneId": "membrane-a",
+        "protein": "Reference-demo",
+        "role": "reference",
+        "exposureMs": 1000,
+        "width": 720,
+        "height": 280,
+        "hash": "f7c2fce455368cef10c3fc4ddaeb0bffc5aaeedb60bd32433a26ae15b8e282b1",
+        "source": "synthetic",
+        "qc": "normal",
+        "path": "images/a-reference-1000.png"
+      },
+      {
+        "id": "a-reference-4000",
+        "name": "Demo A · reference · 4s",
+        "batchId": "batch-a",
+        "membraneId": "membrane-a",
+        "protein": "Reference-demo",
+        "role": "reference",
+        "exposureMs": 4000,
+        "width": 720,
+        "height": 280,
+        "hash": "e08d51ee0e30f70dfdfb56c4addaee101ca94b79830f0bb345a3e5fd59c67ca2",
+        "source": "synthetic",
+        "qc": "normal",
+        "path": "images/a-reference-4000.png"
+      },
+      {
+        "id": "b-target-1000",
+        "name": "Demo B · target · 1s",
+        "batchId": "batch-b",
+        "membraneId": "membrane-b",
+        "protein": "Target-demo",
+        "role": "target",
+        "exposureMs": 1000,
+        "width": 720,
+        "height": 280,
+        "hash": "417ddac651fc1b411bda3614b2985130cf0cce6c233e470ef58c85b3f3a0cede",
+        "source": "synthetic",
+        "qc": "weak",
+        "path": "images/b-target-1000.png"
+      },
+      {
+        "id": "b-target-4000",
+        "name": "Demo B · target · 4s",
+        "batchId": "batch-b",
+        "membraneId": "membrane-b",
+        "protein": "Target-demo",
+        "role": "target",
+        "exposureMs": 4000,
+        "width": 720,
+        "height": 280,
+        "hash": "0f821d41883fd52f7a117953a25e4251066004adb8254f33fcbde7493cffacd0",
+        "source": "synthetic",
+        "qc": "background",
+        "path": "images/b-target-4000.png"
+      },
+      {
+        "id": "b-reference-1000",
+        "name": "Demo B · reference · 1s",
+        "batchId": "batch-b",
+        "membraneId": "membrane-b",
+        "protein": "Reference-demo",
+        "role": "reference",
+        "exposureMs": 1000,
+        "width": 720,
+        "height": 280,
+        "hash": "5d922cb5cf8b023c3d62b15a89d226d29c562a42cb9a630175a7576de601b153",
+        "source": "synthetic",
+        "qc": "background",
+        "path": "images/b-reference-1000.png"
+      },
+      {
+        "id": "b-reference-4000",
+        "name": "Demo B · reference · 4s",
+        "batchId": "batch-b",
+        "membraneId": "membrane-b",
+        "protein": "Reference-demo",
+        "role": "reference",
+        "exposureMs": 4000,
+        "width": 720,
+        "height": 280,
+        "hash": "e08d51ee0e30f70dfdfb56c4addaee101ca94b79830f0bb345a3e5fd59c67ca2",
+        "source": "synthetic",
+        "qc": "normal",
+        "path": "images/b-reference-4000.png"
+      }
+    ]
+  }
+}
