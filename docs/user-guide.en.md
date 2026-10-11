@@ -1,6 +1,6 @@
 # User guide
 
-> For the real TIFF/PNG development preview, open `#real` and read the [real-image guide](real-images.en.md). This page describes the legacy synthetic example.
+> For the real TIFF/PNG development preview, open `#real` and read the [real-image guide](real-images.en.md). This page describes the legacy synthetic example; see [statistical methods](paired-statistics.md) for development-version individual N/T pairing, common baselines, and optional tests.
 
 [中文指南](user-guide.md) · [Local vision API guide](vision-api.en.md) · [Documentation index](README.md)
 

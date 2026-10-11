@@ -24,10 +24,13 @@ import {
 import {
   analyzeAll,
   applyLaneDescription,
+  applyPairedDesign,
+  applyNormalization,
   createRealProject,
   descriptiveStatistics,
   exportRealCsv,
   exportRealProject,
+  exportRealStatisticsCsv,
   imageRaster,
   importRealImages,
   importRealProject,
@@ -35,9 +38,12 @@ import {
   isExcludedLane,
   loadRealProject,
   results,
+  realPairedTests,
   saveRealProject,
   updateRealImage,
   updateRealProject,
+  type PairedLanePair,
+  type RealImage,
   type RealImagePatch,
   type RealProject,
   type RealResult,
@@ -228,6 +234,39 @@ const pixelErrorZh: Record<string, string> = {
 };
 
 function localizeMessage(message: string, language: Language): string {
+  const statisticalReasons: Record<string, [string, string]> = {
+    "test-disabled": ["尚未选择统计检验。", "No statistical test is selected."],
+    "design-unconfirmed": [
+      "请先确认样本独立性及配对设计。",
+      "Confirm sample independence and the paired design first.",
+    ],
+    "requires-two-conditions": [
+      "双侧配对 t 检验需要且仅支持两个条件。",
+      "A two-sided paired t-test requires exactly two conditions.",
+    ],
+    "insufficient-pairs": [
+      "至少需要 2 组完整配对。",
+      "At least two complete pairs are required.",
+    ],
+    "duplicate-id": [
+      "存在重复个体或实验编号。",
+      "Individual or experiment IDs are duplicated.",
+    ],
+    "invalid-values": [
+      "检验数据包含无效值。",
+      "Test inputs contain invalid values.",
+    ],
+    "zero-variance": [
+      "配对差值的方差为零，无法计算 t 检验。",
+      "Paired differences have zero variance; a t-test is undefined.",
+    ],
+    "numeric-error": [
+      "数值计算无法可靠完成。",
+      "The numerical calculation could not be completed reliably.",
+    ],
+  };
+  if (statisticalReasons[message])
+    return statisticalReasons[message][language === "zh" ? 0 : 1];
   if (message.startsWith("[") && message.includes('"code"'))
     return language === "zh"
       ? "项目或参数校验失败。请确认导入的是此真实工作区导出的项目包，并检查区域与图像信息。"
@@ -270,13 +309,21 @@ const numberText = (value: number | null, digits = 3) =>
     ? "—"
     : value.toLocaleString("en-US", { maximumFractionDigits: digits });
 const unique = <T,>(values: T[]) => [...new Set(values)];
-const requiredLaneCount = (project: RealProject) =>
-  Math.max(
+const requiredLaneCount = (project: RealProject, image?: RealImage) => {
+  const pairs =
+    image &&
+    project.pairedDesign?.pairs.filter(
+      (pair) => pair.groupId === image.replicate.trim(),
+    );
+  return Math.max(
     1,
-    ...project.laneLabels.map((label, index) =>
-      isExcludedLane(label) ? 0 : index + 1,
-    ),
+    ...(pairs?.length
+      ? pairs.flatMap((pair) => [pair.normalLane, pair.tumorLane])
+      : project.laneLabels.map((label, index) =>
+          isExcludedLane(label) ? 0 : index + 1,
+        )),
   );
+};
 
 function constrainRect(rect: Rect, width: number, height: number): Rect {
   const w = Math.max(1, Math.min(width, Math.round(rect.width)));
@@ -307,6 +354,52 @@ function wrapText(text: string, length: number): string[] {
   return lines;
 }
 
+function inferenceNumber(value: number | null): string {
+  if (value === null || !Number.isFinite(value)) return "—";
+  if (value !== 0 && (Math.abs(value) < 0.0001 || Math.abs(value) >= 1e6))
+    return value.toExponential(4);
+  return numberText(value, 6);
+}
+
+function pairDescription(pairs: PairedLanePair[]): string {
+  return pairs
+    .map((pair) =>
+      [pair.groupId, pair.unitId, pair.normalLane, pair.tumorLane].join(", "),
+    )
+    .join("\n");
+}
+
+function parsePairDescription(text: string, t: Translate): PairedLanePair[] {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (!lines.length)
+    throw new Error(t("请至少填写一对 N/T。", "Enter at least one N/T pair."));
+  return lines.map((line, index) => {
+    const fields = line.split(/[,，\t]/).map((field) => field.trim());
+    if (
+      fields.length !== 4 ||
+      !fields[0] ||
+      !fields[1] ||
+      !/^\d+$/.test(fields[2]) ||
+      !/^\d+$/.test(fields[3])
+    )
+      throw new Error(
+        t(
+          `第 ${index + 1} 行须为：样本组编号, 个体编号, N 泳道, T 泳道。`,
+          `Row ${index + 1} must be: source group ID, individual ID, N lane, T lane.`,
+        ),
+      );
+    return {
+      groupId: fields[0],
+      unitId: fields[1],
+      normalLane: Number(fields[2]),
+      tumorLane: Number(fields[3]),
+    };
+  });
+}
+
 function ResultFigure({
   project,
   protein,
@@ -314,6 +407,7 @@ function ResultFigure({
   summaries,
   language,
   figureRef,
+  plotStyle,
 }: {
   project: RealProject;
   protein: string;
@@ -321,6 +415,7 @@ function ResultFigure({
   summaries: RealStatistics[];
   language: Language;
   figureRef: React.RefObject<SVGSVGElement | null>;
+  plotStyle: "bars" | "paired";
 }) {
   const t: Translate = (zh, en) => (language === "zh" ? zh : en);
   const groups = summaries.filter((summary) => summary.protein === protein);
@@ -331,9 +426,45 @@ function ResultFigure({
       row.status !== "blocked" &&
       groups
         .find((group) => group.sample === row.sample)
-        ?.replicates.includes(row.replicate),
+        ?.replicates.includes(row.unitId ?? row.replicate),
   );
+  const testSelected = project.statisticalTest === "paired-t";
+  const inferenceRecord = testSelected
+    ? realPairedTests(project).find((entry) => entry.protein === protein)
+    : null;
+  const inference = inferenceRecord?.result ?? null;
+  const pLabel =
+    typeof inference?.pValue === "number"
+      ? inference.pValue === 0
+        ? "P < machine precision"
+        : `P = ${inference.pValue < 0.0001 ? inference.pValue.toExponential(3) : inference.pValue.toPrecision(4)}`
+      : null;
+  const inferenceLines = !testSelected
+    ? []
+    : !inference
+      ? [
+          t(
+            "配对检验未执行：须确认独立性，并提供两个条件的完整配对。",
+            "Paired test not performed: confirm independence and supply complete pairs for two conditions.",
+          ),
+        ]
+      : pLabel
+        ? [
+            t(
+              `双侧配对 t 检验：${pLabel}；n = ${inference.n}；df = ${inference.df}；未校正。`,
+              `Two-sided paired t-test: ${pLabel}; n = ${inference.n}; df = ${inference.df}; unadjusted.`,
+            ),
+            t(
+              "检验基于目标/内参比值的配对差值；不受图形归一化方式影响。小样本正态假设未验证。",
+              "Test uses paired differences of target/reference ratios, unaffected by plot normalization. Small-n normality is unverified.",
+            ),
+          ]
+        : [
+            t("配对检验无法计算：", "Paired test unavailable: ") +
+              localizeMessage(inference.reason ?? "", language),
+          ];
   const draft =
+    inferenceRecord?.quality === "draft" ||
     !project.designConfirmed ||
     rows.some((row) => row.protein === protein && row.status !== "ready") ||
     groups.some((group) => group.status !== "ready");
@@ -342,12 +473,15 @@ function ResultFigure({
       .filter((row) => row.protein === protein)
       .flatMap((row) => row.warnings),
   );
-  const summaryWarnings = groups.flatMap((group) => group.warnings);
+  const summaryWarnings = [
+    ...groups.flatMap((group) => group.warnings),
+    ...(inferenceRecord?.warnings ?? []),
+  ];
   const warningLines = unique([...rawWarnings, ...summaryWarnings]).flatMap(
     (warning) => wrapText(localizeMessage(warning, language), 110),
   );
   const width = 900,
-    plotTop = 106,
+    plotTop = pLabel ? 137 : 106,
     plotBottom = 370,
     left = 78,
     right = 840;
@@ -365,7 +499,9 @@ function ResultFigure({
     ((value - minValue) / (maxValue - minValue)) * (plotBottom - plotTop);
   const x = (index: number) =>
     left + ((right - left) * (index + 0.5)) / Math.max(1, groups.length);
-  const experiments = unique(included.map((row) => row.replicate));
+  const experiments = unique(
+    included.map((row) => row.unitId ?? row.replicate),
+  );
   const colors = [
     "#287654",
     "#577eaf",
@@ -374,224 +510,336 @@ function ResultFigure({
     "#7b9243",
     "#a26373",
   ];
-  const height = 520 + warningLines.length * 17;
+  const height = 520 + (warningLines.length + inferenceLines.length) * 17;
   return (
-    <svg
-      ref={figureRef}
-      xmlns="http://www.w3.org/2000/svg"
-      width={width}
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      role="img"
-      aria-label={t(
-        "配对实验相对表达图",
-        "Relative expression across paired experiments",
-      )}
-      className="real-result-figure"
-      style={{
-        fontFamily: 'Arial, "PingFang SC", "Microsoft YaHei", sans-serif',
-      }}
-    >
-      <rect width={width} height={height} fill="#fff" />
-      <text x="28" y="31" fontSize="19" fontWeight="700" fill="#284f3d">
-        {protein} · {t("相对表达", "Relative expression")}
-      </text>
-      <text
-        x="872"
-        y="31"
-        fontSize="16"
-        fontWeight="700"
-        textAnchor="end"
-        fill={draft ? "#9b6228" : "#35654b"}
+    <>
+      <svg
+        ref={figureRef}
+        xmlns="http://www.w3.org/2000/svg"
+        width={width}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label={t(
+          "配对实验相对表达图",
+          "Relative expression across paired experiments",
+        )}
+        className="real-result-figure"
+        style={{
+          fontFamily: 'Arial, "PingFang SC", "Microsoft YaHei", sans-serif',
+        }}
       >
-        {draft ? "DRAFT" : t("已复核 · 实验功能", "REVIEWED · EXPERIMENTAL")}
-      </text>
-      <text x="28" y="56" fontSize="12" fill="#53695b">
-        {t(
-          "每次实验：目标 / 内参，再除以同次对照比值；对照 = 1。",
-          "Within each experiment: (target / reference) divided by its matched control ratio; control = 1.",
-        )}
-      </text>
-      <text x="28" y="77" fontSize="12" fill="#53695b">
-        {t(
-          "点与线：完整配对；横线与误差线：均值 ± SD（n ≥ 2）；无显著性检验。",
-          "Points and lines: complete pairs. Summary and error bars: mean ± SD (n ≥ 2). No significance test.",
-        )}
-      </text>
-      {[0, 1, 2, 3, 4].map((tick) => {
-        const value = minValue + ((maxValue - minValue) * tick) / 4;
-        return (
-          <g key={tick}>
-            <line
-              x1={left}
-              y1={y(value)}
-              x2={right}
-              y2={y(value)}
-              stroke="#e5ece7"
+        <rect width={width} height={height} fill="#fff" />
+        <text x="28" y="31" fontSize="19" fontWeight="700" fill="#284f3d">
+          {protein} · {t("相对表达", "Relative expression")}
+        </text>
+        <text
+          x="872"
+          y="31"
+          fontSize="16"
+          fontWeight="700"
+          textAnchor="end"
+          fill={draft ? "#9b6228" : "#35654b"}
+        >
+          {draft ? "DRAFT" : t("已复核 · 实验功能", "REVIEWED · EXPERIMENTAL")}
+        </text>
+        <text x="28" y="56" fontSize="12" fill="#53695b">
+          {project.normalization?.kind === "reference-unit"
+            ? t(
+                `共同基准：${project.normalization.unitId} 的对照（目标 / 内参）= 1；其他对照保留实际差异。`,
+                `Common baseline: control target/reference in ${project.normalization.unitId} = 1; other controls retain variation.`,
+              )
+            : project.pairedDesign
+              ? t(
+                  "每位个体：目标 / 内参，再除以其正常 N 比值；N = 1 是归一化定义。",
+                  "Within each individual: (target / reference) divided by their normal N ratio; N = 1 by definition.",
+                )
+              : t(
+                  "每次实验：目标 / 内参，再除以同次对照比值；对照 = 1。",
+                  "Within each experiment: (target / reference) divided by its matched control ratio; control = 1.",
+                )}
+        </text>
+        <text x="28" y="77" fontSize="12" fill="#53695b">
+          {plotStyle === "bars"
+            ? t(
+                "柱：均值；点：观测；误差线：SD（n ≥ 2）。仅纳入完整配对。",
+                "Bars: means; points: observations; error bars: SD (n ≥ 2). Complete pairs only.",
+              )
+            : t(
+                "点与线：完整配对；横线与误差线：均值 ± SD（n ≥ 2）。",
+                "Points and lines: complete pairs. Summary and error bars: mean ± SD (n ≥ 2).",
+              )}
+        </text>
+        {pLabel && (
+          <g className="real-p-value" fill="#435b4b" stroke="#637c6a">
+            <path
+              d={`M ${x(0)} ${plotTop - 17} v -8 H ${x(1)} v 8`}
+              fill="none"
+              strokeWidth="1.3"
             />
             <text
-              x={left - 12}
-              y={y(value) + 4}
-              textAnchor="end"
-              fontSize="11"
-              fill="#6e7e71"
+              x={(x(0) + x(1)) / 2}
+              y={plotTop - 33}
+              textAnchor="middle"
+              stroke="none"
+              fontSize="13"
             >
-              {numberText(value, 2)}
+              {pLabel}
             </text>
           </g>
-        );
-      })}
-      <line
-        x1={left}
-        y1={y(1)}
-        x2={right}
-        y2={y(1)}
-        stroke="#a5b7a8"
-        strokeDasharray="4 4"
-      />
-      <line
-        x1={left}
-        y1={plotBottom}
-        x2={right}
-        y2={plotBottom}
-        stroke="#738b7a"
-      />
-      <text
-        transform={`translate(20 ${(plotTop + plotBottom) / 2}) rotate(-90)`}
-        textAnchor="middle"
-        fontSize="12"
-        fill="#53695b"
-      >
-        {t("相对同次对照的倍数", "Fold relative to matched control")}
-      </text>
-      {experiments.map((experiment, index) => {
-        const values = groups
-          .map((group, groupIndex) => ({
-            row: included.find(
-              (row) =>
-                row.replicate === experiment && row.sample === group.sample,
-            ),
-            groupIndex,
-          }))
-          .filter((point) => point.row);
-        const jitter =
-          experiments.length <= 1
-            ? 0
-            : (index - (experiments.length - 1) / 2) *
-              Math.min(7, 45 / experiments.length);
-        const color = colors[index % colors.length];
-        return (
-          <g key={experiment}>
-            {values.length > 1 && (
-              <polyline
-                points={values
-                  .map(
-                    ({ row, groupIndex }) =>
-                      `${x(groupIndex) + jitter},${y(row!.fold!)}`,
-                  )
-                  .join(" ")}
-                fill="none"
-                stroke={color}
-                strokeOpacity="0.4"
-                strokeWidth="1.5"
+        )}
+        {[0, 1, 2, 3, 4].map((tick) => {
+          const value = minValue + ((maxValue - minValue) * tick) / 4;
+          return (
+            <g key={tick}>
+              <line
+                x1={left}
+                y1={y(value)}
+                x2={right}
+                y2={y(value)}
+                stroke="#e5ece7"
               />
-            )}
-            {values.map(({ row, groupIndex }) => (
-              <circle
-                key={row!.imageId + row!.lane}
-                cx={x(groupIndex) + jitter}
-                cy={y(row!.fold!)}
-                r="4.5"
-                fill={color}
+              <text
+                x={left - 12}
+                y={y(value) + 4}
+                textAnchor="end"
+                fontSize="11"
+                fill="#6e7e71"
               >
-                <title>
-                  {t("实验", "Experiment")} {experiment} · {row!.sample}:{" "}
-                  {numberText(row!.fold)}
-                </title>
-              </circle>
-            ))}
-          </g>
-        );
-      })}
-      {groups.map((group, index) => (
-        <g key={group.sample}>
-          {group.mean !== null && group.n >= 2 && group.sd !== null && (
-            <g stroke="#274d39" strokeWidth="2">
-              <line
-                x1={x(index) + 32}
-                y1={y(group.mean - group.sd)}
-                x2={x(index) + 32}
-                y2={y(group.mean + group.sd)}
-              />
-              <line
-                x1={x(index) + 24}
-                y1={y(group.mean - group.sd)}
-                x2={x(index) + 40}
-                y2={y(group.mean - group.sd)}
-              />
-              <line
-                x1={x(index) + 24}
-                y1={y(group.mean + group.sd)}
-                x2={x(index) + 40}
-                y2={y(group.mean + group.sd)}
-              />
-              <line
-                x1={x(index) + 19}
-                y1={y(group.mean)}
-                x2={x(index) + 45}
-                y2={y(group.mean)}
-                strokeWidth="3"
-              />
+                {numberText(value, 2)}
+              </text>
             </g>
-          )}
-          <text
-            x={x(index)}
-            y={plotBottom + 23}
-            textAnchor="middle"
-            fontSize="13"
-            fill="#385742"
-          >
-            {group.sample}
-          </text>
-          <text
-            x={x(index)}
-            y={plotBottom + 44}
-            textAnchor="middle"
-            fontSize="11"
-            fill="#718171"
-          >
-            n = {group.n} ·{" "}
-            {project.designConfirmed
-              ? t("独立实验", "independent experiments")
-              : t("配对组", "paired sets")}
-          </text>
-        </g>
-      ))}
-      <text x="28" y="447" fontSize="11" fill="#617366">
-        {t(
-          "独立性由实验设计确认；多曝光和同一实验的重复测量不增加 n。",
-          "Independence requires design confirmation; extra exposures and repeated measurements do not increase n.",
-        )}
-      </text>
-      <text x="28" y="468" fontSize="11" fill="#617366">
-        {t(
-          "实验性本机分析；图形包含当前质量状态。",
-          "Experimental local analysis; this figure retains the current quality status.",
-        )}
-      </text>
-      {warningLines.map((line, index) => (
+          );
+        })}
+        <line
+          x1={left}
+          y1={y(1)}
+          x2={right}
+          y2={y(1)}
+          stroke="#a5b7a8"
+          strokeDasharray="4 4"
+        />
+        <line
+          x1={left}
+          y1={plotBottom}
+          x2={right}
+          y2={plotBottom}
+          stroke="#738b7a"
+        />
         <text
-          key={index}
-          x="28"
-          y={497 + index * 17}
-          fontSize="10"
-          fill="#94632d"
+          transform={`translate(20 ${(plotTop + plotBottom) / 2}) rotate(-90)`}
+          textAnchor="middle"
+          fontSize="12"
+          fill="#53695b"
         >
-          {index === 0 ? "⚠ " : "  "}
-          {line}
+          {project.normalization?.kind === "reference-unit"
+            ? t("相对共同基准的倍数", "Fold relative to common baseline")
+            : t("相对配对对照的倍数", "Fold relative to matched control")}
         </text>
-      ))}
-    </svg>
+        {plotStyle === "bars" &&
+          groups.map(
+            (group, index) =>
+              group.mean !== null && (
+                <rect
+                  key={group.sample}
+                  className="real-mean-bar"
+                  x={x(index) - 46}
+                  y={y(Math.max(0, group.mean))}
+                  width="92"
+                  height={Math.abs(y(group.mean) - y(0))}
+                  fill={index === 0 ? "#82a695" : "#87a9ce"}
+                  fillOpacity="0.42"
+                  stroke={index === 0 ? "#52836b" : "#577eaf"}
+                />
+              ),
+          )}
+        {experiments.map((experiment, index) => {
+          const values = groups
+            .map((group, groupIndex) => ({
+              row: included.find(
+                (row) =>
+                  (row.unitId ?? row.replicate) === experiment &&
+                  row.sample === group.sample,
+              ),
+              groupIndex,
+            }))
+            .filter((point) => point.row);
+          const jitter =
+            experiments.length <= 1
+              ? 0
+              : (index - (experiments.length - 1) / 2) *
+                Math.min(7, 45 / experiments.length);
+          const color = colors[index % colors.length];
+          return (
+            <g key={experiment}>
+              {plotStyle === "paired" && values.length > 1 && (
+                <polyline
+                  points={values
+                    .map(
+                      ({ row, groupIndex }) =>
+                        `${x(groupIndex) + jitter},${y(row!.fold!)}`,
+                    )
+                    .join(" ")}
+                  fill="none"
+                  stroke={color}
+                  strokeOpacity="0.4"
+                  strokeWidth="1.5"
+                />
+              )}
+              {values.map(({ row, groupIndex }) => (
+                <circle
+                  key={row!.imageId + row!.lane}
+                  cx={x(groupIndex) + jitter}
+                  cy={y(row!.fold!)}
+                  r="4.5"
+                  fill={color}
+                >
+                  <title>
+                    {project.pairedDesign
+                      ? t("个体", "Individual")
+                      : t("实验", "Experiment")}{" "}
+                    {experiment} · {row!.sample}: {numberText(row!.fold)}
+                  </title>
+                </circle>
+              ))}
+            </g>
+          );
+        })}
+        {groups.map((group, index) => (
+          <g key={group.sample}>
+            {group.mean !== null && group.n >= 2 && group.sd !== null && (
+              <g stroke="#274d39" strokeWidth="2">
+                <line
+                  x1={x(index) + 32}
+                  y1={y(group.mean - group.sd)}
+                  x2={x(index) + 32}
+                  y2={y(group.mean + group.sd)}
+                />
+                <line
+                  x1={x(index) + 24}
+                  y1={y(group.mean - group.sd)}
+                  x2={x(index) + 40}
+                  y2={y(group.mean - group.sd)}
+                />
+                <line
+                  x1={x(index) + 24}
+                  y1={y(group.mean + group.sd)}
+                  x2={x(index) + 40}
+                  y2={y(group.mean + group.sd)}
+                />
+                <line
+                  x1={x(index) + 19}
+                  y1={y(group.mean)}
+                  x2={x(index) + 45}
+                  y2={y(group.mean)}
+                  strokeWidth="3"
+                />
+              </g>
+            )}
+            <text
+              x={x(index)}
+              y={plotBottom + 23}
+              textAnchor="middle"
+              fontSize="13"
+              fill="#385742"
+            >
+              {group.sample}
+            </text>
+            <text
+              x={x(index)}
+              y={plotBottom + 44}
+              textAnchor="middle"
+              fontSize="11"
+              fill="#718171"
+            >
+              n = {group.n} ·{" "}
+              {group.unitLabel === "individuals"
+                ? t("独立个体", "individuals")
+                : group.unitLabel === "independent experiments"
+                  ? t("独立实验", "independent experiments")
+                  : t("配对组", "paired sets")}
+            </text>
+          </g>
+        ))}
+        <text x="28" y="447" fontSize="11" fill="#617366">
+          {t(
+            "独立性由实验设计确认；多曝光和同一实验的重复测量不增加 n。",
+            "Independence requires design confirmation; extra exposures and repeated measurements do not increase n.",
+          )}
+        </text>
+        <text x="28" y="468" fontSize="11" fill="#617366">
+          {project.exampleKind === "synthetic"
+            ? t(
+                "SYNTHETIC · 合成像素示例，非真实实验；图形保留质量状态。",
+                "SYNTHETIC · Simulated pixels, not real experiments; quality status is retained.",
+              )
+            : t(
+                "实验性本机分析；图形包含当前质量状态。",
+                "Experimental local analysis; this figure retains the current quality status.",
+              )}
+        </text>
+        {inferenceLines.map((line, index) => (
+          <text
+            key={`test-${index}`}
+            x="28"
+            y={497 + index * 17}
+            fontSize="10"
+            fill="#53695b"
+          >
+            {line}
+          </text>
+        ))}
+        {warningLines.map((line, index) => (
+          <text
+            key={index}
+            x="28"
+            y={497 + (inferenceLines.length + index) * 17}
+            fontSize="10"
+            fill="#94632d"
+          >
+            {index === 0 ? "⚠ " : "  "}
+            {line}
+          </text>
+        ))}
+      </svg>
+      {testSelected && (
+        <div className="real-statistics-panel">
+          <strong>{t("配对检验详情", "Paired inference details")}</strong>
+          {inference?.pValue !== null && inference?.pValue !== undefined ? (
+            <>
+              <p>
+                {pLabel} · n = {inference.n} · t ={" "}
+                {inferenceNumber(inference.t)} · df = {inference.df}
+              </p>
+              <p>
+                {t(
+                  "配对差值均值（比较条件 − 对照）",
+                  "Mean paired difference (comparison − control)",
+                )}
+                : {inferenceNumber(inference.meanDifference)} ·{" "}
+                {t("95% 置信区间", "95% confidence interval")}:{" "}
+                {inference.ci95
+                  ? `[${inferenceNumber(inference.ci95[0])}, ${inferenceNumber(inference.ci95[1])}]`
+                  : "—"}
+              </p>
+              <p className="real-muted">
+                {t(
+                  "差值单位为目标/内参比值。P 值未经多重比较校正；图形上的归一化倍数不参与此检验。",
+                  "Differences are in target/reference ratio units. P-values are unadjusted; plotted normalized folds are not test inputs.",
+                )}
+              </p>
+            </>
+          ) : (
+            <p>
+              {localizeMessage(
+                inference?.reason ?? inferenceRecord?.reason ?? "",
+                language,
+              )}
+            </p>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -610,6 +858,9 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
   const [selectedId, setSelectedId] = useState("");
   const [laneDraft, setLaneDraft] = useState("");
   const [lanePreview, setLanePreview] = useState<string[] | null>(null);
+  const [designMode, setDesignMode] = useState<"shared" | "paired">("shared");
+  const [pairDraft, setPairDraft] = useState("");
+  const [pairPreview, setPairPreview] = useState<PairedLanePair[] | null>(null);
   const [selectedRegion, setSelectedRegion] = useState<{
     lane: number;
     kind: RegionKind;
@@ -622,6 +873,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
   const [newName, setNewName] = useState("");
   const [selectedProtein, setSelectedProtein] = useState("");
   const [calculationVersion, setCalculationVersion] = useState(0);
+  const [plotStyle, setPlotStyle] = useState<"bars" | "paired">("bars");
   const imageInput = useRef<HTMLInputElement>(null);
   const projectInput = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<SVGSVGElement>(null);
@@ -640,8 +892,12 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
     setSelectedId(next.images[0]?.id ?? "");
     setLaneDraft(next.laneDescription);
     setLanePreview(null);
+    setDesignMode(next.pairedDesign ? "paired" : "shared");
+    setPairDraft(pairDescription(next.pairedDesign?.pairs ?? []));
+    setPairPreview(null);
     setSelectedRegion({ lane: 1, kind: "band" });
     setSelectedProtein("");
+    setPlotStyle("bars");
     setLoadFailed(false);
     setDialog(null);
     setError("");
@@ -859,6 +1115,14 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
   const protein = proteins.includes(selectedProtein)
     ? selectedProtein
     : (proteins[0] ?? "");
+  const normalizationUnits = project?.pairedDesign
+    ? unique(project.pairedDesign.pairs.map((pair) => pair.unitId))
+    : unique(
+        project?.images
+          .filter((entry) => entry.role === "target" && !entry.excluded)
+          .map((entry) => entry.replicate.trim())
+          .filter(Boolean) ?? [],
+      );
   const region =
     image?.regions.find((entry) => entry.lane === selectedRegion.lane) ??
     image?.regions[0];
@@ -958,7 +1222,10 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           );
         setDialog({
           kind: "import",
-          project: await importRealProject(await response.blob()),
+          project: updateRealProject(
+            await importRealProject(await response.blob()),
+            { exampleKind: "synthetic" },
+          ),
         });
       },
     );
@@ -1066,32 +1333,36 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
   };
   const manualGrid = () => {
     if (!image || !raster || !project) return;
-    const laneWidth = raster.width / project.laneLabels.length;
+    const laneCount = requiredLaneCount(project, image);
+    const laneWidth = raster.width / laneCount;
     const height = Math.max(1, Math.floor(raster.height / 8));
-    const regions: LaneRegion[] = project.laneLabels.map((_, index) => ({
-      lane: index + 1,
-      source: "manual",
-      band: constrainRect(
-        {
-          x: laneWidth * (index + 0.22),
-          y: raster.height * 0.3,
-          width: laneWidth * 0.56,
-          height,
-        },
-        raster.width,
-        raster.height,
-      ),
-      background: constrainRect(
-        {
-          x: laneWidth * (index + 0.22),
-          y: raster.height * 0.65,
-          width: laneWidth * 0.56,
-          height,
-        },
-        raster.width,
-        raster.height,
-      ),
-    }));
+    const regions: LaneRegion[] = Array.from(
+      { length: laneCount },
+      (_, index) => ({
+        lane: index + 1,
+        source: "manual",
+        band: constrainRect(
+          {
+            x: laneWidth * (index + 0.22),
+            y: raster.height * 0.3,
+            width: laneWidth * 0.56,
+            height,
+          },
+          raster.width,
+          raster.height,
+        ),
+        background: constrainRect(
+          {
+            x: laneWidth * (index + 0.22),
+            y: raster.height * 0.65,
+            width: laneWidth * 0.56,
+            height,
+          },
+          raster.width,
+          raster.height,
+        ),
+      }),
+    );
     patchImage(image.id, { regions });
     setNotice(
       t(
@@ -1229,6 +1500,24 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           </p>
         </div>
       </header>
+      <div className="real-workspace-banner" role="note">
+        <strong>
+          {project.exampleKind === "synthetic"
+            ? t("合成示例工作区", "Synthetic example workspace")
+            : t("本机个人工作区", "Personal workspace on this device")}
+        </strong>
+        <span>
+          {project.exampleKind === "synthetic"
+            ? t(
+                "当前示例使用虚拟条带。网站示例与公开截图只使用合成数据。",
+                "This example uses virtual bands. Website examples and public screenshots use synthetic data only.",
+              )
+            : t(
+                "自己导入的图像和结果只保存在此浏览器中，不会成为网站示例或公开展示。",
+                "Images and results you import stay in this browser; they do not become website examples or public displays.",
+              )}
+        </span>
+      </div>
       <div className="real-project-bar">
         <label className="real-project-name">
           {t("项目名称", "Project name")}
@@ -1464,7 +1753,9 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                     t("文件 / 像素", "File / pixels"),
                     t("蛋白", "Protein"),
                     t("角色", "Role"),
-                    t("实验编号", "Experiment ID"),
+                    project.pairedDesign
+                      ? t("样本组编号", "Source group ID")
+                      : t("实验编号", "Experiment ID"),
                     t("膜编号", "Membrane ID"),
                     t("曝光 / 条件", "Exposure / condition"),
                     t("排除", "Exclude"),
@@ -1532,7 +1823,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                       </td>
                       <td>
                         <input
-                          aria-label={`${entry.name} ${t("实验编号", "experiment ID")}`}
+                          aria-label={`${entry.name} ${project.pairedDesign ? t("样本组编号", "source group ID") : t("实验编号", "experiment ID")}`}
                           value={entry.replicate}
                           maxLength={200}
                           disabled={!!busy}
@@ -1619,115 +1910,314 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
             </p>
           </div>
         </div>
-        <div className="real-lane-form">
-          <div>
-            <label className="real-field">
-              {t("泳道说明（从左到右）", "Lane description (left to right)")}
-              <textarea
-                aria-label={t("泳道说明", "Lane description")}
-                value={laneDraft}
-                maxLength={4000}
-                disabled={!!busy}
-                onChange={(event) => {
-                  setLaneDraft(event.target.value);
-                  setLanePreview(null);
-                }}
-                placeholder={t(
-                  "例如：1=NC; 2=Treatment; 3=marker",
-                  "For example: 1=NC; 2=Treatment; 3=marker",
-                )}
-              />
-            </label>
-            <p className="real-muted">
-              {t(
-                "支持简单编号说明或逗号列表：NC, Treatment, marker。marker / ladder 和以 ! 开头的泳道不参与计算；复杂说明请先改写为明确编号。",
-                "Use simple numbered descriptions or a comma list: NC, Treatment, marker. Marker / ladder and labels starting with ! are excluded. Rewrite complex descriptions as explicit assignments.",
-              )}
-            </p>
-            <div className="real-actions" style={{ marginTop: 12 }}>
-              <button
-                className="real-button"
-                disabled={!!busy || !laneDraft.trim()}
-                onClick={() => {
-                  try {
-                    setLanePreview(
-                      applyLaneDescription(project, laneDraft).laneLabels,
-                    );
-                    setError("");
-                  } catch (problem) {
-                    setError(
-                      localizeMessage(
-                        problem instanceof Error
-                          ? problem.message
-                          : String(problem),
-                        language,
-                      ),
-                    );
-                  }
-                }}
-              >
-                {t("解析并预览", "Parse & preview")}
-              </button>
-              <button
-                className="real-button primary"
-                disabled={!!busy || !lanePreview}
-                onClick={() => {
-                  try {
-                    const next = applyLaneDescription(
-                      currentProject.current ?? project,
-                      laneDraft,
-                    );
-                    accept(next);
-                    setLaneDraft(next.laneDescription);
+        <div className="real-design-select">
+          <label className="real-field">
+            {t("比较设计", "Comparison design")}
+            <select
+              aria-label={t("比较设计", "Comparison design")}
+              value={designMode}
+              disabled={!!busy}
+              onChange={(event) => {
+                const nextMode = event.target.value as "shared" | "paired";
+                setDesignMode(nextMode);
+                if (nextMode === "shared" && project.pairedDesign)
+                  setLaneDraft("NC, Treatment, marker");
+                setLanePreview(null);
+                setPairPreview(null);
+              }}
+            >
+              <option value="shared">
+                {t("每次实验共用 NC 对照", "Shared NC control per experiment")}
+              </option>
+              <option value="paired">
+                {t("每位个体 N/T 配对", "Paired N/T per individual")}
+              </option>
+            </select>
+          </label>
+          <p className="real-muted">
+            {t(
+              "先选择设计并确认应用。日期、文件尾号和泳道数量不决定独立样本数。",
+              "Select a design, then confirm it. Dates, filename suffixes, and lane counts do not establish independence.",
+            )}
+          </p>
+        </div>
+        {designMode === "shared" ? (
+          <div className="real-lane-form">
+            <div>
+              <label className="real-field">
+                {t("泳道说明（从左到右）", "Lane description (left to right)")}
+                <textarea
+                  aria-label={t("泳道说明", "Lane description")}
+                  value={laneDraft}
+                  maxLength={4000}
+                  disabled={!!busy}
+                  onChange={(event) => {
+                    setLaneDraft(event.target.value);
                     setLanePreview(null);
-                    setError("");
-                    setNotice(
-                      t(
-                        "泳道映射已应用。请重新检查所有图像区域与配对。",
-                        "Lane mapping applied. Review regions and pairing for all images.",
-                      ),
-                    );
-                  } catch (problem) {
-                    setError(
-                      localizeMessage(
-                        problem instanceof Error
-                          ? problem.message
-                          : String(problem),
-                        language,
-                      ),
-                    );
-                  }
-                }}
-              >
-                {t("确认应用到全部图像", "Confirm for all images")}
-              </button>
+                  }}
+                  placeholder={t(
+                    "例如：1=NC; 2=Treatment; 3=marker",
+                    "For example: 1=NC; 2=Treatment; 3=marker",
+                  )}
+                />
+              </label>
+              <p className="real-muted">
+                {t(
+                  "支持简单编号说明或逗号列表：NC, Treatment, marker。marker / ladder 和以 ! 开头的泳道不参与计算；复杂说明请先改写为明确编号。",
+                  "Use simple numbered descriptions or a comma list: NC, Treatment, marker. Marker / ladder and labels starting with ! are excluded. Rewrite complex descriptions as explicit assignments.",
+                )}
+              </p>
+              <div className="real-actions" style={{ marginTop: 12 }}>
+                <button
+                  className="real-button"
+                  disabled={!!busy || !laneDraft.trim()}
+                  onClick={() => {
+                    try {
+                      setLanePreview(
+                        applyLaneDescription(
+                          project.pairedDesign
+                            ? applyPairedDesign(project, null)
+                            : project,
+                          laneDraft,
+                        ).laneLabels,
+                      );
+                      setError("");
+                    } catch (problem) {
+                      setError(
+                        localizeMessage(
+                          problem instanceof Error
+                            ? problem.message
+                            : String(problem),
+                          language,
+                        ),
+                      );
+                    }
+                  }}
+                >
+                  {t("解析并预览", "Parse & preview")}
+                </button>
+                <button
+                  className="real-button primary"
+                  disabled={!!busy || !lanePreview}
+                  onClick={() => {
+                    try {
+                      const current = currentProject.current ?? project;
+                      const next = applyLaneDescription(
+                        current.pairedDesign
+                          ? applyPairedDesign(current, null)
+                          : current,
+                        laneDraft,
+                      );
+                      accept(next);
+                      setLaneDraft(next.laneDescription);
+                      setLanePreview(null);
+                      setError("");
+                      setNotice(
+                        t(
+                          "泳道映射已应用。请重新检查所有图像区域与配对。",
+                          "Lane mapping applied. Review regions and pairing for all images.",
+                        ),
+                      );
+                    } catch (problem) {
+                      setError(
+                        localizeMessage(
+                          problem instanceof Error
+                            ? problem.message
+                            : String(problem),
+                          language,
+                        ),
+                      );
+                    }
+                  }}
+                >
+                  {t("确认应用到全部图像", "Confirm for all images")}
+                </button>
+              </div>
+            </div>
+            <div className="real-lane-preview">
+              <h3>
+                {lanePreview
+                  ? t("待确认映射", "Mapping awaiting confirmation")
+                  : t("当前已应用映射", "Current applied mapping")}
+              </h3>
+              <ol>
+                {(lanePreview ?? project.laneLabels).map((label, index) => (
+                  <li key={index}>
+                    <small>
+                      {t("泳道", "Lane")} {index + 1}
+                    </small>
+                    <strong>{label}</strong>
+                    <small>
+                      {isExcludedLane(label)
+                        ? t("不参与定量", "Excluded")
+                        : isControlLane(label)
+                          ? project.normalization?.kind === "reference-unit"
+                            ? t(
+                                "对照（共同基准归一化）",
+                                "Control (common baseline)",
+                              )
+                            : t("配对对照 = 1", "Matched control = 1")
+                          : t("待比较条件", "Compared condition")}
+                    </small>
+                  </li>
+                ))}
+              </ol>
             </div>
           </div>
-          <div className="real-lane-preview">
-            <h3>
-              {lanePreview
-                ? t("待确认映射", "Mapping awaiting confirmation")
-                : t("当前已应用映射", "Current applied mapping")}
-            </h3>
-            <ol>
-              {(lanePreview ?? project.laneLabels).map((label, index) => (
-                <li key={index}>
-                  <small>
-                    {t("泳道", "Lane")} {index + 1}
-                  </small>
-                  <strong>{label}</strong>
-                  <small>
-                    {isExcludedLane(label)
-                      ? t("不参与定量", "Excluded")
-                      : isControlLane(label)
-                        ? t("配对对照 = 1", "Matched control = 1")
-                        : t("待比较条件", "Compared condition")}
-                  </small>
-                </li>
-              ))}
-            </ol>
+        ) : (
+          <div className="real-lane-form real-pair-form">
+            <div>
+              <label className="real-field">
+                {t(
+                  "N/T 配对表（每行一位个体）",
+                  "N/T pairing table (one individual per row)",
+                )}
+                <textarea
+                  aria-label={t("N/T 配对表", "N/T pairing table")}
+                  value={pairDraft}
+                  maxLength={32000}
+                  disabled={!!busy}
+                  onChange={(event) => {
+                    setPairDraft(event.target.value);
+                    setPairPreview(null);
+                  }}
+                  placeholder={
+                    "group-1, individual-1, 1, 2\ngroup-1, individual-2, 3, 4\ngroup-2, individual-3, 1, 2"
+                  }
+                />
+              </label>
+              <p className="real-muted">
+                {t(
+                  "格式：样本组编号, 个体编号, N 泳道, T 泳道。样本组须与上表的编号一致。相同个体跨组重复测量时沿用同一编号；目前重复测量会提示歧义，不自动增加 n。",
+                  "Format: source group ID, individual ID, N lane, T lane. Group IDs must match the image table. Reuse an individual's ID across repeated measurements; repeated measurements are flagged as ambiguous and do not increase n.",
+                )}
+              </p>
+              <div className="real-actions" style={{ marginTop: 12 }}>
+                <button
+                  className="real-button"
+                  disabled={!!busy || !pairDraft.trim()}
+                  onClick={() => {
+                    try {
+                      const pairs = parsePairDescription(pairDraft, t);
+                      applyPairedDesign(project, pairs);
+                      setPairPreview(pairs);
+                      setError("");
+                    } catch (problem) {
+                      setError(
+                        localizeMessage(
+                          problem instanceof Error
+                            ? problem.message
+                            : String(problem),
+                          language,
+                        ),
+                      );
+                    }
+                  }}
+                >
+                  {t("预览 N/T 配对", "Preview N/T pairs")}
+                </button>
+                <button
+                  className="real-button primary"
+                  disabled={!!busy || !pairPreview}
+                  onClick={() => {
+                    try {
+                      const next = applyPairedDesign(
+                        currentProject.current ?? project,
+                        parsePairDescription(pairDraft, t),
+                      );
+                      accept(next);
+                      setPairDraft(
+                        pairDescription(next.pairedDesign?.pairs ?? []),
+                      );
+                      setLaneDraft(next.laneDescription);
+                      setLanePreview(null);
+                      setPairPreview(null);
+                      setError("");
+                      setNotice(
+                        t(
+                          "N/T 配对已应用。请核对同膜内参和个体独立性，再逐图复核区域。",
+                          "N/T pairs applied. Check same-membrane references, individual independence, and regions in each image.",
+                        ),
+                      );
+                    } catch (problem) {
+                      setError(
+                        localizeMessage(
+                          problem instanceof Error
+                            ? problem.message
+                            : String(problem),
+                          language,
+                        ),
+                      );
+                    }
+                  }}
+                >
+                  {t("确认应用 N/T 配对", "Confirm N/T pairs")}
+                </button>
+              </div>
+            </div>
+            <div className="real-lane-preview">
+              <h3>
+                {pairPreview
+                  ? t("待确认配对", "Pairs awaiting confirmation")
+                  : t("当前已应用配对", "Current applied pairs")}
+              </h3>
+              {(pairPreview ?? project.pairedDesign?.pairs ?? []).length ? (
+                <>
+                  <p className="real-muted">
+                    {t("个体编号去重计数", "Distinct individual IDs")}:{" "}
+                    {
+                      unique(
+                        (pairPreview ?? project.pairedDesign?.pairs ?? []).map(
+                          (pair) => pair.unitId,
+                        ),
+                      ).length
+                    }
+                    {pairPreview || !project.designConfirmed
+                      ? t(
+                          "（确认设计前不视为独立样本）",
+                          " (not confirmed independent yet)",
+                        )
+                      : t(
+                          "（独立性由用户确认）",
+                          " (independence confirmed by the user)",
+                        )}
+                  </p>
+                  <div className="real-table-scroll">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>{t("样本组", "Group")}</th>
+                          <th>{t("个体", "Individual")}</th>
+                          <th>N</th>
+                          <th>T</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(pairPreview ?? project.pairedDesign?.pairs ?? []).map(
+                          (pair, index) => (
+                            <tr key={index}>
+                              <td>{pair.groupId}</td>
+                              <td>{pair.unitId}</td>
+                              <td>{pair.normalLane}</td>
+                              <td>{pair.tumorLane}</td>
+                            </tr>
+                          ),
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              ) : (
+                <p className="real-muted">
+                  {t(
+                    "填写并预览配对；未列出的泳道不参与配对统计。",
+                    "Enter and preview pairs. Lanes not listed are excluded from paired statistics.",
+                  )}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
         <div className="real-design-box">
           <div className="real-actions">
             <label className="real-field">
@@ -1758,7 +2248,14 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
             <input
               type="checkbox"
               checked={project.designConfirmed}
-              disabled={!!busy}
+              disabled={
+                !!busy ||
+                designMode !== (project.pairedDesign ? "paired" : "shared") ||
+                (designMode === "paired" &&
+                  (pairPreview !== null ||
+                    pairDraft !==
+                      pairDescription(project.pairedDesign?.pairs ?? [])))
+              }
               onChange={(event) =>
                 commit((previous) =>
                   updateRealProject(previous, {
@@ -1768,10 +2265,15 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
               }
             />
             <span>
-              {t(
-                "我已核对泳道映射、同编号同膜配对，并确认不同实验编号代表独立实验。",
-                "I have checked lane assignments and experiment/membrane pairing, and confirm that different experiment IDs represent independent experiments.",
-              )}
+              {project.pairedDesign
+                ? t(
+                    "我已核对每位个体的 N/T 泳道、样本组及同膜内参，并确认不同个体编号代表不同的独立个体。",
+                    "I have checked each individual's N/T lanes, source groups, and same-membrane references, and confirm that different individual IDs represent distinct independent individuals.",
+                  )
+                : t(
+                    "我已核对泳道映射、同编号同膜配对，并确认不同实验编号代表独立实验。",
+                    "I have checked lane assignments and experiment/membrane pairing, and confirm that different experiment IDs represent independent experiments.",
+                  )}
               <small>
                 {t(
                   "未确认时 n 仅表示配对组数。确认不能消除像素截断、背景或成像线性问题。",
@@ -1811,8 +2313,12 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
             disabled={
               !!busy ||
               !project.images.length ||
-              lanePreview !== null ||
-              laneDraft !== project.laneDescription
+              designMode !== (project.pairedDesign ? "paired" : "shared") ||
+              (designMode === "paired"
+                ? pairPreview !== null ||
+                  pairDraft !==
+                    pairDescription(project.pairedDesign?.pairs ?? [])
+                : lanePreview !== null || laneDraft !== project.laneDescription)
             }
             onClick={() =>
               void run(
@@ -2205,7 +2711,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                           patchImage(image.id, {
                             regions: proposeRegions(
                               raster,
-                              requiredLaneCount(project),
+                              requiredLaneCount(project, image),
                               image.signal,
                             ),
                           }),
@@ -2301,12 +2807,124 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
             </h2>
             <p>
               {t(
-                "每个泳道先扣局部背景，再除以内参，最后相对同次实验的对照。仅做描述统计，不自动计算 p 值。",
-                "Subtract local background, divide by the reference, then normalize to the matched control within each experiment. Descriptive summaries only; no automatic p-values.",
+                "每个泳道先扣局部背景，再除以内参，最后使用下方明确选择的归一化基准。默认展示描述统计；需明确选择才执行配对检验。",
+                "Subtract local background, divide by the reference, then use the normalization baseline explicitly selected below. Descriptive summaries are shown by default; paired inference requires an explicit selection.",
               )}
             </p>
           </div>
         </div>
+        <div className="real-normalization-box">
+          <div className="real-actions">
+            <label className="real-field">
+              {t("归一化基准", "Normalization baseline")}
+              <select
+                aria-label={t("归一化基准", "Normalization baseline")}
+                disabled={!!busy}
+                value={project.normalization?.kind ?? "matched-control"}
+                onChange={(event) =>
+                  commit((previous) =>
+                    applyNormalization(
+                      previous,
+                      event.target.value === "matched-control"
+                        ? { kind: "matched-control" }
+                        : {
+                            kind: "reference-unit",
+                            unitId: normalizationUnits[0] ?? "",
+                          },
+                    ),
+                  )
+                }
+              >
+                <option value="matched-control">
+                  {t("各自配对对照 = 1", "Each matched control = 1")}
+                </option>
+                <option
+                  value="reference-unit"
+                  disabled={!normalizationUnits.length}
+                >
+                  {t(
+                    "指定一个对照作为共同基准",
+                    "Use one control as a common baseline",
+                  )}
+                </option>
+              </select>
+            </label>
+            {project.normalization?.kind === "reference-unit" && (
+              <label className="real-field">
+                {project.pairedDesign
+                  ? t("基准个体的正常 N", "Baseline individual's normal N")
+                  : t("基准实验的 NC", "Baseline experiment's NC")}
+                <select
+                  aria-label={t("共同基准编号", "Common baseline ID")}
+                  value={project.normalization.unitId}
+                  disabled={!!busy}
+                  onChange={(event) =>
+                    commit((previous) =>
+                      applyNormalization(previous, {
+                        kind: "reference-unit",
+                        unitId: event.target.value,
+                      }),
+                    )
+                  }
+                >
+                  {!normalizationUnits.includes(
+                    project.normalization.unitId,
+                  ) && (
+                    <option value={project.normalization.unitId}>
+                      {project.normalization.unitId} · {t("缺失", "missing")}
+                    </option>
+                  )}
+                  {normalizationUnits.map((unit) => (
+                    <option key={unit} value={unit}>
+                      {unit}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
+          <p className="real-muted">
+            {project.normalization?.kind === "reference-unit"
+              ? t(
+                  "全部目标/内参比值除以所选对照的比值。只有该对照定义为 1；其他 NC/N 的高低均按真实计算保留。跨膜或批次可比性须另行验证，结果保留草稿提示。",
+                  "All target/reference ratios are divided by the selected control ratio. Only that control is defined as 1; other NC/N values retain their calculated variation. Cross-membrane or batch comparability requires separate validation, so results retain a draft warning.",
+                )
+              : t(
+                  "每个实验/个体分别除以自己的 NC/N。所有对照 = 1 是该算法的定义，并不代表对照没有生物学差异。",
+                  "Each experiment/individual is divided by its own NC/N. All controls equal 1 by definition; this does not imply absent biological variation.",
+                )}
+          </p>
+        </div>
+        <label className="real-checkbox real-test-choice">
+          <input
+            type="checkbox"
+            aria-label={t("双侧配对 t 检验", "Two-sided paired t-test")}
+            checked={project.statisticalTest === "paired-t"}
+            disabled={
+              !!busy ||
+              !project.designConfirmed ||
+              calculated.summaries.filter(
+                (summary) => summary.protein === protein,
+              ).length !== 2
+            }
+            onChange={(event) =>
+              commit((previous) =>
+                updateRealProject(previous, {
+                  statisticalTest: event.target.checked ? "paired-t" : "none",
+                }),
+              )
+            }
+          />
+          <span>
+            {t("选择双侧配对 t 检验", "Select a two-sided paired t-test")}
+            <small>
+              {t(
+                "先确认独立性，且仅比较两个配对条件。检验使用目标/内参比值，不使用把各自对照设为 1 后的数值。跨膜、曝光或批次的比值尺度须可比；选择共同基准并不能校准这些差异。须假设配对差值近似正态；小样本难以核实此假设。P 值未经多重比较校正，不能消除图像质量问题。",
+                "Confirm independence first; only two paired conditions are supported. The test uses target/reference ratios, not values divided by each pair's own control. Ratio scales must be comparable across membranes, exposures, and batches; selecting a common baseline cannot calibrate those differences. It assumes approximately normal paired differences, an assumption hard to assess with small n. P-values are unadjusted and do not resolve image-quality problems.",
+              )}
+            </small>
+          </span>
+        </label>
         {calculated.problem && (
           <div className="real-error" role="alert">
             {localizeMessage(calculated.problem, language)}
@@ -2334,6 +2952,23 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                   ))}
                 </select>
               </label>
+              <label className="real-field">
+                {t("图形样式", "Plot style")}
+                <select
+                  aria-label={t("图形样式", "Plot style")}
+                  value={plotStyle}
+                  onChange={(event) =>
+                    setPlotStyle(event.target.value as "bars" | "paired")
+                  }
+                >
+                  <option value="bars">
+                    {t("柱状图 + 单点 + SD", "Bars + individual points + SD")}
+                  </option>
+                  <option value="paired">
+                    {t("配对连线图 + SD", "Paired points + SD")}
+                  </option>
+                </select>
+              </label>
               <div className="real-actions">
                 <button
                   className="real-button"
@@ -2355,6 +2990,21 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                 >
                   <Download size={15} />
                   CSV
+                </button>
+                <button
+                  className="real-button"
+                  disabled={!!busy}
+                  onClick={() =>
+                    saveBlob(
+                      new Blob(["\ufeff" + exportRealStatisticsCsv(project)], {
+                        type: "text/csv;charset=utf-8",
+                      }),
+                      `${fileStem(project.name)}-statistics.csv`,
+                    )
+                  }
+                >
+                  <Download size={15} />
+                  {t("统计 CSV", "Statistics CSV")}
                 </button>
                 {(["svg", "png", "tiff"] as const).map((format) => (
                   <button
@@ -2378,6 +3028,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                   summaries={calculated.summaries}
                   language={language}
                   figureRef={figureRef}
+                  plotStyle={plotStyle}
                 />
               </div>
             ) : (
@@ -2399,7 +3050,9 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                 <thead>
                   <tr>
                     {[
-                      t("图像 / 实验", "Image / experiment"),
+                      project.pairedDesign
+                        ? t("图像 / 个体", "Image / individual")
+                        : t("图像 / 实验", "Image / experiment"),
                       t("条件", "Condition"),
                       t("目标净信号", "Target net"),
                       t("内参净信号", "Reference net"),
@@ -2430,6 +3083,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                             {row.name}
                           </button>
                           <small>
+                            {row.unitId ? `${row.unitId} · ` : ""}
                             {row.replicate || "—"} · {row.membrane || "—"} · r
                             {row.analysisRevision}
                           </small>
@@ -2592,7 +3246,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                         () => {
                           const regions = proposeRegions(
                             imageRaster(currentImage),
-                            requiredLaneCount(project),
+                            requiredLaneCount(project, currentImage),
                             currentImage.signal,
                           );
                           patchImage(currentImage.id, { regions });

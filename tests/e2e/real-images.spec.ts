@@ -8,14 +8,14 @@ import { decodeRaster } from "../../src/real/pixels";
 
 // Public synthetic fixtures only: uniform background and two rectangular bands.
 // The 16-bit fixtures use 257× the 8-bit scale, never a display-derived measurement.
-function syntheticFile(name: string, depth: 8 | 16, levels: [number, number]) {
-  const width = 100,
+function syntheticFile(name: string, depth: 8 | 16, levels: number[]) {
+  const width = levels.length * 50,
     height = 64,
     scale = depth === 16 ? 257 : 1;
   const samples = new Uint16Array(width * height).fill(220 * scale);
-  for (let lane = 0; lane < 2; lane++)
+  for (let lane = 0; lane < levels.length; lane++)
     for (let y = 20; y < 28; y++)
-      for (let x = lane === 0 ? 12 : 55; x < (lane === 0 ? 30 : 73); x++)
+      for (let x = 12 + lane * 43; x < 30 + lane * 43; x++)
         samples[y * width + x] = levels[lane] * scale;
   let bytes: Uint8Array;
   if (name.endsWith(".tif")) {
@@ -71,6 +71,9 @@ async function importAndAnalyze(page: Page) {
     .getByLabel("Choose original WB images", { exact: true })
     .setInputFiles(files);
   await expect(page.locator(".real-mapping-table tbody tr")).toHaveCount(4);
+  await expect(page.locator(".real-workspace-banner")).toContainText(
+    "Personal workspace on this device",
+  );
   await expect(page.locator(".real-mapping-table")).toContainText("8-bit TIFF");
   await expect(page.locator(".real-mapping-table")).toContainText("16-bit PNG");
   for (const file of files) {
@@ -349,7 +352,8 @@ test("real archive preserves originals and revisions across reload/migration wit
     expect(svg.suggestedFilename()).toMatch(/^DRAFT-.*\.svg$/);
     const svgText = (await downloadBytes(svg)).toString("utf8");
     expect(svgText).toContain("DRAFT");
-    expect(svgText).toContain("No significance test.");
+    expect(svgText).toContain("Complete pairs only.");
+    expect(svgText).not.toContain('class="real-p-value"');
     expect(svgText).toContain("paired sets");
     const png = decodePng(
       await downloadBytes(await download(destination, "PNG")),
@@ -397,19 +401,32 @@ test("public pixel example loads after confirmation and pending edits survive br
   // The archive records Chinese as its language; changing it does not alter measurements.
   await page.getByRole("button", { name: "切换到英文", exact: true }).click();
   await expect(page.locator(".real-mapping-table tbody tr")).toHaveCount(6);
+  await expect(page.locator(".real-workspace-banner")).toContainText(
+    "Synthetic example workspace",
+  );
+  await expect(page.locator(".real-workspace-banner")).toContainText(
+    "Website examples and public screenshots use synthetic data only.",
+  );
+  const exampleSvg = (
+    await downloadBytes(await download(page, "SVG"))
+  ).toString("utf8");
+  expect(exampleSvg).toContain(
+    "SYNTHETIC · Simulated pixels, not real experiments",
+  );
   await expect(page.locator(".real-mapping-table")).toContainText("16-bit PNG");
   await expect(page.locator(".real-result-table tbody tr")).toHaveCount(6);
-  const treatmentRows = page
-    .locator(".real-result-table tbody tr")
-    .filter({
-      has: page.getByRole("cell", { name: "Treatment", exact: true }),
-    });
+  const treatmentRows = page.locator(".real-result-table tbody tr").filter({
+    has: page.getByRole("cell", { name: "Treatment", exact: true }),
+  });
   await expect(treatmentRows).toHaveCount(3);
   expect(
     await treatmentRows.locator("td:nth-child(6)").allTextContents(),
   ).toEqual(["0.5", "0.75", "1"]);
   const exampleResults = await exportCsv(page);
-  expect(new Set(exampleResults.map((row) => row.experiment_id)).size).toBe(3);
+  expect(
+    new Set(exampleResults.map((row) => row.source_group_or_experiment_id))
+      .size,
+  ).toBe(3);
   expect(new Set(exampleResults.map((row) => row.condition)).size).toBe(2);
   expect(new Set(exampleResults.map((row) => row.source_bit_depth))).toEqual(
     new Set(["8", "16"]),
@@ -421,6 +438,15 @@ test("public pixel example loads after confirmation and pending edits survive br
   ).toEqual([0.5, 0.75, 1]);
   expect(exampleResults.every((row) => row.record_status === "DRAFT")).toBe(
     true,
+  );
+  await page
+    .getByLabel("Choose original WB images", { exact: true })
+    .setInputFiles([syntheticFile("Local-import.png", 8, [111, 153])]);
+  await expect(page.locator(".real-workspace-banner")).toContainText(
+    "Personal workspace on this device",
+  );
+  await expect(page.locator(".real-workspace-banner")).toContainText(
+    "do not become website examples or public displays",
   );
   await saved(page);
   await page
@@ -435,4 +461,325 @@ test("public pixel example loads after confirmation and pending edits survive br
     page.getByRole("textbox", { name: "Real project name", exact: true }),
   ).toHaveValue("Edited immediately before browser Back");
   await saved(page);
+});
+
+// Independence is confirmed only within this generated QA fixture to exercise
+// the inference controls. No synthetic fixture is treated as biological evidence.
+test("explicit paired inference, common baseline, and plot styles retain auditable raw-ratio tests", async ({
+  page,
+  browser,
+  baseURL,
+}, testInfo) => {
+  test.setTimeout(90000);
+  await openEnglish(page);
+  await importAndAnalyze(page);
+  const testChoice = page.getByRole("checkbox", {
+    name: "Two-sided paired t-test",
+    exact: true,
+  });
+  await expect(testChoice).toBeDisabled();
+  await expect(testChoice).not.toBeChecked();
+  await expect(page.locator(".real-mean-bar")).toHaveCount(2);
+  await expect(page.locator(".real-result-figure polyline")).toHaveCount(0);
+  await expect(page.locator(".real-p-value")).toHaveCount(0);
+  await page
+    .getByRole("checkbox", { name: /^I have checked lane assignments/ })
+    .check();
+  await testChoice.check();
+  await expect(page.locator(".real-p-value")).toContainText("P = ");
+  await expect(page.locator(".real-statistics-panel")).toContainText(
+    "95% confidence interval",
+  );
+  await expect(page.locator(".real-statistics-panel")).toContainText(
+    "target/reference ratio units",
+  );
+  const initialStats = csvRows(
+    (await downloadBytes(await download(page, "Statistics CSV"))).toString(
+      "utf8",
+    ),
+  );
+  expect(initialStats).toHaveLength(1);
+  const inference = initialStats[0];
+  expect(inference.method).toBe("paired-t");
+  expect(inference.alternative).toBe("two-sided");
+  expect(inference.input_basis).toBe("target/reference");
+  expect(inference.n_complete_pairs).toBe("2");
+  expect(inference.df).toBe("1");
+  expect(inference.quality_status).toBe("DRAFT");
+  // Independent closed-form reference: df=1 follows the Cauchy distribution.
+  const differences = [60 / 35 - 100 / 70, 80 / 50 - 80 / 100];
+  const meanDifference = (differences[0] + differences[1]) / 2;
+  const sd = Math.abs(differences[1] - differences[0]) / Math.sqrt(2);
+  const expectedT = meanDifference / (sd / Math.sqrt(2));
+  const expectedP = 1 - (2 / Math.PI) * Math.atan(Math.abs(expectedT));
+  expect(Number(inference.t)).toBeCloseTo(expectedT, 12);
+  // Allow 1e-10 numerical error from the incomplete-beta t-tail evaluation.
+  expect(Number(inference.p_value_unadjusted)).toBeCloseTo(expectedP, 10);
+  expect(Number(inference.mean_difference_treatment_minus_control)).toBeCloseTo(
+    meanDifference,
+    12,
+  );
+  const pText = await page.locator(".real-p-value text").textContent();
+  await page
+    .getByLabel("Normalization baseline", { exact: true })
+    .selectOption("reference-unit");
+  await expect(
+    page.getByLabel("Common baseline ID", { exact: true }),
+  ).toHaveValue("1");
+  await expect(page.locator(".real-p-value text")).toHaveText(pText!);
+  const commonResults = await exportCsv(page);
+  const controlValues = commonResults
+    .filter((row) => row.condition === "NC")
+    .map((row) => Number(row.fold_vs_control));
+  expect(controlValues[0]).toBe(1);
+  expect(controlValues[1]).toBeCloseTo(0.56, 12);
+  expect(
+    commonResults.every((row) => row.normalization_method === "reference-unit"),
+  ).toBe(true);
+  const commonStats = csvRows(
+    (await downloadBytes(await download(page, "Statistics CSV"))).toString(
+      "utf8",
+    ),
+  )[0];
+  for (const column of [
+    "n_complete_pairs",
+    "t",
+    "p_value_unadjusted",
+    "mean_difference_treatment_minus_control",
+    "ci95_low",
+    "ci95_high",
+  ])
+    expect(commonStats[column]).toBe(inference[column]);
+  expect(commonStats.plot_reference_unit).toBe("1");
+  await page.getByLabel("Plot style", { exact: true }).selectOption("paired");
+  await expect(page.locator(".real-mean-bar")).toHaveCount(0);
+  await expect(page.locator(".real-result-figure polyline")).toHaveCount(2);
+  await expect(page.locator(".real-p-value text")).toHaveText(pText!);
+  await saved(page);
+  await page.reload();
+  await expect(
+    page.getByLabel("Normalization baseline", { exact: true }),
+  ).toHaveValue("reference-unit");
+  await expect(
+    page.getByLabel("Common baseline ID", { exact: true }),
+  ).toHaveValue("1");
+  await expect(
+    page.getByRole("checkbox", {
+      name: "Two-sided paired t-test",
+      exact: true,
+    }),
+  ).toBeChecked();
+  await expect(page.locator(".real-p-value text")).toHaveText(pText!);
+  await expect(page.locator(".real-mean-bar")).toHaveCount(2);
+  const archivePath = testInfo.outputPath("synthetic-inference.realwb.zip");
+  await (await download(page, "Export project")).saveAs(archivePath);
+  const manifest = JSON.parse(
+    strFromU8(unzipSync(await readFile(archivePath))["manifest.json"]),
+  );
+  expect(manifest.normalization).toEqual({
+    kind: "reference-unit",
+    unitId: "1",
+  });
+  expect(manifest.statisticalTest).toBe("paired-t");
+  const context = await browser.newContext();
+  try {
+    const destination = await context.newPage();
+    await openEnglish(destination, baseURL);
+    await destination
+      .getByLabel("Import real project archive", { exact: true })
+      .setInputFiles(archivePath);
+    await destination
+      .getByRole("button", { name: "Confirm import", exact: true })
+      .click();
+    await expect(
+      destination.getByLabel("Normalization baseline", { exact: true }),
+    ).toHaveValue("reference-unit");
+    await expect(
+      destination.getByRole("checkbox", {
+        name: "Two-sided paired t-test",
+        exact: true,
+      }),
+    ).toBeChecked();
+    await expect(destination.locator(".real-p-value text")).toHaveText(pText!);
+    expect(await exportCsv(destination)).toEqual(commonResults);
+    const svg = (
+      await downloadBytes(await download(destination, "SVG"))
+    ).toString("utf8");
+    expect(svg).toContain("Common baseline:");
+    expect(svg).toContain("Two-sided paired t-test:");
+    expect(svg).toContain("unadjusted");
+    expect(svg).toContain("DRAFT");
+    await destination
+      .getByRole("button", { name: "Switch to Chinese", exact: true })
+      .click();
+    await expect(
+      destination.getByLabel("共同基准编号", { exact: true }),
+    ).toHaveValue("1");
+    await expect(destination.locator(".real-statistics-panel")).toContainText(
+      "95% 置信区间",
+    );
+  } finally {
+    await context.close();
+  }
+});
+
+test("explicit N/T mapping counts distinct individuals across source groups and survives migration", async ({
+  page,
+  browser,
+  baseURL,
+}, testInfo) => {
+  test.setTimeout(90000);
+  await openEnglish(page);
+  await page
+    .getByLabel("Choose original WB images", { exact: true })
+    .setInputFiles([
+      syntheticFile("Target_rep1.png", 8, [120, 140, 160, 150]),
+      syntheticFile("Reference_rep1.png", 8, [180, 190, 180, 185]),
+      syntheticFile("Target_rep2.png", 8, [130, 150, 155, 165]),
+      syntheticFile("Reference_rep2.png", 8, [170, 180, 175, 180]),
+    ]);
+  await expect(page.locator(".real-mapping-table tbody tr")).toHaveCount(4);
+  await page
+    .getByLabel("Comparison design", { exact: true })
+    .selectOption("paired");
+  await page
+    .getByLabel("N/T pairing table", { exact: true })
+    .fill(
+      "1, person-1, 1, 2\n1, person-2, 3, 4\n2, person-3, 1, 2\n2, person-4, 3, 4",
+    );
+  await expect(
+    page.getByRole("button", { name: "Confirm N/T pairs", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Propose & calculate all", exact: true }),
+  ).toBeDisabled();
+  await page
+    .getByRole("button", { name: "Preview N/T pairs", exact: true })
+    .click();
+  await expect(page.locator(".real-pair-form table tbody tr")).toHaveCount(4);
+  await expect(page.locator(".real-lane-preview")).toContainText(
+    "Distinct individual IDs: 4",
+  );
+  await expect(
+    page.getByLabel("Target_rep1.png experiment ID", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Confirm N/T pairs", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Target_rep1.png source group ID", { exact: true }),
+  ).toHaveValue("1");
+  await page
+    .getByRole("button", { name: "Propose & calculate all", exact: true })
+    .click();
+  await expect(page.locator(".real-result-table tbody tr")).toHaveCount(8);
+  const before = await exportCsv(page);
+  expect(new Set(before.map((row) => row.individual_id)).size).toBe(4);
+  expect(
+    new Set(before.map((row) => row.source_group_or_experiment_id)).size,
+  ).toBe(2);
+  expect(new Set(before.map((row) => row.condition))).toEqual(
+    new Set(["N", "T"]),
+  );
+  await expect(page.locator(".real-result-figure")).toContainText(
+    "n = 4 · paired sets",
+  );
+  await page
+    .getByRole("checkbox", {
+      name: /^I have checked each individual's N\/T lanes/,
+    })
+    .check();
+  await expect(page.locator(".real-result-figure")).toContainText(
+    "n = 4 · individuals",
+  );
+  await page
+    .getByRole("checkbox", { name: "Two-sided paired t-test", exact: true })
+    .check();
+  await expect(page.locator(".real-p-value")).toContainText("P = ");
+  const stats = csvRows(
+    (await downloadBytes(await download(page, "Statistics CSV"))).toString(
+      "utf8",
+    ),
+  )[0];
+  expect(stats.n_complete_pairs).toBe("4");
+  expect(JSON.parse(stats.individual_or_experiment_ids_json)).toEqual([
+    "person-1",
+    "person-2",
+    "person-3",
+    "person-4",
+  ]);
+  const pairedP = stats.p_value_unadjusted;
+  await page
+    .getByLabel("Normalization baseline", { exact: true })
+    .selectOption("reference-unit");
+  await expect(
+    page.getByLabel("Common baseline ID", { exact: true }),
+  ).toHaveValue("person-1");
+  const common = await exportCsv(page);
+  expect(
+    common
+      .filter((row) => row.condition === "N")
+      .map((row) => Number(row.fold_vs_control)),
+  ).not.toEqual([1, 1, 1, 1]);
+  const afterStats = csvRows(
+    (await downloadBytes(await download(page, "Statistics CSV"))).toString(
+      "utf8",
+    ),
+  )[0];
+  expect(afterStats.p_value_unadjusted).toBe(pairedP);
+  const archivePath = testInfo.outputPath("synthetic-individuals.realwb.zip");
+  await (await download(page, "Export project")).saveAs(archivePath);
+  const manifest = JSON.parse(
+    strFromU8(unzipSync(await readFile(archivePath))["manifest.json"]),
+  );
+  expect(manifest.pairedDesign.pairs).toHaveLength(4);
+  expect(manifest.pairedDesign.pairs[3]).toEqual({
+    groupId: "2",
+    unitId: "person-4",
+    normalLane: 3,
+    tumorLane: 4,
+  });
+  const context = await browser.newContext();
+  try {
+    const destination = await context.newPage();
+    await openEnglish(destination, baseURL);
+    await destination
+      .getByLabel("Import real project archive", { exact: true })
+      .setInputFiles(archivePath);
+    await destination
+      .getByRole("button", { name: "Confirm import", exact: true })
+      .click();
+    await expect(
+      destination.getByLabel("Comparison design", { exact: true }),
+    ).toHaveValue("paired");
+    await expect(
+      destination.getByLabel("N/T pairing table", { exact: true }),
+    ).toContainText("person-4");
+    await expect(destination.locator(".real-result-figure")).toContainText(
+      "n = 4 · individuals",
+    );
+    expect(await exportCsv(destination)).toEqual(common);
+    await saved(destination);
+    await destination.reload();
+    await expect(
+      destination.getByLabel("Comparison design", { exact: true }),
+    ).toHaveValue("paired");
+    await expect(
+      destination.getByLabel("Common baseline ID", { exact: true }),
+    ).toHaveValue("person-1");
+    await expect(destination.locator(".real-result-figure")).toContainText(
+      "n = 4 · individuals",
+    );
+    await destination
+      .getByRole("button", { name: "Switch to Chinese", exact: true })
+      .click();
+    await expect(
+      destination.getByLabel("N/T 配对表", { exact: true }),
+    ).toBeVisible();
+    await expect(destination.locator(".real-result-figure")).toContainText(
+      "独立个体",
+    );
+  } finally {
+    await context.close();
+  }
 });

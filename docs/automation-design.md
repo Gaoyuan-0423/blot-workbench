@@ -1,6 +1,6 @@
 # 批量自动 WB 工作流与可选视觉 API
 
-实施状态 / Implementation status (`0.3.0-dev.1`): 本机共享泳道说明、批量像素候选、手动修改、局部背景定量及描述性图已进入 `#real` 实验预览；视觉 API 实验图分析与复杂样本模型仍未接入。 / Shared lane descriptions, local batch proposals, manual edits, local-background measurements, and descriptive plots are available experimentally at `#real`. Vision-API analysis of experimental images and complex sample models are not implemented. See [guide](real-images.en.md).
+实施状态 / Implementation status (`0.3.0-dev.2`): 本机共享泳道说明、明确个体 N/T 配对、批量候选、手动修改、局部背景定量、共同基准与可选配对检验已进入 `#real` 实验预览；视觉 API 实验图分析和技术重复合并仍未接入。 / Shared lane descriptions, explicit individual N/T pairs, local batch proposals, manual edits, background measurements, a common baseline, and optional paired inference are experimental at `#real`. Vision-API analysis of experimental images and technical-replicate aggregation remain unimplemented. See [guide](real-images.en.md).
 
 需求更新：2026-10-11。本文是下一版的产品与技术设计，不是当前在线 `0.1.0-alpha.1` 的已实现功能说明。
 

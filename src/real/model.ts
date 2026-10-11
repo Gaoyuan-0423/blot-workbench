@@ -1,6 +1,8 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import { get, set } from "idb-keyval";
 import { z } from "zod";
+import { pairedTTest, type PairedTestResult } from "./statistics";
+import { APP_VERSION } from "../core/types";
 import {
   decodeRaster,
   inspectRasterDimensions,
@@ -37,6 +39,14 @@ export interface RealImage extends ImageAnalysis {
   readonly hash: string;
   history: RealImageHistory[];
 }
+export interface PairedLanePair {
+  groupId: string;
+  unitId: string;
+  normalLane: number;
+  tumorLane: number;
+}
+export type NormalizationPolicy =
+  { kind: "matched-control" } | { kind: "reference-unit"; unitId: string };
 export interface RealProject {
   format: "blot-workbench-real";
   version: 1;
@@ -50,6 +60,10 @@ export interface RealProject {
   targetLabel: string;
   referenceLabel: string;
   designConfirmed: boolean;
+  pairedDesign?: { pairs: PairedLanePair[] };
+  normalization?: NormalizationPolicy;
+  statisticalTest?: "none" | "paired-t";
+  exampleKind?: "synthetic";
   images: RealImage[];
 }
 export type ResultStatus = "draft" | "ready" | "blocked";
@@ -62,6 +76,11 @@ export interface RealResult {
   exposure: string;
   lane: number;
   sample: string;
+  unitId: string | null;
+  controlLane: number | null;
+  normalizationKind: NormalizationPolicy["kind"];
+  baselineUnitId: string | null;
+  baselineImageId: string | null;
   analysisRevision: number;
   referenceImageId: string | null;
   referenceRevision: number | null;
@@ -89,7 +108,7 @@ export interface RealStatistics {
   status: ResultStatus;
   warning: string;
   warnings: string[];
-  unitLabel: "independent experiments" | "paired sets";
+  unitLabel: "independent experiments" | "paired sets" | "individuals";
 }
 
 const MAX_IMAGES = 48;
@@ -189,7 +208,13 @@ export function updateRealProject(
   patch: Partial<
     Pick<
       RealProject,
-      "name" | "language" | "targetLabel" | "referenceLabel" | "designConfirmed"
+      | "name"
+      | "language"
+      | "targetLabel"
+      | "referenceLabel"
+      | "designConfirmed"
+      | "exampleKind"
+      | "statisticalTest"
     >
   >,
 ): RealProject {
@@ -199,6 +224,8 @@ export function updateRealProject(
     "targetLabel",
     "referenceLabel",
     "designConfirmed",
+    "exampleKind",
+    "statisticalTest",
   ]);
   ensure(
     Object.keys(patch).every((key) => allowed.has(key)),
@@ -216,6 +243,16 @@ export function updateRealProject(
     ensure(
       patch.language === "zh" || patch.language === "en",
       "Invalid language / 语言无效",
+    );
+  if (patch.statisticalTest !== undefined)
+    ensure(
+      patch.statisticalTest === "none" || patch.statisticalTest === "paired-t",
+      "Invalid statistical test / 统计检验选项无效",
+    );
+  if (patch.exampleKind !== undefined)
+    ensure(
+      patch.exampleKind === "synthetic",
+      "Invalid example kind / 示例类型无效",
     );
   if (patch.designConfirmed !== undefined)
     ensure(
@@ -389,6 +426,8 @@ export async function importRealImages(
   );
   return {
     ...markUpdated(project, [...existing, ...additions]),
+    exampleKind: undefined,
+    statisticalTest: "none",
     designConfirmed: false,
   };
 }
@@ -471,11 +510,14 @@ export function applyLaneDescription(
     "Duplicate condition labels require an explicit technical-replicate model / 当前请为每个条件设置一个泳道，不能将重复泳道当独立样本",
   );
   if (
+    !project.pairedDesign &&
     JSON.stringify(labels) === JSON.stringify(project.laneLabels) &&
     text === project.laneDescription
   )
     return project;
-  const changed = JSON.stringify(labels) !== JSON.stringify(project.laneLabels);
+  const changed =
+    Boolean(project.pairedDesign) ||
+    JSON.stringify(labels) !== JSON.stringify(project.laneLabels);
   return {
     ...markUpdated(
       project,
@@ -494,10 +536,128 @@ export function applyLaneDescription(
           )
         : project.images,
     ),
+    pairedDesign: undefined,
     laneLabels: labels,
     laneDescription: text,
+    statisticalTest: changed ? "none" : project.statisticalTest,
     designConfirmed: changed ? false : project.designConfirmed,
   };
+}
+
+/** Explicit individual identities, never inferred from lane order or file names. */
+export function applyPairedDesign(
+  project: RealProject,
+  pairs: PairedLanePair[] | null,
+): RealProject {
+  if (pairs === null) {
+    if (!project.pairedDesign) return project;
+    return applyLaneDescription(
+      { ...project, pairedDesign: undefined, designConfirmed: false },
+      "NC, Treatment, marker",
+    );
+  }
+  const checked = validatePairedPairs(pairs);
+  if (JSON.stringify(checked) === JSON.stringify(project.pairedDesign?.pairs))
+    return project;
+  const laneCount = Math.max(
+    ...checked.flatMap((pair) => [pair.normalLane, pair.tumorLane]),
+  );
+  const laneLabels = Array.from({ length: laneCount }, (_, index) => {
+    const roles = new Set(
+      checked.flatMap((pair) => [
+        ...(pair.normalLane === index + 1 ? ["N"] : []),
+        ...(pair.tumorLane === index + 1 ? ["T"] : []),
+      ]),
+    );
+    return roles.size === 1
+      ? `${[...roles][0]} · ${index + 1}`
+      : `Lane ${index + 1}`;
+  });
+  return {
+    ...markUpdated(
+      project,
+      project.images.map((image) =>
+        revise(
+          image,
+          {
+            reviewed: false,
+            regions: image.regions.filter((region) => region.lane <= laneCount),
+          },
+          "paired-design-changed",
+        ),
+      ),
+    ),
+    pairedDesign: { pairs: checked },
+    statisticalTest: "none",
+    laneLabels,
+    laneDescription: "Explicit individual N/T pairs / 明确个体 N/T 配对",
+    designConfirmed: false,
+  };
+}
+export function applyNormalization(
+  project: RealProject,
+  policy: NormalizationPolicy,
+): RealProject {
+  const parsed = normalizationSchema.parse(policy);
+  const checked: NormalizationPolicy =
+    parsed.kind === "reference-unit"
+      ? { ...parsed, unitId: parsed.unitId.trim() }
+      : parsed;
+  ensure(
+    checked.kind !== "reference-unit" || checked.unitId.length > 0,
+    "Select a reference unit / 请选择归一化基准个体或实验",
+  );
+  if (
+    JSON.stringify(project.normalization ?? { kind: "matched-control" }) ===
+    JSON.stringify(checked)
+  )
+    return project;
+  return {
+    ...markUpdated(
+      project,
+      project.images.map((image) =>
+        image.reviewed
+          ? revise(image, { reviewed: false }, "normalization-changed")
+          : image,
+      ),
+    ),
+    normalization: checked,
+  };
+}
+
+function validatePairedPairs(pairs: PairedLanePair[]): PairedLanePair[] {
+  const checked = pairedDesignSchema.parse({ pairs }).pairs.map((pair) => ({
+    ...pair,
+    groupId: pair.groupId.trim(),
+    unitId: pair.unitId.trim(),
+  }));
+  const identities = new Set<string>();
+  const lanes = new Set<string>();
+  for (const pair of checked) {
+    ensure(
+      pair.groupId && pair.unitId,
+      "Pair group and individual IDs must be nonempty / 配对组及个体编号不能为空",
+    );
+    ensure(
+      pair.normalLane !== pair.tumorLane,
+      "Normal and tumor lanes must differ / 正常和肿瘤泳道不能相同",
+    );
+    const identity = JSON.stringify([pair.groupId, pair.unitId]);
+    ensure(
+      !identities.has(identity),
+      "Duplicate individual within a group / 同一组的个体编号重复",
+    );
+    identities.add(identity);
+    for (const lane of [pair.normalLane, pair.tumorLane]) {
+      const key = JSON.stringify([pair.groupId, lane]);
+      ensure(
+        !lanes.has(key),
+        "A lane cannot belong to multiple pairs in a group / 同一组的泳道不能属于多个配对",
+      );
+      lanes.add(key);
+    }
+  }
+  return checked;
 }
 
 export type RealImagePatch = Partial<Omit<ImageAnalysis, "revision">>;
@@ -591,14 +751,29 @@ export function analyzeAll(project: RealProject, force = false): RealProject {
         .filter((region) => region.source === "manual")
         .map((region) => [region.lane, region]),
     );
-    const activeLanes = project.laneLabels
-      .map((label, index) => (isExcludedLane(label) ? 0 : index + 1))
-      .filter(Boolean);
+    const activeLanes = project.pairedDesign
+      ? [
+          ...new Set(
+            project.pairedDesign.pairs
+              .filter((pair) => pair.groupId.trim() === image.replicate.trim())
+              .flatMap((pair) => [pair.normalLane, pair.tumorLane]),
+          ),
+        ]
+      : project.laneLabels
+          .map((label, index) => (isExcludedLane(label) ? 0 : index + 1))
+          .filter(Boolean);
+    if (!activeLanes.length) {
+      next = updateRealImage(next, image.id, {
+        analysisError:
+          "No paired lane design for this group / 此组尚未设置配对泳道",
+      });
+      continue;
+    }
     if (!force && activeLanes.every((lane) => manual.has(lane))) continue;
     try {
       const proposals = proposeRegions(
         imageRaster(image),
-        laneCount,
+        project.pairedDesign ? Math.max(...activeLanes) : laneCount,
         image.signal,
       );
       const regions = proposals.map((region) =>
@@ -736,7 +911,7 @@ export function results(project: RealProject): RealResult[] {
       block(
         "Reference protein does not match project settings / 内参蛋白与项目设置不一致",
       );
-    if (!controlLane)
+    if (!controlLane && !project.pairedDesign)
       block("Exactly one NC/control lane is required / 须有唯一 NC 或对照泳道");
     if (!project.designConfirmed)
       baseWarnings.push(
@@ -751,48 +926,86 @@ export function results(project: RealProject): RealResult[] {
       ...(reference ? imageRaster(reference).warnings : []),
     ]);
     baseWarnings.push(...rasterWarnings);
-    const targetControl = controlLane ? measurement(target, controlLane) : null;
-    const referenceControl =
-      reference && controlLane ? measurement(reference, controlLane) : null;
-    if (!targetControl || !referenceControl)
-      block(
-        "Control band/background regions are missing / 缺少对照条带或背景区域",
-      );
-    if (
-      (targetControl && targetControl.net <= 0) ||
-      (referenceControl && referenceControl.net <= 0)
-    )
-      block("Control net signal is nonpositive / 对照净信号非正，不能归一化");
-    baseWarnings.push(
-      ...(targetControl?.warnings ?? []).map(
-        (warning) => `Control target: ${warning}`,
-      ),
-      ...(referenceControl?.warnings ?? []).map(
-        (warning) => `Control reference: ${warning}`,
-      ),
+    const groupPairs = project.pairedDesign?.pairs.filter(
+      (pair) => pair.groupId.trim() === target.replicate.trim(),
     );
-    if (
-      (targetControl?.clippedFraction ?? 0) > 0 ||
-      (referenceControl?.clippedFraction ?? 0) > 0
-    )
-      baseWarnings.push(
-        "Control contains clipped pixels; linearity is unverified / 对照区域存在端点截断，线性范围未验证",
-      );
-    const controlRatio =
-      targetControl &&
-      referenceControl &&
-      targetControl.net > 0 &&
-      referenceControl.net > 0
-        ? targetControl.net / referenceControl.net
-        : null;
-    for (let index = 0; index < project.laneLabels.length; index++) {
-      const sample = project.laneLabels[index];
-      if (isExcludedLane(sample)) continue;
-      const lane = index + 1;
-      const measured = measurement(target, lane);
-      const measuredReference = reference ? measurement(reference, lane) : null;
+    if (groupPairs && !groupPairs.length)
+      block("No paired lane design for this group / 此组尚未设置配对泳道");
+    const entries = groupPairs?.length
+      ? groupPairs.flatMap((pair) => [
+          {
+            lane: pair.normalLane,
+            sample: "N",
+            unitId: pair.unitId.trim(),
+            controlLane: pair.normalLane,
+          },
+          {
+            lane: pair.tumorLane,
+            sample: "T",
+            unitId: pair.unitId.trim(),
+            controlLane: pair.normalLane,
+          },
+        ])
+      : project.laneLabels.flatMap((sample, index) =>
+          isExcludedLane(sample)
+            ? []
+            : [
+                {
+                  lane: index + 1,
+                  sample,
+                  unitId: null,
+                  controlLane,
+                },
+              ],
+        );
+    for (const entry of entries) {
+      const { lane, sample, unitId, controlLane } = entry;
       const warnings = [...baseWarnings];
       let blocked = baseBlocked;
+      const blockRow = (warning: string) => {
+        warnings.push(warning);
+        blocked = true;
+      };
+      const targetControl = controlLane
+        ? measurement(target, controlLane)
+        : null;
+      const referenceControl =
+        reference && controlLane ? measurement(reference, controlLane) : null;
+      if (!targetControl || !referenceControl)
+        blockRow(
+          "Control band/background regions are missing / 缺少对照条带或背景区域",
+        );
+      if (
+        (targetControl && targetControl.net <= 0) ||
+        (referenceControl && referenceControl.net <= 0)
+      )
+        blockRow(
+          "Control net signal is nonpositive / 对照净信号非正，不能归一化",
+        );
+      warnings.push(
+        ...(targetControl?.warnings ?? []).map(
+          (warning) => `Control target: ${warning}`,
+        ),
+        ...(referenceControl?.warnings ?? []).map(
+          (warning) => `Control reference: ${warning}`,
+        ),
+      );
+      if (
+        (targetControl?.clippedFraction ?? 0) > 0 ||
+        (referenceControl?.clippedFraction ?? 0) > 0
+      )
+        warnings.push(
+          "Control contains clipped pixels; linearity is unverified / 对照区域存在端点截断，线性范围未验证",
+        );
+      const controlRatio =
+        targetControl &&
+        referenceControl &&
+        targetControl.net > 0 &&
+        referenceControl.net > 0
+          ? targetControl.net / referenceControl.net
+          : null;
+      const measured = measurement(target, lane);
+      const measuredReference = reference ? measurement(reference, lane) : null;
       if (!measured || !measuredReference) {
         blocked = true;
         warnings.push(
@@ -842,6 +1055,11 @@ export function results(project: RealProject): RealResult[] {
         exposure: target.exposure,
         lane,
         sample,
+        unitId,
+        controlLane: controlLane || null,
+        normalizationKind: "matched-control",
+        baselineUnitId: unitId ?? target.replicate.trim(),
+        baselineImageId: target.id,
         analysisRevision: target.revision,
         referenceImageId: reference?.id ?? null,
         referenceRevision: reference?.revision ?? null,
@@ -853,7 +1071,7 @@ export function results(project: RealProject): RealResult[] {
         clippedFraction: measured?.clippedFraction ?? null,
         referenceClippedFraction: measuredReference?.clippedFraction ?? null,
         ratio: blocked ? null : ratio,
-        controlRatio: baseBlocked ? null : controlRatio,
+        controlRatio: blocked ? null : controlRatio,
         fold: blocked ? null : fold,
         status: blocked
           ? "blocked"
@@ -862,6 +1080,51 @@ export function results(project: RealProject): RealResult[] {
             : "ready",
         warnings: allWarnings,
       });
+    }
+  }
+  if (project.normalization?.kind === "reference-unit") {
+    const baselineId = project.normalization.unitId.trim();
+    for (const row of output) {
+      const controls = output.filter(
+        (candidate) =>
+          !project.images.find((image) => image.id === candidate.imageId)
+            ?.excluded &&
+          normalized(candidate.protein) === normalized(row.protein) &&
+          (candidate.unitId ?? candidate.replicate) === baselineId &&
+          candidate.lane === candidate.controlLane,
+      );
+      // Resolve against source ratios, never a previously normalized fold.
+      const baseline =
+        controls.length === 1 &&
+        controls[0].ratio !== null &&
+        controls[0].status !== "blocked"
+          ? controls[0]
+          : null;
+      row.normalizationKind = "reference-unit";
+      row.baselineUnitId = baselineId;
+      row.baselineImageId = baseline?.imageId ?? null;
+      row.controlRatio = baseline?.ratio ?? null;
+      if (!baseline || !baseline.ratio || baseline.ratio <= 0) {
+        row.fold = null;
+        row.status = "blocked";
+        row.warnings = distinct([
+          ...row.warnings,
+          "Reference-unit control is missing or ambiguous / 基准个体或实验的对照缺失或不唯一",
+        ]);
+        continue;
+      }
+      row.fold = row.ratio === null ? null : row.ratio / baseline.ratio;
+      if (row.fold !== null && !Number.isFinite(row.fold)) {
+        row.fold = null;
+        row.status = "blocked";
+        row.warnings.push("Non-finite normalization / 归一化结果不是有限值");
+      }
+      row.warnings = distinct([
+        ...row.warnings,
+        ...baseline.warnings,
+        "Cross-experiment comparability is unverified; a shared baseline does not calibrate membranes or exposures / 跨实验可比性未验证，共同基准不能校准不同膜或曝光",
+      ]);
+      if (row.status !== "blocked") row.status = "draft";
     }
   }
   return output;
@@ -876,9 +1139,9 @@ export function descriptiveStatistics(
   const proteins = [...new Set(rows.map((row) => row.protein))].filter(
     (label) => protein === undefined || label === protein,
   );
-  const conditions = project.laneLabels.filter(
-    (label) => !isExcludedLane(label),
-  );
+  const conditions = project.pairedDesign
+    ? ["N", "T"]
+    : project.laneLabels.filter((label) => !isExcludedLane(label));
   return proteins.flatMap((protein) => {
     const candidates = rows.filter(
       (row) =>
@@ -888,7 +1151,10 @@ export function descriptiveStatistics(
     );
     const grouped = new Map<string, RealResult[]>();
     for (const row of candidates)
-      grouped.set(row.replicate, [...(grouped.get(row.replicate) ?? []), row]);
+      grouped.set(row.unitId ?? row.replicate, [
+        ...(grouped.get(row.unitId ?? row.replicate) ?? []),
+        row,
+      ]);
     const complete = [...grouped.values()].filter((group) =>
       conditions.every(
         (condition) =>
@@ -905,18 +1171,26 @@ export function descriptiveStatistics(
       )
     )
       summaryWarnings.push(
-        "Repeated measurements from one experiment were excluded from the summary / 同一实验的多次测量未作为独立重复汇总",
+        project.pairedDesign
+          ? "Repeated measurements of one individual were excluded from the summary / 同一个体的重复测量未作为独立个体汇总"
+          : "Repeated measurements from one experiment were excluded from the summary / 同一实验的多次测量未作为独立重复汇总",
       );
     const allExperiments = new Set(
-      rows.filter((row) => row.protein === protein).map((row) => row.replicate),
+      rows
+        .filter((row) => row.protein === protein)
+        .map((row) => row.unitId ?? row.replicate),
     );
     if (complete.length < allExperiments.size)
       summaryWarnings.push(
-        "Incomplete or ambiguous paired experiments were omitted from every condition / 不完整或配对不明确的实验未纳入任何条件的汇总",
+        project.pairedDesign
+          ? "Incomplete or ambiguous individual pairs were omitted from both N and T / 不完整或配对不明确的个体均未纳入 N 和 T 汇总"
+          : "Incomplete or ambiguous paired experiments were omitted from every condition / 不完整或配对不明确的实验未纳入任何条件的汇总",
       );
     if (!project.designConfirmed)
       summaryWarnings.push(
-        "n counts paired sets, not confirmed independent experiments / n 仅为配对组数，独立实验尚未确认",
+        project.pairedDesign
+          ? "n counts paired sets, not confirmed distinct individuals / n 仅为配对组数，不同个体尚未确认"
+          : "n counts paired sets, not confirmed independent experiments / n 仅为配对组数，独立实验尚未确认",
       );
     return conditions.map((sample) => {
       const eligible = complete.map((group) =>
@@ -944,7 +1218,7 @@ export function descriptiveStatistics(
         sd,
         n: values.length,
         values,
-        replicates: eligible.map((row) => row.replicate),
+        replicates: eligible.map((row) => row.unitId ?? row.replicate),
         status:
           values.length === 0
             ? "blocked"
@@ -954,11 +1228,225 @@ export function descriptiveStatistics(
         warning: warnings.join("; "),
         warnings,
         unitLabel: project.designConfirmed
-          ? "independent experiments"
+          ? project.pairedDesign
+            ? "individuals"
+            : "independent experiments"
           : "paired sets",
       };
     });
   });
+}
+
+export interface PairedInputSource {
+  imageId: string;
+  imageSha256: string;
+  analysisRevision: number;
+  referenceImageId: string | null;
+  referenceSha256: string | null;
+  referenceRevision: number | null;
+  sourceGroup: string;
+  membrane: string;
+  exposure: string;
+  referenceExposure: string;
+  lane: number;
+}
+export interface RealPairedInput {
+  id: string;
+  control: number;
+  treatment: number;
+  controlSource: PairedInputSource;
+  treatmentSource: PairedInputSource;
+}
+export interface RealPairedTest {
+  protein: string;
+  result: PairedTestResult | null;
+  inputPairs: RealPairedInput[];
+  status: "ok" | "unavailable";
+  reason: string;
+  quality: "draft" | "ready";
+  warnings: string[];
+}
+/** A plot baseline never changes the paired t-test input: use original target/reference ratios. */
+export function realPairedTests(project: RealProject): RealPairedTest[] {
+  const rows = results(project);
+  const proteins = [...new Set(rows.map((row) => row.protein))];
+  const conditions = project.pairedDesign
+    ? ["N", "T"]
+    : project.laneLabels.filter((label) => !isExcludedLane(label));
+  const summaries = descriptiveStatistics(project);
+  return proteins.map((protein) => {
+    const proteinSummaries = summaries.filter(
+      (summary) => summary.protein === protein,
+    );
+    const warnings = distinct(
+      proteinSummaries.flatMap((summary) => summary.warnings),
+    );
+    let quality = warnings.some(requiresAttention)
+      ? ("draft" as const)
+      : ("ready" as const);
+    const unavailable = (reason: string): RealPairedTest => ({
+      protein,
+      result: null,
+      inputPairs: [],
+      status: "unavailable",
+      reason,
+      quality,
+      warnings,
+    });
+    if (project.statisticalTest !== "paired-t")
+      return unavailable("test-disabled");
+    if (!project.designConfirmed) return unavailable("design-unconfirmed");
+    if (conditions.length !== 2) return unavailable("requires-two-conditions");
+    // The same complete, unambiguous unit set is used for both plotted groups and testing.
+    const eligibleIds =
+      proteinSummaries.length === 2
+        ? proteinSummaries[0].replicates.filter((id) =>
+            proteinSummaries[1].replicates.includes(id),
+          )
+        : [];
+    const eligible = rows.filter(
+      (row) =>
+        row.protein === protein &&
+        row.status !== "blocked" &&
+        row.ratio !== null &&
+        row.fold !== null,
+    );
+    const source = (row: RealResult): PairedInputSource => {
+      const image = project.images.find((image) => image.id === row.imageId)!;
+      const reference = project.images.find(
+        (image) => image.id === row.referenceImageId,
+      );
+      return {
+        imageId: row.imageId,
+        imageSha256: image.hash,
+        analysisRevision: row.analysisRevision,
+        referenceImageId: row.referenceImageId,
+        referenceSha256: reference?.hash ?? null,
+        referenceRevision: row.referenceRevision,
+        sourceGroup: row.replicate,
+        membrane: row.membrane,
+        exposure: image.exposure,
+        referenceExposure: reference?.exposure ?? "",
+        lane: row.lane,
+      };
+    };
+    const pairs: RealPairedInput[] = eligibleIds.flatMap((id) => {
+      const unitRows = eligible.filter(
+        (row) => (row.unitId ?? row.replicate) === id,
+      );
+      const control = unitRows.filter((row) => row.lane === row.controlLane);
+      const treatment = unitRows.filter((row) => row.lane !== row.controlLane);
+      return control.length === 1 && treatment.length === 1
+        ? [
+            {
+              id,
+              control: control[0].ratio!,
+              treatment: treatment[0].ratio!,
+              controlSource: source(control[0]),
+              treatmentSource: source(treatment[0]),
+            },
+          ]
+        : [];
+    });
+    const measurementContexts = new Set(
+      pairs.flatMap((pair) =>
+        [pair.controlSource, pair.treatmentSource].map((entry) =>
+          JSON.stringify([
+            entry.sourceGroup,
+            entry.membrane,
+            entry.exposure.trim(),
+            entry.referenceExposure.trim(),
+          ]),
+        ),
+      ),
+    );
+    if (measurementContexts.size > 1) {
+      warnings.push(
+        "Inference combines target/reference ratios across membranes or acquisition settings; comparable scales have not been established / 检验合并了跨膜或不同采集条件的目标/内参比值，其尺度可比性尚未验证",
+      );
+      quality = "draft";
+    }
+    const result = pairedTTest(pairs);
+    return {
+      protein,
+      result,
+      inputPairs: pairs,
+      status: result.status,
+      reason: result.reason ?? "",
+      quality,
+      warnings,
+    };
+  });
+}
+export function exportRealStatisticsCsv(project: RealProject): string {
+  const exportedAt = now();
+  const rows: (string | number | null)[][] = [
+    [
+      "project_id",
+      "project_updated_at_utc",
+      "exported_at_utc",
+      "app_version",
+      "project_format_version",
+      "protein",
+      "test_requested",
+      "test_status",
+      "unavailable_reason",
+      "quality_status",
+      "quality_warnings",
+      "method",
+      "alternative",
+      "input_basis",
+      "n_complete_pairs",
+      "df",
+      "t",
+      "p_value_unadjusted",
+      "mean_difference_treatment_minus_control",
+      "ci95_low",
+      "ci95_high",
+      "individual_or_experiment_ids_json",
+      "exact_input_pairs_and_provenance_json",
+      "design_confirmed",
+      "plot_normalization_method",
+      "plot_reference_unit",
+      "interpretation",
+    ],
+  ];
+  for (const test of realPairedTests(project)) {
+    const result = test.result;
+    rows.push([
+      project.id,
+      project.updatedAt,
+      exportedAt,
+      APP_VERSION,
+      project.version,
+      test.protein,
+      project.statisticalTest ?? "none",
+      test.status,
+      test.reason,
+      test.quality.toUpperCase(),
+      test.warnings.join("; "),
+      result?.method ??
+        (project.statisticalTest === "paired-t" ? "paired-t" : "none"),
+      result?.alternative ?? "",
+      result?.inputBasis ?? "",
+      result?.n ?? null,
+      result?.df ?? null,
+      result?.t ?? null,
+      result?.pValue ?? null,
+      result?.meanDifference ?? null,
+      result?.ci95?.[0] ?? null,
+      result?.ci95?.[1] ?? null,
+      result ? JSON.stringify(result.ids) : "",
+      JSON.stringify(test.inputPairs),
+      String(project.designConfirmed),
+      project.normalization?.kind ?? "matched-control",
+      project.normalization?.kind === "reference-unit"
+        ? project.normalization.unitId
+        : "",
+      "Two-sided paired t-test on original target/reference ratios; p is unadjusted; plot normalization does not change test inputs; quality warnings remain applicable",
+    ]);
+  }
+  return rows.map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }
 
 function csvCell(value: string | number | null): string {
@@ -981,7 +1469,11 @@ export function exportRealCsv(project: RealProject): string {
       "image_name",
       "image_sha256",
       "protein",
-      "experiment_id",
+      "source_group_or_experiment_id",
+      "individual_id",
+      "normalization_method",
+      "baseline_unit_id",
+      "baseline_image_id",
       "membrane_id",
       "exposure",
       "analysis_revision",
@@ -998,7 +1490,7 @@ export function exportRealCsv(project: RealProject): string {
       "target_clipped_fraction",
       "reference_clipped_fraction",
       "target_reference_ratio",
-      "within_experiment_control_ratio",
+      "normalization_baseline_ratio",
       "fold_vs_control",
       "calculation",
       "statistical_test",
@@ -1034,10 +1526,10 @@ export function exportRealCsv(project: RealProject): string {
       "control_reference_background_roi_json",
     ],
   ];
-  const controlLane = project.laneLabels.findIndex(isControlLane) + 1;
   const rectJson = (rect: LaneRegion["band"] | undefined) =>
     rect ? JSON.stringify(rect) : "";
   for (const row of results(project)) {
+    const controlLane = row.controlLane ?? 0;
     const image = project.images.find((image) => image.id === row.imageId)!;
     const raster = imageRaster(image);
     const region = image.regions.find((region) => region.lane === row.lane);
@@ -1067,6 +1559,10 @@ export function exportRealCsv(project: RealProject): string {
       project.images.find((image) => image.id === row.imageId)!.hash,
       row.protein,
       row.replicate,
+      row.unitId,
+      row.normalizationKind,
+      row.baselineUnitId,
+      row.baselineImageId,
       row.membrane,
       row.exposure,
       row.analysisRevision,
@@ -1085,8 +1581,10 @@ export function exportRealCsv(project: RealProject): string {
       row.ratio,
       row.controlRatio,
       row.fold,
-      "local original pixels; local mean background; (target/reference)/(control target/control reference)",
-      "none; descriptive only",
+      "local original pixels; local mean background; (target/reference)/declared baseline target/reference ratio",
+      project.statisticalTest === "paired-t"
+        ? "paired-t requested; raw target/reference ratios; two-sided; unadjusted; actual results in separate statistics CSV"
+        : "none; descriptive only",
       raster.format,
       raster.bitDepth,
       raster.width,
@@ -1181,6 +1679,29 @@ const imageMetadataSchema = analysisSchema
     history: z.array(historySchema).max(MAX_HISTORY),
   })
   .strict();
+const normalizationSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("matched-control") }).strict(),
+  z
+    .object({ kind: z.literal("reference-unit"), unitId: shortText.min(1) })
+    .strict(),
+]);
+const pairedDesignSchema = z
+  .object({
+    pairs: z
+      .array(
+        z
+          .object({
+            groupId: shortText.min(1),
+            unitId: shortText.min(1),
+            normalLane: z.number().int().min(1).max(MAX_LANES),
+            tumorLane: z.number().int().min(1).max(MAX_LANES),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max((MAX_IMAGES * MAX_LANES) / 2),
+  })
+  .strict();
 const baseSchema = z
   .object({
     format: z.literal("blot-workbench-real"),
@@ -1195,6 +1716,10 @@ const baseSchema = z
     targetLabel: shortText.min(1),
     referenceLabel: shortText.min(1),
     designConfirmed: z.boolean(),
+    pairedDesign: pairedDesignSchema.optional(),
+    normalization: normalizationSchema.optional(),
+    statisticalTest: z.enum(["none", "paired-t"]).optional(),
+    exampleKind: z.literal("synthetic").optional(),
   })
   .strict();
 const projectSchema = baseSchema
@@ -1271,17 +1796,38 @@ function validateRegions(regions: LaneRegion[], raster: Raster): void {
 }
 async function validateProject(value: unknown): Promise<RealProject> {
   const project = projectSchema.parse(value) as RealProject;
-  ensure(
-    project.laneLabels.filter(isControlLane).length === 1,
-    "Exactly one NC/control lane is required / 须有唯一 NC 或对照泳道",
-  );
-  const conditionLabels = project.laneLabels
-    .filter((label) => !isExcludedLane(label))
-    .map(normalized);
-  ensure(
-    new Set(conditionLabels).size === conditionLabels.length,
-    "Duplicate condition labels / 条件标签重复",
-  );
+  if (project.normalization?.kind === "reference-unit") {
+    project.normalization.unitId = project.normalization.unitId.trim();
+    ensure(
+      project.normalization.unitId.length > 0,
+      "Select a reference unit / 请选择归一化基准个体或实验",
+    );
+  }
+  if (project.pairedDesign) {
+    project.pairedDesign = {
+      pairs: validatePairedPairs(project.pairedDesign.pairs),
+    };
+    ensure(
+      project.pairedDesign.pairs.every(
+        (pair) =>
+          Math.max(pair.normalLane, pair.tumorLane) <=
+          project.laneLabels.length,
+      ),
+      "Paired design references unknown lane / 配对设计引用了不存在的泳道",
+    );
+  } else {
+    ensure(
+      project.laneLabels.filter(isControlLane).length === 1,
+      "Exactly one NC/control lane is required / 须有唯一 NC 或对照泳道",
+    );
+    const conditionLabels = project.laneLabels
+      .filter((label) => !isExcludedLane(label))
+      .map(normalized);
+    ensure(
+      new Set(conditionLabels).size === conditionLabels.length,
+      "Duplicate condition labels / 条件标签重复",
+    );
+  }
   ensure(
     new Set(project.images.map((image) => image.id)).size ===
       project.images.length,
@@ -1434,7 +1980,7 @@ export async function importRealProject(file: Blob): Promise<RealProject> {
     );
     return image;
   });
-  return validateProject({ ...manifest, images });
+  return validateProject({ ...manifest, images, exampleKind: undefined });
 }
 
 const STORAGE_KEY = "blot-workbench-real-project-v1";

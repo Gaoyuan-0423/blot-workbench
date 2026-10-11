@@ -4,12 +4,18 @@ import { encode } from "fast-png";
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import { set } from "idb-keyval";
 import * as pixels from "./pixels";
+import { pairedTTest } from "./statistics";
+import { APP_VERSION } from "../core/types";
 import {
   analyzeAll,
+  applyPairedDesign,
+  applyNormalization,
   applyLaneDescription,
   createRealProject,
   descriptiveStatistics,
   exportRealCsv,
+  exportRealStatisticsCsv,
+  realPairedTests,
   exportRealProject,
   importRealImages,
   importRealProject,
@@ -663,5 +669,429 @@ describe("real project archives and persistence", () => {
     expect((vi.mocked(set).mock.calls[0][1] as RealProject).name).toBe("first");
     expect((await loadRealProject())!.name).toBe("second");
     expect([...database.keys()]).toEqual(["blot-workbench-real-project-v1"]);
+  });
+});
+
+function tissueRegions(): pixels.LaneRegion[] {
+  return Array.from({ length: 10 }, (_, index) => ({
+    lane: index + 1,
+    band: { x: 2 + index * 12, y: 6, width: 8, height: 4 },
+    background: { x: 2 + index * 12, y: 16, width: 8, height: 4 },
+    source: "manual",
+  }));
+}
+function tissuePng(signals: number[], seed: number): Uint8Array {
+  const width = 122,
+    height = 24;
+  const data = new Uint8Array(width * height).fill(220 + seed);
+  for (const [index, region] of tissueRegions().entries())
+    for (let y = region.band.y; y < region.band.y + region.band.height; y++)
+      for (let x = region.band.x; x < region.band.x + region.band.width; x++)
+        data[y * width + x] -= signals[index];
+  return encode({ width, height, data, channels: 1, depth: 8 });
+}
+async function tissueProject(): Promise<RealProject> {
+  let project = createRealProject("Synthetic individual pairs", "en");
+  project = applyPairedDesign(
+    project,
+    ["SetA", "SetB"].flatMap((groupId, groupIndex) =>
+      Array.from({ length: 5 }, (_, pairIndex) => ({
+        groupId,
+        unitId: `P${groupIndex * 5 + pairIndex + 1}`,
+        normalLane: pairIndex * 2 + 1,
+        tumorLane: pairIndex * 2 + 2,
+      })),
+    ),
+  );
+  const signals = [40, 20, 50, 50, 60, 90, 80, 40, 40, 80];
+  project = await importRealImages(
+    project,
+    [0, 1].flatMap((index) => [
+      { name: `Target_${index + 1}.png`, bytes: tissuePng(signals, index) },
+      {
+        name: `reference_${index + 1}.png`,
+        bytes: tissuePng(Array(10).fill(20), index + 4),
+      },
+    ]),
+  );
+  for (const [index, image] of project.images.entries()) {
+    project = updateRealImage(project, image.id, {
+      protein: image.role === "target" ? "Target" : "Reference",
+      replicate: index < 2 ? "SetA" : "SetB",
+      membrane: index < 2 ? "MembraneA" : "MembraneB",
+      regions: tissueRegions(),
+    });
+  }
+  return review(project);
+}
+
+describe("explicit individual pairing and shared reference normalization", () => {
+  it("counts ten explicitly distinct individuals across two source groups, with each T normalized to its own N", async () => {
+    const project = await tissueProject();
+    const rows = results(project);
+    expect(rows).toHaveLength(20);
+    expect(
+      rows.filter((row) => row.sample === "N").map((row) => row.fold),
+    ).toEqual(Array(10).fill(1));
+    expect(
+      rows.filter((row) => row.sample === "T").map((row) => row.fold),
+    ).toEqual([0.5, 1, 1.5, 0.5, 2, 0.5, 1, 1.5, 0.5, 2]);
+    expect(
+      rows.find((row) => row.unitId === "P3" && row.sample === "T"),
+    ).toMatchObject({ lane: 6, controlLane: 5, replicate: "SetA" });
+    expect(
+      descriptiveStatistics(project).map((row) => [
+        row.sample,
+        row.n,
+        row.unitLabel,
+      ]),
+    ).toEqual([
+      ["N", 10, "individuals"],
+      ["T", 10, "individuals"],
+    ]);
+    expect(descriptiveStatistics(project)[1].mean).toBe(1.1);
+    const restored = await importRealProject(await exportRealProject(project));
+    expect(restored.pairedDesign).toEqual(project.pairedDesign);
+    expect(results(restored)).toEqual(rows);
+    expect(exportRealCsv(restored)).toContain('"individual_id"');
+  });
+
+  it("omits both rows of an individual with missing normal regions, without reducing other patients", async () => {
+    let project = await tissueProject();
+    project = updateRealImage(project, project.images[0].id, {
+      regions: tissueRegions().filter((region) => region.lane !== 3),
+    });
+    expect(
+      results(project)
+        .filter((row) => row.unitId === "P2")
+        .every((row) => row.status === "blocked" && row.fold === null),
+    ).toBe(true);
+    expect(descriptiveStatistics(project).map((row) => row.n)).toEqual([9, 9]);
+    expect(descriptiveStatistics(project)[0].replicates).not.toContain("P2");
+  });
+
+  it("canonicalizes IDs and never counts repeated individuals across groups as new n", async () => {
+    let project = await tissueProject();
+    const pairs = project.pairedDesign!.pairs.map((pair) =>
+      pair.unitId === "P6"
+        ? { ...pair, groupId: " SetB ", unitId: " P1 " }
+        : pair,
+    );
+    project = review(applyPairedDesign(project, pairs));
+    expect(project.pairedDesign!.pairs[5].unitId).toBe("P1");
+    expect(descriptiveStatistics(project).map((row) => row.n)).toEqual([8, 8]);
+    expect(descriptiveStatistics(project)[0].warnings.join(" ")).toContain(
+      "Repeated measurements of one individual",
+    );
+    expect(() =>
+      applyPairedDesign(project, [pairs[0], { ...pairs[1], unitId: " P1 " }]),
+    ).toThrow(/Duplicate individual/);
+    expect(() =>
+      applyPairedDesign(project, [pairs[0], { ...pairs[1], normalLane: 1 }]),
+    ).toThrow(/multiple pairs/);
+    expect(() =>
+      applyPairedDesign(project, [{ ...pairs[0], tumorLane: 1 }]),
+    ).toThrow(/must differ/);
+  });
+
+  it("preserves control variation when all three experiments use the first control as a shared baseline", async () => {
+    let project = review(await experimentProject());
+    project = applyNormalization(project, {
+      kind: "reference-unit",
+      unitId: " 1 ",
+    });
+    const rows = results(project);
+    expect(
+      rows.filter((row) => row.sample === "NC").map((row) => row.fold),
+    ).toEqual([1, 2, 1.5]);
+    expect(
+      rows.filter((row) => row.sample === "Treatment").map((row) => row.fold),
+    ).toEqual([0.5, 1.5, 1.5]);
+    expect(
+      rows.every((row) => row.status === "draft" && row.baselineUnitId === "1"),
+    ).toBe(true);
+    expect(rows[0].warnings.join(" ")).toContain("comparability is unverified");
+    expect(descriptiveStatistics(project)[0]).toMatchObject({
+      n: 3,
+      mean: 1.5,
+      sd: 0.5,
+    });
+    expect(exportRealCsv(project)).toContain('"reference-unit"');
+    expect(
+      (await importRealProject(await exportRealProject(project))).normalization,
+    ).toEqual({ kind: "reference-unit", unitId: "1" });
+    const matched = applyNormalization(project, { kind: "matched-control" });
+    expect(
+      results(matched)
+        .filter((row) => row.sample === "NC")
+        .map((row) => row.fold),
+    ).toEqual([1, 1, 1]);
+  });
+
+  it("blocks missing or ambiguous reference-unit controls instead of silently falling back", async () => {
+    let project = review(await experimentProject());
+    project = applyNormalization(project, {
+      kind: "reference-unit",
+      unitId: "missing",
+    });
+    expect(
+      results(project).every(
+        (row) => row.status === "blocked" && row.fold === null,
+      ),
+    ).toBe(true);
+    expect(descriptiveStatistics(project).map((row) => row.n)).toEqual([0, 0]);
+    project = applyNormalization(project, {
+      kind: "reference-unit",
+      unitId: "1",
+    });
+    const duplicates = project.images.slice(0, 2).map((image) => ({
+      ...image,
+      id: crypto.randomUUID(),
+      membrane: "AnotherMembrane",
+    }));
+    project = { ...project, images: [...project.images, ...duplicates] };
+    expect(results(project).every((row) => row.status === "blocked")).toBe(
+      true,
+    );
+  });
+
+  it("keeps protein-specific baselines and patient identities separate", async () => {
+    let project = await tissueProject();
+    const secondProtein = project.images
+      .filter((image) => image.role === "target")
+      .map((image) => ({
+        ...image,
+        id: crypto.randomUUID(),
+        protein: "OtherTarget",
+      }));
+    project = applyNormalization(
+      { ...project, images: [...project.images, ...secondProtein] },
+      { kind: "reference-unit", unitId: "P1" },
+    );
+    expect(descriptiveStatistics(project)).toHaveLength(4);
+    expect(descriptiveStatistics(project).every((row) => row.n === 10)).toBe(
+      true,
+    );
+    expect(
+      results(project).every(
+        (row) =>
+          project.images.find((image) => image.id === row.baselineImageId)
+            ?.protein === row.protein,
+      ),
+    ).toBe(true);
+  });
+
+  it("validates paired archives, keeps legacy archives readable, and does not trust synthetic badges from imported files", async () => {
+    const project = await tissueProject();
+    const invalid = await rewrite(project, (entries) =>
+      manifestChange(entries, (value) => {
+        value.pairedDesign.pairs[1].normalLane = 1;
+      }),
+    );
+    await expect(importRealProject(invalid)).rejects.toThrow(/multiple pairs/);
+    const legacy = await experimentProject();
+    expect(
+      (await importRealProject(await exportRealProject(legacy))).pairedDesign,
+    ).toBeUndefined();
+    const bundled = updateRealProject(project, {
+      exampleKind: "synthetic",
+      statisticalTest: "paired-t",
+    });
+    await saveRealProject(bundled);
+    expect((await loadRealProject())?.exampleKind).toBe("synthetic");
+    const restored = await importRealProject(await exportRealProject(bundled));
+    expect(restored.exampleKind).toBeUndefined();
+    expect(restored.statisticalTest).toBe("paired-t");
+    const shared = applyPairedDesign(project, null);
+    expect(shared.pairedDesign).toBeUndefined();
+    expect(shared.laneLabels).toEqual(["NC", "Treatment", "marker"]);
+    expect(shared.designConfirmed).toBe(false);
+  });
+});
+
+describe("explicit paired inference on original normalized signals", () => {
+  it("uses the same raw target/reference inputs under matched or shared plot normalization", async () => {
+    let project = review(await experimentProject());
+    expect(realPairedTests(project)[0]).toMatchObject({
+      status: "unavailable",
+      result: null,
+      reason: "test-disabled",
+    });
+    project = updateRealProject(project, { statisticalTest: "paired-t" });
+    const matched = realPairedTests(project)[0];
+    expect(matched).toMatchObject({
+      status: "ok",
+      quality: "draft",
+      reason: "",
+      result: {
+        n: 3,
+        df: 2,
+        method: "paired-t",
+        inputBasis: "target/reference",
+      },
+    });
+    expect(matched.result!.meanDifference).toBeCloseTo(-2 / 3, 12);
+    expect(matched.result!.t).toBeCloseTo(-2, 12);
+    expect(matched.result!.pValue).toBeCloseTo(1 - 2 / Math.sqrt(6), 10);
+    project = applyNormalization(project, {
+      kind: "reference-unit",
+      unitId: "1",
+    });
+    const shared = realPairedTests(project)[0];
+    expect(shared.result).toEqual(matched.result);
+    expect(shared.quality).toBe("draft");
+    expect(shared.warnings.join(" ")).toContain("comparability is unverified");
+    expect(
+      results(project)
+        .filter((row) => row.sample === "NC")
+        .map((row) => row.fold),
+    ).toEqual([1, 2, 1.5]);
+    const csv = exportRealStatisticsCsv(project);
+    expect(csv).toContain('"p_value_unadjusted"');
+    expect(csv).toContain('"target/reference"');
+    expect(csv).toContain('"reference-unit"');
+    expect(csv).toContain(String(matched.result!.pValue));
+    expect(csv).toContain('"DRAFT"');
+  });
+
+  it("requires confirmed independence and exactly two groups before computing a test", async () => {
+    let project = updateRealProject(await experimentProject(), {
+      statisticalTest: "paired-t",
+    });
+    expect(realPairedTests(project)[0]).toMatchObject({
+      result: null,
+      status: "unavailable",
+      reason: "design-unconfirmed",
+    });
+    project = applyLaneDescription(project, "NC,Treatment,Other");
+    project = updateRealProject(review(project), {
+      statisticalTest: "paired-t",
+    });
+    expect(realPairedTests(project)[0]).toMatchObject({
+      result: null,
+      status: "unavailable",
+      reason: "requires-two-conditions",
+    });
+    project = review(await experimentProject());
+    project = updateRealProject(
+      { ...project, images: project.images.slice(0, 2) },
+      { statisticalTest: "paired-t" },
+    );
+    expect(realPairedTests(project)[0]).toMatchObject({
+      status: "unavailable",
+      reason: "insufficient-pairs",
+      result: { n: 1, pValue: null },
+    });
+  });
+
+  it("uses the same complete unique individual pairs for bars and tests", async () => {
+    let project = updateRealProject(await tissueProject(), {
+      statisticalTest: "paired-t",
+    });
+    expect(realPairedTests(project)[0].result?.n).toBe(10);
+    project = updateRealImage(project, project.images[0].id, {
+      regions: tissueRegions().filter((region) => region.lane !== 3),
+    });
+    const missing = realPairedTests(project)[0];
+    expect(missing.result?.n).toBe(9);
+    expect(missing.result?.ids).toEqual(
+      descriptiveStatistics(project)[0].replicates,
+    );
+    expect(missing.result?.ids).not.toContain("P2");
+    project = applyPairedDesign(
+      project,
+      project.pairedDesign!.pairs.map((pair) =>
+        pair.unitId === "P6" ? { ...pair, unitId: "P1" } : pair,
+      ),
+    );
+    project = updateRealProject(review(project), {
+      statisticalTest: "paired-t",
+    });
+    const duplicate = realPairedTests(project)[0];
+    expect(duplicate.result?.n).toBe(7);
+    expect(duplicate.result?.ids).not.toContain("P1");
+    expect(duplicate.result?.ids).toEqual(
+      descriptiveStatistics(project)[1].replicates,
+    );
+    expect(duplicate.quality).toBe("draft");
+    expect(duplicate.warnings.join(" ")).toContain(
+      "Repeated measurements of one individual",
+    );
+  });
+});
+
+describe("inference scale warnings and reproducible statistical export", () => {
+  it("warns about pooled membrane scales independently of plot normalization", async () => {
+    const project = updateRealProject(review(await experimentProject()), {
+      statisticalTest: "paired-t",
+    });
+    expect(project.normalization).toBeUndefined();
+    expect(results(project).every((row) => row.status === "ready")).toBe(true);
+    const inference = realPairedTests(project)[0];
+    expect(inference.quality).toBe("draft");
+    expect(inference.warnings.join(" ")).toContain(
+      "comparable scales have not been established",
+    );
+    expect(exportRealStatisticsCsv(project)).toContain(
+      "comparable scales have not been established",
+    );
+    // Five patients measured within one source image pair do not imply cross-membrane pooling.
+    const tissue = await tissueProject();
+    const singleMembrane = updateRealProject(
+      { ...tissue, images: tissue.images.slice(0, 2) },
+      { statisticalTest: "paired-t" },
+    );
+    expect(realPairedTests(singleMembrane)[0]).toMatchObject({
+      quality: "ready",
+      result: { n: 5 },
+    });
+    expect(realPairedTests(singleMembrane)[0].warnings.join(" ")).not.toContain(
+      "comparable scales",
+    );
+  });
+
+  it("exports exact paired inputs, provenance, versions and timestamps sufficient to reproduce the reported test", async () => {
+    const project = updateRealProject(review(await experimentProject()), {
+      statisticalTest: "paired-t",
+    });
+    const test = realPairedTests(project)[0];
+    expect(
+      test.inputPairs.map(({ id, control, treatment }) => ({
+        id,
+        control,
+        treatment,
+      })),
+    ).toEqual([
+      { id: "1", control: 2, treatment: 1 },
+      { id: "2", control: 4, treatment: 3 },
+      { id: "3", control: 3, treatment: 3 },
+    ]);
+    expect(pairedTTest(test.inputPairs)).toEqual(test.result);
+    const input = test.inputPairs[0];
+    expect(input.controlSource).toMatchObject({
+      imageId: project.images[0].id,
+      imageSha256: project.images[0].hash,
+      analysisRevision: project.images[0].revision,
+      referenceImageId: project.images[1].id,
+      referenceSha256: project.images[1].hash,
+      referenceRevision: project.images[1].revision,
+      lane: 1,
+    });
+    expect(input.treatmentSource.lane).toBe(2);
+    const csv = exportRealStatisticsCsv(project);
+    expect(csv).toContain('"exact_input_pairs_and_provenance_json"');
+    expect(csv).toContain(
+      JSON.stringify(test.inputPairs).replaceAll('"', '""'),
+    );
+    expect(csv).toContain(`"${APP_VERSION}"`);
+    expect(csv).toContain(`"${project.updatedAt}"`);
+    expect(csv).toContain('"exported_at_utc"');
+    const changed = updateRealImage(project, project.images[0].id, {
+      note: "Reviewed source provenance",
+    });
+    expect(
+      realPairedTests(changed)[0].inputPairs[0].controlSource.analysisRevision,
+    ).toBeGreaterThan(input.controlSource.analysisRevision);
+    expect(realPairedTests(changed)[0].result).toEqual(test.result);
   });
 });

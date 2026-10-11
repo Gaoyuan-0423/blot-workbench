@@ -8,7 +8,7 @@ A Western blot project workbench for laboratories: organize images and sample re
 
 ## 版本与边界 / Versions and boundaries
 
-- **开发版 / Development — `0.3.0-dev.1`**：新增真实 TIFF/PNG 本机定量、批量泳道说明与候选、手动 ROI、配对描述性统计图和原图项目包。公开网页仍为旧版。 / Adds local TIFF/PNG measurements, shared lane mapping, batch proposals, manual ROIs, paired descriptive plots, and archives containing original images. The public site remains on the older release.
+- **开发版 / Development — `0.3.0-dev.2`**：真实 TIFF/PNG 本机定量、手动 ROI 与批量候选；新增明确的个体 N/T 配对、共同对照基准、柱图叠加个体点与均值 ± SD、可选双侧配对 t 检验。公开网页仍为旧版。 / Local TIFF/PNG measurements, manual ROIs, and batch proposals; adds explicit individual N/T pairs, a common control baseline, bars with individual points and mean ± SD, and an opt-in two-sided paired t-test. The public site remains on the older release.
 - **已发布 / Published — `0.1.0-alpha.1`**：2026-10-10 发布的纯合成数据流程演示。[直接体验 / Open demo](https://gaoyuan-0423.github.io/blot-workbench/)无需安装；固定版本与构建证据见 [Release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1)。 / A synthetic-data workflow demonstration dated 2026-10-10. The live demo needs no installation; the Release records the archived version and build evidence.
 
 开发功能位于 [`codex/configurable-vision-api` 分支 / development branch](https://github.com/Gaoyuan-0423/blot-workbench/tree/codex/configurable-vision-api)，尚未合入主线。本次双语首页更新不会替换线上应用。 / Development features remain on that branch and are not merged into the main application. Updating this bilingual homepage does not replace the deployed app.
@@ -27,7 +27,11 @@ A Western blot project workbench for laboratories: organize images and sample re
 
 Open `http://127.0.0.1:4318/#real` locally: import → check protein/experiment/membrane → describe lanes once → batch proposals → manual review → CSV, SVG/PNG/TIFF, and project archive. Supported 8/16-bit pixels are measured directly; images are not sent to an API. Read the [English guide](docs/real-images.en.md) and [validation scope](docs/validation-real-images.md).
 
-公开可重算像素示例：[原图、项目包与预期结果 / Originals, archive, and expected results](public/examples/real/README.md)。全部原创合成，无用户实验数据。 / Generated from scratch; no user experimental data.
+公开可重算像素示例：[原图、项目包与预期结果 / Originals, archive, and expected results](public/examples/real/README.md)。网站内置示例、截图及公开验证文件仅使用原创合成数据；用户私有图片、结果和项目不会打包、预载或发布。 / Built-in examples, published screenshots, and public fixtures use synthetic data only; private user images, results, and projects are never bundled, preloaded, or published.
+
+默认图形为柱图叠加每个独立单位的数据点与均值 ± SD，也可切换配对连线图。选择共同基准只改变显示尺度，不证明跨批次可比；检验默认关闭，显式启用后对原始目标/内参比值做配对差值检验。[统计方法与限制 / Statistical methods and limits](docs/paired-statistics.md)。
+
+The default figure combines bars, individual-unit points, and mean ± SD, with an optional paired-line view. A common baseline changes the display scale without validating cross-batch comparability. Testing is off by default; an explicit selection tests paired differences of original target/reference ratios.
 
 ## 旧合成示例 / Legacy synthetic example
 
@@ -65,9 +69,9 @@ For a first walkthrough: load the example → check samples and exposures → re
 
 ## 尚未实现 / Not implemented
 
-任意仪器格式、可靠的无人复核分析、推断统计检验、发表组图排版、配对 N/T 组织多样本模型、免疫荧光、桌面安装器及 Wisp Science 插件仍未实现。当前自动定位是需人工复核的本机候选，不代表科研准确性。
+任意仪器格式、可靠的无人复核分析、技术重复合并、自动跨膜校准、ANOVA/非参数及多重比较流程、发表组图排版、免疫荧光、桌面安装器及 Wisp Science 插件仍未实现。当前自动定位是需人工复核的本机候选，不代表科研准确性。
 
-Arbitrary instrument formats, reliable unattended analysis, inferential tests, publication figure composition, multi-patient paired N/T models, immunofluorescence, desktop installers, and Wisp Science integration remain unimplemented. Local automatic proposals require human review and do not establish scientific accuracy.
+Arbitrary instrument formats, reliable unattended analysis, technical-replicate aggregation, automatic cross-membrane calibration, ANOVA/nonparametric/multiple-comparison workflows, publication figure composition, immunofluorescence, desktop installers, and Wisp Science integration remain unimplemented. Local automatic proposals require human review and do not establish scientific accuracy.
 
 [架构与路线图 / Architecture and roadmap](docs/architecture.md) · [批量自动设计与实施状态 / Batch design and status](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/automation-design.md)
 

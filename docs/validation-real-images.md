@@ -1,8 +1,10 @@
 # 真实图像开发验证 / Real-image development validation
 
-范围 / Scope: `0.3.0-dev.1`，开发预览，2026-10-12。本记录随实现提交保存，不改变 `0.1.0-alpha.1` 的发布声明。 / This record accompanies the implementation commit and does not amend the published alpha's claims.
+范围 / Scope: `0.3.0-dev.2`，开发预览，2026-10-12。本记录随实现提交保存，不改变 `0.1.0-alpha.1` 的发布声明。 / This record accompanies the implementation commit and does not amend the published alpha's claims.
 
-本机最终检查通过：81 个单元测试、12 个脚本测试、10 个浏览器流程测试（其中 3 个真实像素流程）、4 个独立 API 模拟服务流程，以及 TypeScript 与生产构建。 / Final local checks passed: 81 unit tests, 12 script tests, 10 browser workflow tests (3 for real pixels), 4 isolated API workflow tests, TypeScript, and the production build.
+本次 `0.3.0-dev.2`：101 个单元测试、12 个脚本测试、12 个 Chrome 浏览器流程测试（含 5 个真实像素/配对流程）、TypeScript 与生产构建通过。新增推断测试、完整配对、共同基准、统计 CSV、双语导出与项目迁移已覆盖。当前只核验了本机 macOS Chrome；未重新运行无改动的视觉 API 套件，Windows/Edge 与远端 CI 状态不由此推定。 / Dev.2 passed 101 unit tests, 12 script tests, 12 Chrome workflows (including 5 real-pixel/pairing workflows), TypeScript, and the production build. This run covered local macOS Chrome only. The unchanged vision-API suite was not rerun; Windows/Edge and remote CI remain unverified.
+
+历史记录（`0.3.0-dev.1`）：81 个单元测试、12 个脚本测试、10 个浏览器流程测试（其中 3 个真实像素流程）、4 个独立 API 模拟服务流程，以及 TypeScript 与生产构建通过。 / Historical dev.1 checks passed: 81 unit tests, 12 script tests, 10 browser workflow tests (3 for real pixels), 4 isolated API workflow tests, TypeScript, and the production build.
 
 ## 支持范围 / Supported subset
 
@@ -18,7 +20,13 @@
 
 支持原始位深不证明采集强度线性。RGB/PNG 色彩元数据不用于重新校正测量值；方法与原始字节一并保留。图像显示使用独立 8 位预览，不能替代原始定量数组。 / Preserving bit depth does not establish intensity linearity. Encoded intensities are measured without color-management remapping; display previews are separate.
 
-## 已执行的检查 / Executed checks
+## 新增回归范围 / Added regression scope
+
+`src/real/statistics.test.ts` 包含纯合成 n=2/3/10 配对数据的独立 SciPy t、P 和差值 CI 参考值，并覆盖极小但可表示的尾概率、共同正比例缩放、方向反转、重复编号、无效数值及零差值方差。模型回归涵盖个体去重、完整配对、基准变更后的检验输入一致性以及两种绘图模式下的跨采集可比性警告。此处记录测试定义，执行是否通过以本版最终检查记录为准。
+
+`src/real/statistics.test.ts` contains purely synthetic n=2/3/10 paired fixtures with independently calculated SciPy t, P, and difference-CI references. Cases also address small representable tails, common positive scaling, direction reversal, duplicate IDs, invalid values, and zero difference variance. Model regression covers individual deduplication, complete pairs, test-input invariance to plot baselines, and cross-acquisition inference warnings under both plotting modes. These are test definitions; executed outcomes must be recorded against this version.
+
+## 前版已执行的检查 / Previously executed checks
 
 本机环境 / Local environment: macOS 27.0.1，Node.js 24.14.1，项目锁定依赖。浏览器测试使用 Playwright 的 Chrome channel；具体输出以测试报告为准。 / Dependencies are locked. Browser workflow checks use the Playwright Chrome channel.
 
@@ -28,9 +36,8 @@
   Model tests cover normalization, complete paired sets, independent-unit counting, protein separation, invalid geometry/signals, provenance, recovery, save ordering, and CSV escaping.
 - 浏览器测试：8 位 TIFF 与 16 位 PNG 混合导入；一次泳道说明；候选；手动 ROI 改变净信号及倍数；自动建议保留手动区域；双语、刷新和另一个隔离浏览器上下文恢复；CSV/SVG/PNG/TIFF 导出；检查无外部请求，导入/分析阶段无 HTTP 请求。
   Browser tests cover the actual local workflow, original-byte archives, manual recalculation, recovery, bilingual controls, downloads, and network behavior for the tested sequence.
-- 独立参考：用 Pillow 生成的 9 种合成 TIFF，与 TypeScript 解码逐像素完全一致。另有六张用户提供的私有 TIFF，仅在本机用同一人工 ROI 与独立 Pillow/NumPy 实现比较，60 个面积/积分/背景/净信号/端点比例值误差为 0，归一化容限为 `1e-12`；原图、文件名、数值及输出不进入仓库。
-  Independent checks compare nine Pillow-generated synthetic encodings and a private six-image local-only test. The latter establishes agreement for specified ROIs, not the correctness of ROI selection or biological inference. Private data are not repository fixtures.
-- 另外七张不透明组织源图能解码，两张带透明画布的拼图明确拒绝用于测量。只作格式回归，没有推断其膜配对或患者统计。 / Seven additional opaque tissue source images decode; two transparent montages are rejected for measurement. This is format coverage, not patient-level validation.
+- 独立参考：Pillow 生成的合成 TIFF 与 TypeScript 解码逐像素比较；实际输出以对应版本的测试报告为准。私有文件仅可在本机参与适用性检查，原图、文件名、结果、项目包及截图不进入公开仓库或网站，也不作为预载示例。
+  Independent references compare Pillow-generated synthetic TIFFs with TypeScript pixel arrays. Private files may be checked locally; their originals, filenames, results, archives, and screenshots are not published or preloaded as website examples. Private checks cannot replace a reproducible public benchmark.
 
 可复现的公开输入与预期输出见 [SYNTHETIC 像素示例](../public/examples/real/README.md)。私有测试不能替代公开基准。 / See the public synthetic pixel example; a private smoke test is not a public benchmark.
 
@@ -39,9 +46,9 @@
 - 固定、公开的 ImageJ 流程对照，更多仪器及压缩格式，原始采集动态范围与曝光线性。 / Fixed ImageJ workflow, wider instrument coverage, acquisition dynamic range, and exposure linearity.
 - 多实验室手动 ROI 一致性、批量耗时与错误率、数周后重新上手，以及接近资源限额时的响应性。 / Independent-lab agreement, throughput/error rates, delayed return-to-use, and near-limit responsiveness.
 - 新增真实图像流程的 Windows/macOS × Chrome/Edge CI 结果须对应本次提交单独检查；旧 alpha 的矩阵不能作为本版证据。 / New-flow platform results must be tied to this commit, not inherited from the old alpha.
-- 配对组织患者模型、技术重复合并、跨膜/跨曝光可比性、推断统计均未实现。 / Patient pairing, technical-replicate aggregation, cross-membrane/exposure comparability, and inferential tests are not implemented.
+- 明确个体 N/T 配对与可选双侧配对 t 检验已经实现，但不能由此推定个体独立性、检验假设或科研有效性成立。技术重复自动合并、跨膜/跨曝光校准和多重比较流程仍未实现。 / Explicit individual N/T pairs and optional two-sided paired t-tests are implemented; this does not establish independence, assumptions, or scientific validity. Technical-replicate aggregation, cross-membrane/exposure calibration, and multiplicity workflows remain unimplemented.
 
-本版图表是均值 ± SD 和逐实验配对点，不自动给 p 值。质量提示随 CSV、项目和图形保留；人工复核不消除截断，也不证明算法科研有效。 / Charts show paired points and mean ± SD, without automatic p values. Review cannot remove clipping or establish scientific validity.
+本版默认柱图叠加单位点和均值 ± SD，可切换配对连线图。检验默认关闭；明确启用后对原始目标/内参比值计算双侧配对 t 检验，保留实际 n、df、未校正 P、均值差和 95% CI。质量提示及 DRAFT 随结果保留，阻断输入不纳入。人工复核不能消除截断或证明科研有效性。[方法与限制](paired-statistics.md)。 / Default charts use bars, unit points, and mean ± SD, with optional paired lines. Explicitly enabled paired tests use original target/reference ratios and retain actual n, df, unadjusted P, mean difference, and 95% CI. Quality flags and DRAFT remain; blocked inputs are excluded. Review cannot remove clipping or establish scientific validity.
 
 ## 复现 / Reproduction
 
@@ -53,4 +60,4 @@ npm run test:e2e
 npm run test:vision:e2e
 ```
 
-新增 MIT 依赖为 `tiff@7.1.3`、`fast-png@8.0.0`（包括 MIT 的 `iobuffer@6.0.1`）。构建分发时运行 `node scripts/third-party-notices.mjs --output dist/THIRD_PARTY_NOTICES.txt` 保留依赖原许可。 / Generate the license inventory with the command shown; source code licensing does not replace third-party notices.
+生产 MIT 依赖包括 `tiff@7.1.3`、`fast-png@8.0.0`（其 `iobuffer@6.0.1` 也是 MIT）；本次新增 `jstat@1.9.6`，使用其 Student-t 分布函数，保留 jStat 原许可证。构建分发时运行 `node scripts/third-party-notices.mjs --output dist/THIRD_PARTY_NOTICES.txt` 保留依赖原许可。 / Generate the license inventory with the command shown; source code licensing does not replace third-party notices.

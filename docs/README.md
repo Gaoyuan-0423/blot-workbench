@@ -1,8 +1,8 @@
 # 文档 / Documentation
 
-本目录同时记录已发布的 `0.1.0-alpha.1` 合成数据演示和 `0.3.0-dev.1` 本机开发版。开发版增加视觉 API 接入与独立中英教程；公开网页与下载包仍为 `0.1`，真实图像本机定量已进入实验性开发预览。
+本目录同时记录已发布的 `0.1.0-alpha.1` 合成数据演示和 `0.3.0-dev.2` 本机开发版。开发版提供真实像素测量、明确个体配对、可选配对检验、视觉 API 合成测试与中英教程；公开网页与下载包仍为 `0.1`，真实图像本机定量已进入实验性开发预览。
 
-This directory covers both the published `0.1.0-alpha.1` synthetic-data demo and local development version `0.3.0-dev.1`. The development version adds vision API access and a standalone bilingual guide; the public website and downloads remain `0.1`. Real-image local measurement is now an experimental development preview.
+This directory covers both the published `0.1.0-alpha.1` synthetic-data demo and local development version `0.3.0-dev.2`. The development version provides source-pixel measurements, explicit individual pairs, optional paired inference, synthetic vision API tests, and bilingual guides; the public website and downloads remain `0.1`. Real-image local measurement is now an experimental development preview.
 
 [在线演示 / Published demo](https://gaoyuan-0423.github.io/blot-workbench/) · [源码 / Source](https://github.com/Gaoyuan-0423/blot-workbench) · [已发布版本 / Published release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1)
 
@@ -26,7 +26,7 @@ In the development version, **User guide / 使用教程** in the sidebar opens t
 | [演示边界 / Demo boundaries](demo-boundary.md) | 合成来源、独立样本与预置数值限制 / Synthetic provenance, independent samples, and preset-value limits |
 | [方法与相关工作 / Methods and related work](methods.md) | 演示公式、验证要求及现有工具 / Demonstration formulas, validation requirements, and existing tools |
 | [架构与路线图 / Architecture and roadmap](architecture.md) | 当前组成与后续阶段 / Current components and future stages |
-| [批量自动流程设计 / Batch automation design](automation-design.md) | 尚未实现的真实图像流程 / Unimplemented experimental-image workflow |
+| [批量自动流程设计 / Batch automation design](automation-design.md) | 已实现子集与后续 API 自动化规划 / Implemented subset and planned API automation |
 | [数据与隐私 / Data and privacy](privacy.md) | 浏览器存储、静态托管与可选服务数据流 / Browser storage, static hosting, and optional-service data flows |
 | [演示验证记录 / Demo validation](validation.md) | 已发布演示的运行证据与边界 / Released-demo evidence and limitations |
 | [真实图像验证 / Real-image validation](validation-real-images.md) | 格式、数值与交互测试范围 / Format, numeric, and workflow coverage |
@@ -39,3 +39,5 @@ In the development version, **User guide / 使用教程** in the sidebar opens t
 用户指南与视觉 API 指南提供完整中英文版本。技术与验证文档目前以中文为主，部分附英文摘要；导航中的英文标题不表示正文已完整翻译。测试声明以具体版本、环境与运行记录为准，不能把计划或模拟服务测试写成科研验证。
 
 The user guide and vision API guide have complete Chinese and English versions. Technical and validation documents remain primarily Chinese, some with English summaries; an English navigation label does not imply a full translation. Test claims apply to their recorded versions and environments. Plans and mock-provider checks are not scientific validation.
+
+[配对设计、共同基准与统计检验 / Paired design, common baseline, and testing](paired-statistics.md)：检验输入、适用条件、质量状态及多重比较限制。 / Test inputs, assumptions, quality state, and multiplicity limits.

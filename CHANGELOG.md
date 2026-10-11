@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0-dev.2 — 开发中 / Unreleased
+
+- 明确的 N/T 个体配对表：来源图组、个体编号与两条泳道分别记录，不把图数、日期或重复曝光视为独立 n。
+  Explicit N/T pair tables distinguish source groups, individual IDs, and lane positions; images, dates, and repeat exposures do not define n.
+- 保留匹配对照归一化，新增指定一个对照为共同基准；其他对照保留变异，跨膜/批次可比性仍需验证。
+  Adds a selected common control baseline alongside matched-control scaling; other controls retain variation without establishing cross-membrane or cross-batch comparability.
+- 默认柱图叠加个体点和均值 ± SD，可切换配对连线图。
+  Default bars with individual points and mean ± SD, plus an optional paired-line view.
+- 显式选择的双侧配对 t 检验默认关闭，使用原始目标/内参比值，报告实际 n、df、未校正 P 值、配对均值差及其 95% CI；保留质量警告与 DRAFT。新增 MIT 依赖 `jstat@1.9.6`。
+  Opt-in two-sided paired t-tests use original target/reference ratios and report n, df, unadjusted P, mean paired difference, and its 95% CI while preserving quality flags and DRAFT. Adds MIT-licensed `jstat@1.9.6`.
+- 网站示例、公开截图与验证素材只使用合成数据，不预载或发布用户私有图片、项目与结果。
+  Website examples, public screenshots, and fixtures use synthetic data only; private images, projects, and results are neither preloaded nor published.
+- 未发布新 Release，公开 alpha 保持原版本。本版验证结果须对应当前提交单独记录，不能沿用下方旧版测试结论。
+  No new Release or public-alpha replacement. Validation must be recorded against the current commit rather than inherited from prior checks.
+
 ## 0.3.0-dev.1 — 开发中 / Unreleased
 
 - 独立真实图像工作区 `#real`：保留原始 TIFF/PNG，支持有限的 8/16 位格式、本机扣背景、内参和匹配对照归一化。

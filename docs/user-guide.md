@@ -1,6 +1,6 @@
 # 使用指南
 
-> 真实 TIFF/PNG 开发预览请使用 `#real`，参见[真实图像指南](real-images.md)。本页步骤仍针对旧合成示例。
+> 真实 TIFF/PNG 开发预览请使用 `#real`，参见[真实图像指南](real-images.md)。本页步骤仍针对旧合成示例；开发版的个体 N/T 配对、共同基准及可选检验见[统计说明](paired-statistics.md)。
 
 [English guide](user-guide.en.md) · [本机视觉 API 指南](vision-api.md) · [文档目录](README.md)
 

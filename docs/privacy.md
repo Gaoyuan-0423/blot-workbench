@@ -2,9 +2,13 @@
 
 ## 真实图像开发版 / Real-image development workspace
 
-`0.3.0-dev.1` 的 `#real` 工作区在浏览器内读取并计算原始 TIFF/PNG；本流程不调用视觉 API、不发送图片、文件名或结果。原始文件、ROI 与历史保存在独立 IndexedDB 项目中；导出的项目 ZIP 含原始图像，因此需按实验数据保管。仅保留一个当前真实项目，另有独立的旧合成演示项目。
+`0.3.0-dev.2` 的 `#real` 工作区在浏览器内读取并计算原始 TIFF/PNG；本流程不调用视觉 API、不发送图片、文件名或结果。原始文件、ROI 与历史保存在独立 IndexedDB 项目中；导出的项目 ZIP 含原始图像，因此需按实验数据保管。仅保留一个当前真实项目，另有独立的旧合成演示项目。
 
 The `#real` workspace reads and measures TIFF/PNG in the browser without calling the vision API or transmitting images, filenames, or results. Originals, ROIs, and history are held in a separate IndexedDB project. Exported ZIPs contain original images and should be handled as experimental data. There is one current real project, separate from the legacy synthetic workspace.
+
+内置网站示例、截图、公开测试及下载的示例项目仅包含合成数据。用户自行导入的私有数据不随网站发布、不作为预载示例；仅保存在该浏览器当前来源的工作区及用户主动导出的本机项目包中。
+
+Built-in website examples, published screenshots, public fixtures, and example archives contain synthetic data only. User-imported private data are never included in a site deployment or preloaded example; they remain in that browser/origin workspace and user-exported local archives.
 
 ## 开发分支的可选 API 连接（0.2.0-dev.1）
 

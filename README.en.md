@@ -6,7 +6,7 @@ A Western blot project workbench for laboratories. The first step is to make ima
 
 ## Versions and boundaries
 
-**Development version: `0.3.0-dev.1`.** Adds actual local TIFF/PNG measurements, shared lane mapping, batch proposals, manual regions, paired descriptive plots, and original-image archives at `#real`. It has not replaced the public website or released downloads.
+**Development version: `0.3.0-dev.2`.** Supports local TIFF/PNG measurements, shared lane mapping, batch proposals, manual regions, and original-image archives at `#real`. Adds explicit individual N/T pairs, a selected common control baseline, bars with individual points and mean ± SD, an optional paired-line view, and an opt-in two-sided paired t-test. It has not replaced the public website or released downloads.
 
 **Published version: `0.1.0-alpha.1`, dated 2026-10-10.** The [live demonstration](https://gaoyuan-0423.github.io/blot-workbench/) needs no installation. Its fixed archive and build evidence are in the [alpha Release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1).
 
@@ -16,11 +16,13 @@ Development features remain on the [`codex/configurable-vision-api` branch](http
 
 Start real analysis at `http://127.0.0.1:4318/#real`: import → check file metadata → describe lanes once → batch proposals → manual review → plots, CSV, and archive. Read the [real-image guide](docs/real-images.en.md) ([中文](docs/real-images.md)) and [validation scope](docs/validation-real-images.md).
 
-Public [synthetic pixel validation example](public/examples/real/README.md): original images, an actual-pixel project archive, and analytically specified results. No user experimental data.
+Public [synthetic pixel validation example](public/examples/real/README.md): original images, an actual-pixel project archive, and analytically specified results. Only synthetic data are included in website examples, published screenshots, and public fixtures. Private images, results, and projects are never bundled, preloaded, or published.
 
 ![Blot Workbench synthetic-data demonstration](docs/screenshots/app-home.jpg)
 
 The screenshot shows the released demonstration. See the [screenshot record](docs/screenshots/README.md) for version and environment evidence; a screenshot does not establish algorithm accuracy or cross-platform compatibility.
+
+Testing is off by default. When explicitly enabled for a confirmed two-condition paired design, it uses original target/reference ratios, so changing a valid plot baseline cannot change the P-value for the same eligible pairs. A common baseline preserves between-control variation but does not establish cross-membrane or cross-batch comparability. See [statistical methods and limits](docs/paired-statistics.md).
 
 ## What you can explore
 
@@ -46,7 +48,7 @@ Download the [example project](public/examples/example.wbproj.zip), [expected re
 
 ## Not implemented
 
-Arbitrary instrument formats, reliable unattended analysis, inferential statistics, publication figure composition, multi-patient paired N/T designs, immunofluorescence, desktop installers, and Wisp Science integration remain future work. Automatic proposals are local heuristics requiring human review.
+Arbitrary instrument formats, reliable unattended analysis, technical-replicate aggregation, automatic cross-membrane calibration, ANOVA/nonparametric/multiple-comparison workflows, publication figure composition, immunofluorescence, desktop installers, and Wisp Science integration remain future work. Automatic proposals are local heuristics requiring human review.
 
 See the [architecture and roadmap](docs/architecture.md) and [batch automation design](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/automation-design.md). The design document distinguishes the new local preview from planned vision-assisted and complex-design behavior.
 

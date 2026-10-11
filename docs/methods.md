@@ -1,6 +1,6 @@
 # 方法与解释范围
 
-真实图像 `0.3.0-dev.1` 的实际像素方法和边界见[中文指南](real-images.md) / [English](real-images.en.md) 与[验证](validation-real-images.md)。本页下方仍描述旧合成示例，不能将两种归一化基准混用。 / For actual pixel measurements, use the linked real-image method and validation. The legacy formulas below belong to the synthetic demo and use a different control baseline.
+真实图像 `0.3.0-dev.2` 的实际像素方法和边界见[中文指南](real-images.md) / [English](real-images.en.md) 与[验证](validation-real-images.md)。开发版支持匹配对照或共同基准，明确个体 N/T 配对与可选双侧配对 t 检验见[统计方法](paired-statistics.md)。本页下方仍描述旧合成示例，不能将示例 fixture 当作真实项目的当前计算结果。 / The development version supports matched-control or common-baseline scaling; see [statistical methods](paired-statistics.md) for explicit N/T units and opt-in paired inference. The legacy formulas below describe synthetic fixtures, not current real-project computations.
 
 版本：`0.1.0-alpha.1`。本页区分演示中的数学说明、当前实现与后续研究要求。
 
