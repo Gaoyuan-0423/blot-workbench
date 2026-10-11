@@ -9,3 +9,6 @@ coverage/
 .release/
 
 *.tsbuildinfo
+
+playwright-report-vision/
+test-results-vision/

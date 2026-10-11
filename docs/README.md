@@ -15,3 +15,6 @@
 | [发布记录与复现](publishing-plan.md) | 在线入口、CI 与部署证据、版本归档 |
 
 English: the README and user guide are available in English. Other documents include English summaries where relevant; full English parity for the technical documentation remains future work.
+
+- [可配置视觉 API 接入（开发版）](vision-api.md)
+- [批量自动流程设计（尚未实现）](automation-design.md)

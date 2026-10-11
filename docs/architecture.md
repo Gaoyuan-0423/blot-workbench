@@ -2,6 +2,10 @@
 
 本页以 `0.1.0-alpha.1` 为界区分已建立的演示结构与规划。路线图不承诺精确工期。
 
+## API 接入开发分支
+
+`0.2.0-dev.1` 在已有演示外增加同源本机 Node 服务和独立 `src/vision` 设置面板。当前协议为可配置的 OpenAI-compatible Chat Completions；只通过固定内置合成 PNG 检查服务响应，不接入真实图像项目或自动定量。配置与密钥不进入项目 schema，手动演示的保存/模板/导出流程保持独立。具体使用与测试边界见[API 指南](vision-api.md)，用户要求的批量自动主流程见[下一版设计](automation-design.md)。
+
 ## 当前演示结构
 
 - TypeScript/React 网页界面：项目概览、样本、图像检查和模拟结果。

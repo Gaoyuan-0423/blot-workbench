@@ -8,6 +8,7 @@
 | `app-analysis.jpg` | 本项目本地条带分析页，实际 CUA 全页截图 | 2026-10-10；`0.1.0-alpha.1`；1440 × 1533 像素；应用源码及采集环境见下文 |
 | `repository-home.jpg` | 公开 GitHub 仓库首页，实际 CUA 视窗截图 | 2026-10-10；1280 × 720；main 提交 `7ea2154`；预发布创建前 |
 | `deployed-home.jpg` | 已上线 Pages 首页，实际 CUA 视窗截图 | 2026-10-10；`0.1.0-alpha.1`；1280 × 720；部署提交 `7ea2154` |
+| `vision-api-settings.jpg` | 本机 API 设置开发页，未配置、未调用模型 | 2026-10-11；`0.2.0-dev.1`；1280 × 720；源码为该文件首次加入的 Git 提交，详见[验证记录](../validation-vision-api.md) |
 
 两张应用截图于 **2026-10-10（Asia/Shanghai）** 从 macOS 27.0.1 上运行的本地应用采集，使用 Codex in-app Chromium 的 CUA 截图能力。应用源码与 [`729a3ecc2576e9fae7d0af407fadb2632b76e87f`](https://github.com/Gaoyuan-0423/blot-workbench/commit/729a3ecc2576e9fae7d0af407fadb2632b76e87f) 一致；文档与截图文件在后续提交归档不改变这个应用源码对应关系。
 

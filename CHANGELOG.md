@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0-dev.1 — 开发中 / Unreleased
+
+- 可选本机视觉 API 配置：Base URL、模型 ID、仅内存密钥、显式清除。
+- 使用固定内置合成 PNG 检查 Chat Completions 图像输入与候选矩形 JSON 响应；不发送项目图像或样本数据，不计算模型灰度。
+- 更换服务来源清除旧密钥；取消/超时、来源检查、配置版本与错误脱敏。
+- 继续保留现有手动演示流程；批量真实图像分析与自动出图是独立后续阶段。
+- 未发布新 Release，未替换线上演示；具体运行证据见 `docs/vision-api.md`。
+
+
 The [public repository](https://github.com/Gaoyuan-0423/blot-workbench) and [live demo](https://gaoyuan-0423.github.io/blot-workbench/) are available. See [the prerelease record](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1) for the version archive and final build evidence, and [the validation record](docs/validation.md) for test scope and limitations.
 
 ## 0.1.0-alpha.1 — 2026-10-10 (alpha)

@@ -2,9 +2,11 @@
 
 [English](README.en.md) · [在线演示](https://gaoyuan-0423.github.io/blot-workbench/) · [GitHub 仓库](https://github.com/Gaoyuan-0423/blot-workbench) · [使用指南](docs/user-guide.md) · [问题反馈](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
+**当前开发分支：`0.2.0-dev.1`。** 已加入可配置视觉 API 的本机入口与内置合成图测试，参见[接入指南](docs/vision-api.md)。公开网页和已发布下载包仍为下述 `0.1.0-alpha.1`，未被这个开发版本覆盖；真实图像批量定量仍未实现。
+
 面向实验室的 Western blot 项目工作台。先把多图整理、样本关系、人工检查和间隔后继续分析的流程做好，再验证真实图像定量。
 
-**当前版本：`0.1.0-alpha.1`，纯合成数据的网页演示。数值是固定合成图在预设区域下的示例测量，不会随 ROI 修改重新定量。当前不能导入真实 TIFF/PNG，也不能用于实验结论或论文中的定量。**
+**已发布版本：`0.1.0-alpha.1`，纯合成数据的网页演示。数值是固定合成图在预设区域下的示例测量，不会随 ROI 修改重新定量。当前不能导入真实 TIFF/PNG，也不能用于实验结论或论文中的定量。**
 
 **[打开在线演示](https://gaoyuan-0423.github.io/blot-workbench/)**，无需安装。版本日期：2026-10-10；版本归档与最终构建证据见 [alpha 预发布记录](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1)。也可按下文在本机运行。
 

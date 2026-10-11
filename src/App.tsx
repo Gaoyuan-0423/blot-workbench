@@ -58,6 +58,7 @@ import {
   loadProject,
   exportCsv,
 } from "./core";
+import VisionSettings from "./vision/VisionSettings";
 
 const REPO = "https://github.com/Gaoyuan-0423/blot-workbench";
 function download(blob: Blob, name: string) {
@@ -76,7 +77,7 @@ function App() {
     "saving",
   );
   const [modal, setModal] = useState<
-    "new" | "template" | "help" | "example" | "import" | null
+    "new" | "template" | "help" | "example" | "import" | "vision" | null
   >(null);
   const [name, setName] = useState("");
   const [pendingImport, setPendingImport] = useState<Project | null>(null);
@@ -407,9 +408,20 @@ function App() {
         <div className="sidebar-bottom">
           <div className="local-note">
             <ShieldCheck size={18} />
-            <strong>{t("数据留在你的设备", "Your data stays here")}</strong>
-            <p>{t("无需账号 · 无图片上传", "No account. No image uploads.")}</p>
+            <strong>
+              {t("项目保存在本机", "Projects stay on your device")}
+            </strong>
+            <p>
+              {t(
+                "可选 API · 仅主动发送测试图",
+                "Optional API · explicit test uploads",
+              )}
+            </p>
           </div>
+          <button className="nav-item" onClick={() => setModal("vision")}>
+            <Settings2 size={17} />
+            <span>{t("视觉 API 设置", "Vision API settings")}</span>
+          </button>
           <button className="nav-item" onClick={() => setModal("help")}>
             <BookOpen size={17} />
             <span>{t("使用指南与示例", "Guide & examples")}</span>
@@ -1679,7 +1691,7 @@ function App() {
         >
           <section
             ref={dialog}
-            className="modal"
+            className={`modal${modal === "vision" ? " vision-modal" : ""}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
@@ -1691,6 +1703,9 @@ function App() {
             >
               <X size={20} />
             </button>
+            {modal === "vision" && (
+              <VisionSettings language={project.ui.language} />
+            )}
             {modal === "import" && pendingImport && (
               <>
                 <div className="modal-icon">

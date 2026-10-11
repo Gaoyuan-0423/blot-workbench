@@ -1,5 +1,7 @@
 import { defineConfig } from "@playwright/test";
 
+const port = process.env.WB_E2E_PORT || "4173";
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
@@ -8,7 +10,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: "http://127.0.0.1:4173",
+    baseURL: `http://127.0.0.1:${port}`,
     browserName: "chromium",
     channel: process.env.BROWSER_CHANNEL || undefined,
     viewport: { width: 1440, height: 1000 },
@@ -16,8 +18,8 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   webServer: {
-    command: "npm run preview -- --port 4173 --strictPort",
-    url: "http://127.0.0.1:4173",
+    command: `npm run preview -- --port ${port} --strictPort`,
+    url: `http://127.0.0.1:${port}`,
     reuseExistingServer: !process.env.CI,
   },
 });

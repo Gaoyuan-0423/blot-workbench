@@ -2,6 +2,8 @@
 
 [中文](README.md) · [Live demo](https://gaoyuan-0423.github.io/blot-workbench/) · [GitHub repository](https://github.com/Gaoyuan-0423/blot-workbench) · [User guide](docs/user-guide.en.md) · [Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
+**Development branch: `0.2.0-dev.1`.** Adds a configurable local vision API connection and a built-in synthetic-image interface check; see the [integration guide](docs/vision-api.md). The public site and published download remain `0.1.0-alpha.1`; they have not been replaced by this development version. Real-image batch quantification is still unimplemented.
+
 A Western blot project workbench for laboratories. The first step is to make image organization, sample relationships, review, and returning to unfinished work easier, before validating experimental-image quantification.
 
 **Version `0.1.0-alpha.1` is a browser demonstration with synthetic data. Numbers are fixed example measurements for the synthetic images and their preset regions; edits do not run fresh quantification. Real TIFF/PNG import is not implemented. This version must not be used for experimental conclusions or publication quantification.**
