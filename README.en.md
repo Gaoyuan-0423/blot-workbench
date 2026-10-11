@@ -1,79 +1,94 @@
 # Blot Workbench / 印迹工作台
 
-[中文](README.md) · [Live demo](https://gaoyuan-0423.github.io/blot-workbench/) · [GitHub repository](https://github.com/Gaoyuan-0423/blot-workbench) · [User guide](docs/user-guide.en.md) · [Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues)
+[中英首页 / Bilingual home](README.md) · [Live demo](https://gaoyuan-0423.github.io/blot-workbench/) · [User guide](docs/user-guide.en.md) · [Vision API guide](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/vision-api.en.md) · [Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
 A Western blot project workbench for laboratories. The first step is to make image organization, sample relationships, review, and returning to unfinished work easier, before validating experimental-image quantification.
 
-**Version `0.1.0-alpha.1` is a browser demonstration with synthetic data. Numbers are fixed example measurements for the synthetic images and their preset regions; edits do not run fresh quantification. Real TIFF/PNG import is not implemented. This version must not be used for experimental conclusions or publication quantification.**
+## Versions and boundaries
 
-**[Open the live demo](https://gaoyuan-0423.github.io/blot-workbench/)** without installing software. Version date: 2026-10-10. See the [alpha prerelease record](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1) for the version archive and final build evidence. Local startup instructions are also available below.
+**Development version: `0.2.0-dev.1`.** Adds configurable local vision API access, a built-in synthetic-image interface check, and a standalone bilingual user guide. It has not replaced the public website or released downloads.
 
-![Blot Workbench browser demonstration](docs/screenshots/app-home.jpg)
+**Published version: `0.1.0-alpha.1`, dated 2026-10-10.** The [live demonstration](https://gaoyuan-0423.github.io/blot-workbench/) needs no installation. Its fixed archive and build evidence are in the [alpha Release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1).
 
-See the [screenshot record](docs/screenshots/README.md) for version and environment evidence. A screenshot is not evidence of algorithm accuracy or cross-platform compatibility.
+Development features remain on the [`codex/configurable-vision-api` branch](https://github.com/Gaoyuan-0423/blot-workbench/tree/codex/configurable-vision-api) and are not merged into the main application. Updating this bilingual repository homepage does not replace the deployed app.
+
+**Neither version imports real TIFF/PNG images or performs scientific quantification. Demonstration values come from fixed synthetic images and preset regions; editing an ROI does not remeasure it. Do not use these values for experimental conclusions or publication quantification.**
+
+![Blot Workbench synthetic-data demonstration](docs/screenshots/app-home.jpg)
+
+The screenshot shows the released demonstration. See the [screenshot record](docs/screenshots/README.md) for version and environment evidence; a screenshot does not establish algorithm accuracy or cross-platform compatibility.
 
 ## What you can explore
 
-- Organize batches, membranes, target/reference images, and exposures within one project.
+- Organize dates, batches, membranes, target/reference images, and exposures within one project. A project is not a single experiment.
 - Inspect samples, groups, and experimental units without treating image count as independent sample count.
 - Review band/background ROIs, reference pairing, and exclusions; see how changes invalidate existing illustrative results.
-- Preserve analysis-time template snapshots and explore template revisions.
-- Inspect preset background correction, target/reference ratios, relative values, project recovery, and exports.
-- Switch between Chinese and English.
+- Reuse templates while preserving analysis-time snapshots and revisions.
+- Inspect preset background correction and normalization, export projects/CSV, and resume saved work.
+- Switch between Chinese and English. In the development version, configure a vision service and explicitly test it with the built-in synthetic image.
 
-The demonstration contains **8 synthetic images, 2 batches, a target and reference at 2 exposures, and the same 6 samples representing 6 experimental units across the batches**. These are not 12 or 48 independent biological replicates. See [demo boundaries](docs/demo-boundary.md).
+The demonstration contains **8 synthetic images, 2 batches, a target and reference at 2 exposures, and the same 6 samples representing 6 experimental units across batches**. Repeated exposures or loading do not increase independent sample count. See [demo boundaries](docs/demo-boundary.md).
 
-## Try the workflow
+## Guides and first use
 
-1. Open the [live demo](https://gaoyuan-0423.github.io/blot-workbench/). The first visit loads the built-in example. To run it on your own machine, follow [local startup](#local-use-and-development).
-2. Select an image and review ROIs, exposure, sample assignments, and reference pairing.
-3. Change an ROI or a pairing and inspect the resulting stale state. This does not trigger scientific quantification.
-4. Save and export the project, then reload the page or import the archive to inspect recovery.
+In the development version, select **User guide / 使用教程** in the sidebar to open the standalone `#guide` page. It follows the top-right **EN / 中文** language switch. You can also append `#guide` to the local app URL. The published `0.1` site does not yet include this new entry; use the repository guides:
 
-Download the [example project](public/examples/example.wbproj.zip), [illustrative results CSV](public/examples/example-results.csv), and [example manifest](public/examples/manifest.json). All examples are synthetic; see their provenance and limitations in [demo boundaries](docs/demo-boundary.md).
+- [User guide](docs/user-guide.en.md): projects, review, templates, results, recovery, and export. [中文](docs/user-guide.md)
+- [Vision API guide](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/vision-api.en.md): local setup, credentials, the synthetic test, and its limitations. [中文](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/vision-api.md)
 
-The archive starts with unreviewed analyses. The example CSV is the expected output after confirming all 7 eligible images: 3 target/reference pairs × 6 samples = 18 rows. The saturated image produces no result; 18 measurement rows do not mean 18 independent samples. [Example file notes](public/examples/README.md)
+For a first walkthrough, load the example, check samples and exposures, review ROIs/reference pairing, confirm eligible images, inspect results, then export and reopen the project. Change an ROI or pairing to observe stale results; this does not trigger fresh quantification.
 
-Browser storage holds one current workspace. Creating a project, loading the example, or importing an archive replaces it; export work you want to keep first. Clearing site data, changing browsers or origins, and private browsing can make saved work unavailable. Local storage is not a backup. [Full user guide](docs/user-guide.en.md)
+Download the [example project](public/examples/example.wbproj.zip), [expected results CSV](public/examples/example-results.csv), and [manifest](public/examples/manifest.json). The archive starts unreviewed. The CSV contains the expected output after confirming all 7 eligible images: 3 target/reference pairs × 6 samples = 18 rows. The saturated image produces no valid result; 18 rows do not mean 18 independent samples. [Example file notes](public/examples/README.md)
 
-## Not implemented in this alpha
+## Not implemented
 
-Real TIFF/PNG import and quantification, validated high-bit-depth processing, automatic band detection, statistical tests, publication figure composition, immunofluorescence analysis, desktop installers, and Wisp Science integration are future work. See the [architecture and roadmap](docs/architecture.md).
+Real TIFF/PNG decoding and quantification, validated high-bit-depth processing, automatic band detection on experimental images, batch automation, statistical tests, publication figure composition, immunofluorescence analysis, desktop installers, and Wisp Science integration are future work. A vision API returning 6 candidates does not establish correct localization or scientific accuracy.
 
-The [M1 main-branch CI run](https://github.com/Gaoyuan-0423/blot-workbench/actions/runs/38060883807) passed 18 core tests, 12 script tests, and 7 end-to-end tests in each of four combinations: Windows/macOS × Chrome/Edge. These checks cover the demonstration workflow, not scientific quantification accuracy or unrecorded browsers. See the [validation record](docs/validation.md) for environments and commits.
-
-## Data and methods
-
-Project state is processed and saved in the browser. There is no account or image-upload service. GitHub Pages serves the online page, scripts, and synthetic examples, so the browser requests those static assets from the hosting provider. Local computation does not mean that visiting the page makes no network requests. See [privacy](docs/privacy.md).
-
-Changes to ROIs, pairing, or analysis parameters must invalidate prior illustrative results. Updating a template must not silently alter an existing analysis snapshot. This version supports discussion of these workflow and data-model decisions; numerical correctness and experimental-image reliability require separate validation. See [methods](docs/methods.md).
+See the [architecture and roadmap](docs/architecture.md) and [batch automation design](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/automation-design.md). The latter describes unimplemented behavior, not an available workflow.
 
 ## Local use and development
 
-These are developer instructions, not a desktop installer. Use Node.js 22.12 or a newer compatible version. The same commands work in Windows and macOS terminals; run them from the project directory:
+These API and new-guide instructions apply only to the development branch; they are not a desktop installer. Use Git and Node.js 22.12 or a newer compatible version. The same commands work in Windows and macOS terminals. From your cloned repository, switch to the development branch before starting:
 
 ```sh
+git fetch origin
+git switch codex/configurable-vision-api
 npm ci
-npm run dev
+npm run local
 ```
 
-The development server listens on the local machine. Open the address printed in the terminal, usually `http://127.0.0.1:5173`, and press `Ctrl+C` to stop. Opening `index.html` directly is not a substitute for the server.
+Open the printed loopback address, default `http://127.0.0.1:4318`. The standalone guide is at `http://127.0.0.1:4318/#guide`. Press `Ctrl+C` to stop. `npm run dev` starts the frontend only, **without the vision API service**. Do not open `index.html` directly.
 
-Build and verification commands:
+To preview a build locally with the API:
+
+```sh
+npm run build
+npm run local:preview
+```
+
+Verification commands:
 
 ```sh
 npm run check
+npm run test:scripts
 npm run test:e2e
+npm run test:vision:e2e
 ```
 
-After building, `npm run preview` serves the build locally at the printed address. It does not publish the application.
+Browser tests require the environment matching the project's Playwright version. These commands do not claim that tests have run. Consult the [released-demo validation](docs/validation.md) and [development API validation](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/validation-vision-api.md) separately; evidence applies to the recorded commit and environment. Passing workflow tests does not validate scientific quantification.
 
-End-to-end tests require the browser environment matching the project's Playwright version. Listing a command does not claim that it has passed on any operating system. See the [validation record](docs/validation.md).
+## Data and privacy
+
+Projects are processed in the browser, which holds one current workspace. Creating a project, loading the example, or importing another archive replaces it. Export work you want to keep first. Browser storage is not a backup: clearing site data, changing browsers/origins, or private browsing may make saved work unavailable. The hosted site and local server do not synchronize.
+
+GitHub Pages serves the online page, scripts, and synthetic examples, so opening the site makes network requests. The optional development API test sends only the built-in synthetic PNG and prompt to your configured service, **not current project data or experimental images**. The local service holds the key only in memory; it is not returned, persisted in browser storage, or exported with projects. Restarting clears configuration. Providers may charge for requests; a local timeout or cancellation does not guarantee remote billing stops. See [privacy](docs/privacy.md) and the [API guide](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/vision-api.en.md).
+
+ROI, pairing, or analysis-parameter changes invalidate prior illustrative results. Updating a template must not silently alter existing analysis snapshots. Numerical correctness and experimental-image reliability require separate validation. See [methods](docs/methods.md).
 
 ## Contributing and citation
 
-We welcome reproducible reports about the workflow, recovery, and terminology through [GitHub Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues). Read [CONTRIBUTING.md](CONTRIBUTING.md). Do not post experimental images or sample information publicly without permission.
+Report reproducible problems through [GitHub Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues), including the exact version, operating system/browser, steps, and expected behavior. Prefer the built-in example. Do not post unauthorized experimental images, private sample information, or API keys. Read [Contributing](CONTRIBUTING.md).
 
-The software is distributed under the [MIT license](LICENSE). Cite the exact version using [CITATION.cff](CITATION.cff). There is no software paper or DOI at present. Open source, automation, and project saving are not claimed as unique innovations; related tools are linked in [methods](docs/methods.md#相关工作).
+The software uses the [MIT license](LICENSE). Cite the version and commit actually used; [CITATION.cff](CITATION.cff) describes the published version, not the development branch. There is no software paper or DOI. Open source, automation, and project saving are not claimed as unique innovations; see [related work](docs/methods.md#相关工作).
 
-[Changelog](CHANGELOG.md) · [Release notes](docs/releases/v0.1.0-alpha.1.md) · [Publication and reproducibility](docs/publishing-plan.md) · [Documentation index](docs/README.md)
+[Changelog](CHANGELOG.md) · [Released version notes](docs/releases/v0.1.0-alpha.1.md) · [Publication record](docs/publishing-plan.md) · [Documentation index](docs/README.md)
