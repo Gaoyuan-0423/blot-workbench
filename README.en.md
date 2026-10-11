@@ -6,13 +6,17 @@ A Western blot project workbench for laboratories. The first step is to make ima
 
 ## Versions and boundaries
 
-**Development version: `0.2.0-dev.1`.** Adds configurable local vision API access, a built-in synthetic-image interface check, and a standalone bilingual user guide. It has not replaced the public website or released downloads.
+**Development version: `0.3.0-dev.1`.** Adds actual local TIFF/PNG measurements, shared lane mapping, batch proposals, manual regions, paired descriptive plots, and original-image archives at `#real`. It has not replaced the public website or released downloads.
 
 **Published version: `0.1.0-alpha.1`, dated 2026-10-10.** The [live demonstration](https://gaoyuan-0423.github.io/blot-workbench/) needs no installation. Its fixed archive and build evidence are in the [alpha Release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1).
 
 Development features remain on the [`codex/configurable-vision-api` branch](https://github.com/Gaoyuan-0423/blot-workbench/tree/codex/configurable-vision-api) and are not merged into the main application. Updating this bilingual repository homepage does not replace the deployed app.
 
-**Neither version imports real TIFF/PNG images or performs scientific quantification. Demonstration values come from fixed synthetic images and preset regions; editing an ROI does not remeasure it. Do not use these values for experimental conclusions or publication quantification.**
+**The development real-image workspace recomputes actual pixels but remains experimental, with bounded format support and incomplete scientific validation. The separate legacy demonstration continues to use preset synthetic values.**
+
+Start real analysis at `http://127.0.0.1:4318/#real`: import → check file metadata → describe lanes once → batch proposals → manual review → plots, CSV, and archive. Read the [real-image guide](docs/real-images.en.md) ([中文](docs/real-images.md)) and [validation scope](docs/validation-real-images.md).
+
+Public [synthetic pixel validation example](public/examples/real/README.md): original images, an actual-pixel project archive, and analytically specified results. No user experimental data.
 
 ![Blot Workbench synthetic-data demonstration](docs/screenshots/app-home.jpg)
 
@@ -42,9 +46,9 @@ Download the [example project](public/examples/example.wbproj.zip), [expected re
 
 ## Not implemented
 
-Real TIFF/PNG decoding and quantification, validated high-bit-depth processing, automatic band detection on experimental images, batch automation, statistical tests, publication figure composition, immunofluorescence analysis, desktop installers, and Wisp Science integration are future work. A vision API returning 6 candidates does not establish correct localization or scientific accuracy.
+Arbitrary instrument formats, reliable unattended analysis, inferential statistics, publication figure composition, multi-patient paired N/T designs, immunofluorescence, desktop installers, and Wisp Science integration remain future work. Automatic proposals are local heuristics requiring human review.
 
-See the [architecture and roadmap](docs/architecture.md) and [batch automation design](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/automation-design.md). The latter describes unimplemented behavior, not an available workflow.
+See the [architecture and roadmap](docs/architecture.md) and [batch automation design](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/automation-design.md). The design document distinguishes the new local preview from planned vision-assisted and complex-design behavior.
 
 ## Local use and development
 

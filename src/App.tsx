@@ -404,6 +404,10 @@ function App() {
           <ChevronDown size={15} />
         </button>
         <nav>
+          <a className="nav-item" href="#real">
+            <FileImage size={18} />
+            <span>{t("真实图像分析", "Analyze real images")}</span>
+          </a>
           {nav.map((n) => (
             <button
               key={n.view}

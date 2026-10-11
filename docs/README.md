@@ -1,8 +1,8 @@
 # 文档 / Documentation
 
-本目录同时记录已发布的 `0.1.0-alpha.1` 合成数据演示和 `0.2.0-dev.1` 本机开发版。开发版增加视觉 API 接入与独立中英教程；公开网页与下载包仍为 `0.1`，真实图像批量定量未实现。
+本目录同时记录已发布的 `0.1.0-alpha.1` 合成数据演示和 `0.3.0-dev.1` 本机开发版。开发版增加视觉 API 接入与独立中英教程；公开网页与下载包仍为 `0.1`，真实图像本机定量已进入实验性开发预览。
 
-This directory covers both the published `0.1.0-alpha.1` synthetic-data demo and local development version `0.2.0-dev.1`. The development version adds vision API access and a standalone bilingual guide; the public website and downloads remain `0.1`. Real-image batch quantification is not implemented.
+This directory covers both the published `0.1.0-alpha.1` synthetic-data demo and local development version `0.3.0-dev.1`. The development version adds vision API access and a standalone bilingual guide; the public website and downloads remain `0.1`. Real-image local measurement is now an experimental development preview.
 
 [在线演示 / Published demo](https://gaoyuan-0423.github.io/blot-workbench/) · [源码 / Source](https://github.com/Gaoyuan-0423/blot-workbench) · [已发布版本 / Published release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1)
 
@@ -14,6 +14,7 @@ In the development version, **User guide / 使用教程** in the sidebar opens t
 
 | 指南 / Guide | 中文 | English |
 | --- | --- | --- |
+| 真实图像与统计图 / Real images and plots | [真实图像指南](real-images.md) | [Real-image guide](real-images.en.md) |
 | 项目与手动演示流程 / Projects and manual demo workflow | [使用指南](user-guide.md) | [User guide](user-guide.en.md) |
 | 本机 API 配置与合成图测试 / Local API setup and synthetic testing | [视觉 API 指南](vision-api.md) | [Vision API guide](vision-api.en.md) |
 | 项目首页与启动 / Overview and startup | [中英首页](../README.md) | [English README](../README.en.md) |
@@ -28,6 +29,7 @@ In the development version, **User guide / 使用教程** in the sidebar opens t
 | [批量自动流程设计 / Batch automation design](automation-design.md) | 尚未实现的真实图像流程 / Unimplemented experimental-image workflow |
 | [数据与隐私 / Data and privacy](privacy.md) | 浏览器存储、静态托管与可选服务数据流 / Browser storage, static hosting, and optional-service data flows |
 | [演示验证记录 / Demo validation](validation.md) | 已发布演示的运行证据与边界 / Released-demo evidence and limitations |
+| [真实图像验证 / Real-image validation](validation-real-images.md) | 格式、数值与交互测试范围 / Format, numeric, and workflow coverage |
 | [API 接入验证 / API validation](validation-vision-api.md) | 开发版接口与模拟服务测试 / Development API and mock-provider checks |
 | [截图记录 / Screenshot record](screenshots/README.md) | 实际截图的版本和环境 / Versions and environments of actual screenshots |
 | [已发布版本说明 / Published release notes](releases/v0.1.0-alpha.1.md) | 已发布版本的范围和限制 / Scope and limitations of the published version |

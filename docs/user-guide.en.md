@@ -1,5 +1,7 @@
 # User guide
 
+> For the real TIFF/PNG development preview, open `#real` and read the [real-image guide](real-images.en.md). This page describes the legacy synthetic example.
+
 [中文指南](user-guide.md) · [Local vision API guide](vision-api.en.md) · [Documentation index](README.md)
 
 This guide describes the manual synthetic-data workflow shared by published `0.1.0-alpha.1` and development version `0.2.0-dev.1`. The public website and downloads still run `0.1`. All example images and quantification values are synthetic demonstration material. Confirming an item records a workflow review; it does not certify scientific validity.

@@ -1,5 +1,11 @@
 # 数据与隐私 / Data and privacy
 
+## 真实图像开发版 / Real-image development workspace
+
+`0.3.0-dev.1` 的 `#real` 工作区在浏览器内读取并计算原始 TIFF/PNG；本流程不调用视觉 API、不发送图片、文件名或结果。原始文件、ROI 与历史保存在独立 IndexedDB 项目中；导出的项目 ZIP 含原始图像，因此需按实验数据保管。仅保留一个当前真实项目，另有独立的旧合成演示项目。
+
+The `#real` workspace reads and measures TIFF/PNG in the browser without calling the vision API or transmitting images, filenames, or results. Originals, ROIs, and history are held in a separate IndexedDB project. Exported ZIPs contain original images and should be handled as experimental data. There is one current real project, separate from the legacy synthetic workspace.
+
 ## 开发分支的可选 API 连接（0.2.0-dev.1）
 
 以下新增行为仅存在于本机接入开发版本，尚未部署到公开演示。打开设置会读取本机服务的安全配置元数据；保存配置不会调用模型。只有点击“发送合成图并测试”时，本机服务才将自带的固定合成 PNG 和提示词发给用户保存的服务。当前项目图像、样本名、泳道文字和分析结果不进入该请求。服务可能按其政策计费和处理图片。

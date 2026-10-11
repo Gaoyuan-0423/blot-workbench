@@ -1,4 +1,4 @@
-export const APP_VERSION = "0.2.0-dev.1";
+export const APP_VERSION = "0.3.0-dev.1";
 export type Language = "zh" | "en";
 export type View = "overview" | "analysis" | "samples" | "results";
 export interface Rect {

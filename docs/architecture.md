@@ -1,5 +1,11 @@
 # 架构与路线图
 
+## 真实图像开发预览 / Real-image development preview
+
+`0.3.0-dev.1` 的 `src/real/pixels.ts` 提供不依赖 DOM 的解码、区域与定量；`model.ts` 管理来源字节、参数版本、配对、CSV/ZIP 和描述性汇总；`RealWorkbench.tsx` 提供双语界面，图形导出独立于测量像素。首次暂用独立 `#real` 路由与项目格式 v1；不能在旧演示与真实项目间直接互换。共享布局的一对条件流程已可运行，更复杂的患者配对/技术重复仍需独立模型。
+
+The new real-image route separates pure pixel computation, project/provenance logic, UI, and figure rendering. It uses a distinct version-1 archive and storage key. Shared-layout control/condition workflows are implemented experimentally; patient pairs and technical-replicate aggregation are not. See [current workflow](real-images.en.md) and [validation](validation-real-images.md). The sections below preserve the earlier demonstration roadmap.
+
 本页以 `0.1.0-alpha.1` 为界区分已建立的演示结构与规划。路线图不承诺精确工期。
 
 ## API 接入开发分支

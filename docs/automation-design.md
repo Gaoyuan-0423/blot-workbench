@@ -1,5 +1,7 @@
 # 批量自动 WB 工作流与可选视觉 API
 
+实施状态 / Implementation status (`0.3.0-dev.1`): 本机共享泳道说明、批量像素候选、手动修改、局部背景定量及描述性图已进入 `#real` 实验预览；视觉 API 实验图分析与复杂样本模型仍未接入。 / Shared lane descriptions, local batch proposals, manual edits, local-background measurements, and descriptive plots are available experimentally at `#real`. Vision-API analysis of experimental images and complex sample models are not implemented. See [guide](real-images.en.md).
+
 需求更新：2026-10-11。本文是下一版的产品与技术设计，不是当前在线 `0.1.0-alpha.1` 的已实现功能说明。
 
 用户希望将全部图像一次导入，以文件名提供蛋白名，再说明泳道对应样本，由程序自动处理并输出图；同时保留完整手动模式。用户已选择允许图片发送给指定的视觉 API。具体服务和模型尚未指定，不进行真实云端调用。

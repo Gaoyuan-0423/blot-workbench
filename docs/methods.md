@@ -1,5 +1,7 @@
 # 方法与解释范围
 
+真实图像 `0.3.0-dev.1` 的实际像素方法和边界见[中文指南](real-images.md) / [English](real-images.en.md) 与[验证](validation-real-images.md)。本页下方仍描述旧合成示例，不能将两种归一化基准混用。 / For actual pixel measurements, use the linked real-image method and validation. The legacy formulas below belong to the synthetic demo and use a different control baseline.
+
 版本：`0.1.0-alpha.1`。本页区分演示中的数学说明、当前实现与后续研究要求。
 
 ## 当前的数值展示

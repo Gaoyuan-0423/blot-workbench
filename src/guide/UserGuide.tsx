@@ -171,8 +171,8 @@ export default function UserGuide({
         "Why can't I drop in real TIFF or PNG images?",
       ),
       answer: t(
-        "当前只开放合成项目演示和导出的 .wbproj.zip 项目包导入。真实图像解码、原始位深保留、批量定量与自动组图尚未开放。API 测试成功也不会解锁这些功能。",
-        "This version supports synthetic projects and importing exported .wbproj.zip archives. Real-image decoding, original bit-depth preservation, batch quantification, and automatic figure assembly are not available yet. A successful API test does not unlock them.",
+        "这个旧入口用于合成示例。真实 TIFF/PNG 请从侧栏“真实图像分析”进入独立工作区：导入、设置泳道、批量候选、手动复核并导出统计图。它仍是实验性预览，项目包与合成示例分开。",
+        "This legacy entry is for synthetic examples. Choose Analyze real images in the sidebar for the separate workspace: import, map lanes, run batch proposals, review manually, and export descriptive plots. It remains experimental and uses separate archives.",
       ),
     },
     {
@@ -233,8 +233,8 @@ export default function UserGuide({
         <div className="guide-stage">
           <ShieldCheck size={16} aria-hidden="true" />
           {t(
-            "当前阶段 · 合成演示与可选 API 测试",
-            "CURRENT STAGE · SYNTHETIC DEMO & OPTIONAL API TEST",
+            "使用教程 · 真实图像预览与合成示例",
+            "USER GUIDE · REAL-IMAGE PREVIEW & SYNTHETIC EXAMPLE",
           )}
         </div>
         <h2 id="guide-start-title">
@@ -245,14 +245,18 @@ export default function UserGuide({
         </h2>
         <p>
           {t(
-            "先用示例熟悉项目、检查和保存流程。全部图像与数值都是合成数据；当前不支持真实图像导入、实时定量或自动组图。",
-            "Use the example to learn project organization, review, and saving. All images and values are synthetic. Real-image import, live quantification, and automatic figure assembly are not supported yet.",
+            "真实图像分析已有独立入口；下方六步教程介绍旧合成示例，示例数值固定。两种项目分别保存。真实定量仍需核对图像、实验设计和质量提示。",
+            "Real-image analysis has a separate entry. The six-step walkthrough below describes the legacy synthetic example with fixed values. The two projects save separately. Real measurements require image, design, and quality review.",
           )}
         </p>
         <div
           className="guide-quick-actions"
           aria-label={t("快速入口", "Quick actions")}
         >
+          <a className="guide-button guide-button-primary" href="#real">
+            <ScanLine size={17} aria-hidden="true" />
+            {t("开始真实图像分析", "Start real-image analysis")}
+          </a>
           <button
             type="button"
             className="guide-button guide-button-primary"

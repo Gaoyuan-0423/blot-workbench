@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0-dev.1 — 开发中 / Unreleased
+
+- 独立真实图像工作区 `#real`：保留原始 TIFF/PNG，支持有限的 8/16 位格式、本机扣背景、内参和匹配对照归一化。
+  Separate real-image workspace retaining original TIFF/PNG bytes, bounded 8/16-bit decoding, local background correction and paired normalization.
+- 一次描述泳道、批量候选、手动拖动/缩放、版本历史、质量警告、独立项目保存与恢复；完整中英文。
+  Shared lane descriptions, batch proposals, manual adjustment, analysis history, quality flags, separate recovery, and bilingual controls.
+- CSV 中间量与坐标；每蛋白配对点图、均值 ± SD、SVG/PNG/TIFF 导出。完整配对实验才进入汇总，不自动检验或生成星号。
+  Auditable CSV, protein-specific paired points and mean ± SD, SVG/PNG/TIFF export. Only complete paired experiments enter summaries; no automatic inferential test.
+- 仍为实验性预览，未替换公开 alpha；支持与测试范围见 [验证记录](docs/validation-real-images.md)。
+  Experimental preview, not a replacement for the published alpha. See [validation](docs/validation-real-images.md).
+
 ## 0.2.0-dev.1 — 开发中 / Unreleased
 
 - 独立「使用教程 / User guide」页面，完整中英文步骤、API 说明、恢复提示与常见问题；可直接打开 `#guide`。
