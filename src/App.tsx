@@ -59,6 +59,7 @@ import {
   exportCsv,
 } from "./core";
 import VisionSettings from "./vision/VisionSettings";
+import UserGuide from "./guide/UserGuide";
 
 const REPO = "https://github.com/Gaoyuan-0423/blot-workbench";
 function download(blob: Blob, name: string) {
@@ -70,6 +71,14 @@ function download(blob: Blob, name: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 function App() {
+  const [guideOpen, setGuideOpen] = useState(
+    () => window.location.hash === "#guide",
+  );
+  useEffect(() => {
+    const syncGuide = () => setGuideOpen(window.location.hash === "#guide");
+    window.addEventListener("hashchange", syncGuide);
+    return () => window.removeEventListener("hashchange", syncGuide);
+  }, []);
   const [project, setProject] = useState<Project | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -218,8 +227,28 @@ function App() {
   }, [modal]);
   const ui = (patch: Partial<Project["ui"]>) =>
     mutate((p) => ({ ...p, ui: { ...p.ui, ...patch } }));
-  const changeView = (view: View) => ui({ view });
+  const leaveGuide = () => {
+    setGuideOpen(false);
+    if (window.location.hash === "#guide")
+      window.history.replaceState(
+        null,
+        "",
+        window.location.pathname + window.location.search,
+      );
+  };
+  const openGuide = () => {
+    setModal(null);
+    setGuideOpen(true);
+    window.location.hash = "guide";
+    window.scrollTo({ top: 0 });
+  };
+  const changeView = (view: View) => {
+    leaveGuide();
+    ui({ view });
+    window.scrollTo({ top: 0 });
+  };
   const openImage = (id: string) => {
+    leaveGuide();
     ui({ view: "analysis", selectedImageId: id });
     setSelectedRoi("");
     setContrast(100);
@@ -251,7 +280,10 @@ function App() {
     });
   const loadExample = () =>
     run(async () => {
-      setProject(await createExampleProject());
+      const example = await createExampleProject();
+      example.ui.language = currentProject.current?.ui.language ?? "zh";
+      setProject(example);
+      leaveGuide();
       setChecked([]);
       setModal(null);
       setNotice(t("已载入合成示例项目", "Synthetic example loaded"));
@@ -284,8 +316,9 @@ function App() {
     (i) =>
       project.ui.batchFilter === "all" || i.batchId === project.ui.batchFilter,
   );
-  const activeView = project.ui.view;
-  const viewLabel: Record<View, string> = {
+  const activeView = guideOpen ? "guide" : project.ui.view;
+  const viewLabel: Record<View | "guide", string> = {
+    guide: t("使用教程", "User guide"),
     overview: t("项目总览", "Overview"),
     analysis: t("条带分析", "Band analysis"),
     samples: t("样本与分组", "Samples"),
@@ -382,6 +415,14 @@ function App() {
               {n.count && <small>{n.count}</small>}
             </button>
           ))}
+          <button
+            className={`nav-item ${guideOpen ? "active" : ""}`}
+            onClick={openGuide}
+            aria-current={guideOpen ? "page" : undefined}
+          >
+            <BookOpen size={17} />
+            <span>{t("使用教程", "User guide")}</span>
+          </button>
         </nav>
         <div className="sidebar-divider" />
         <div className="workspace-label row-between">
@@ -421,10 +462,6 @@ function App() {
           <button className="nav-item" onClick={() => setModal("vision")}>
             <Settings2 size={17} />
             <span>{t("视觉 API 设置", "Vision API settings")}</span>
-          </button>
-          <button className="nav-item" onClick={() => setModal("help")}>
-            <BookOpen size={17} />
-            <span>{t("使用指南与示例", "Guide & examples")}</span>
           </button>
           <a className="nav-item" href={REPO} target="_blank" rel="noreferrer">
             <Github size={17} />
@@ -517,44 +554,61 @@ function App() {
               </div>
               <h1>{viewLabel[activeView]}</h1>
               <p>
-                {activeView === "overview"
+                {activeView === "guide"
                   ? t(
-                      "把每一步，留在项目里。",
-                      "Every step, kept with your project.",
+                      "从示例开始；回来时，知道下一步做什么。",
+                      "Start with an example. Know where to resume when you return.",
                     )
-                  : activeView === "analysis"
+                  : activeView === "overview"
                     ? t(
-                        "检查条带和背景，再确认当前分析。",
-                        "Review bands and background before confirming the analysis.",
+                        "把每一步，留在项目里。",
+                        "Every step, kept with your project.",
                       )
-                    : activeView === "samples"
+                    : activeView === "analysis"
                       ? t(
-                          "先明确样本关系，再解释重复与结果。",
-                          "Define sample relationships before interpreting replicates and results.",
+                          "检查条带和背景，再确认当前分析。",
+                          "Review bands and background before confirming the analysis.",
                         )
-                      : t(
-                          "从每一个数值，回到它的来源。",
-                          "Trace every value back to its source.",
-                        )}
+                      : activeView === "samples"
+                        ? t(
+                            "先明确样本关系，再解释重复与结果。",
+                            "Define sample relationships before interpreting replicates and results.",
+                          )
+                        : t(
+                            "从每一个数值，回到它的来源。",
+                            "Trace every value back to its source.",
+                          )}
               </p>
             </div>
             <div className="heading-actions">
-              {button(
+              {guideOpen ? (
+                <button
+                  className="button"
+                  onClick={() => changeView(project.ui.view)}
+                >
+                  <ArrowRight size={16} />
+                  {t("返回工作区", "Back to workspace")}
+                </button>
+              ) : (
                 <>
-                  <ArrowUpFromLine size={16} />
-                  {t("打开项目", "Open project")}
-                </>,
-                () => fileInput.current?.click(),
-              )}
-              {button(
-                <>
-                  <FileArchive size={16} />
-                  {t("导出项目", "Export project")}
-                </>,
-                () => {
-                  void archive();
-                },
-                "button primary",
+                  {button(
+                    <>
+                      <ArrowUpFromLine size={16} />
+                      {t("打开项目", "Open project")}
+                    </>,
+                    () => fileInput.current?.click(),
+                  )}
+                  {button(
+                    <>
+                      <FileArchive size={16} />
+                      {t("导出项目", "Export project")}
+                    </>,
+                    () => {
+                      void archive();
+                    },
+                    "button primary",
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -575,6 +629,14 @@ function App() {
               e.target.value = "";
             }}
           />
+          {guideOpen && (
+            <UserGuide
+              language={project.ui.language}
+              onNavigate={changeView}
+              onExample={() => setModal("example")}
+              onVision={() => setModal("vision")}
+            />
+          )}
           {activeView === "overview" && (
             <>
               <div className="overview-grid">
@@ -855,7 +917,7 @@ function App() {
                     "New here? The example introduces bands, background, pairing, and saved progress.",
                   )}
                 </span>
-                <button onClick={() => setModal("help")}>
+                <button onClick={openGuide}>
                   {t("查看快速指南", "Quick start")}
                   <ArrowRight size={14} />
                 </button>
@@ -1739,6 +1801,7 @@ function App() {
                     <>{t("确认导入", "Import project")}</>,
                     () => {
                       setProject(pendingImport);
+                      leaveGuide();
                       setPendingImport(null);
                       setChecked([]);
                       setModal(null);
@@ -1783,7 +1846,10 @@ function App() {
                       <ArrowRight size={15} />
                     </>,
                     () => {
-                      setProject(createEmptyProject(name.trim()));
+                      const empty = createEmptyProject(name.trim());
+                      empty.ui.language = project.ui.language;
+                      setProject(empty);
+                      leaveGuide();
                       setChecked([]);
                       setModal(null);
                     },
@@ -1990,6 +2056,10 @@ function App() {
                   )}
                 </div>
                 <div className="modal-actions">
+                  <button className="button" onClick={openGuide}>
+                    <BookOpen size={15} />
+                    {t("完整使用教程", "Full user guide")}
+                  </button>
                   <a
                     className="button"
                     href={`${REPO}/tree/main/docs`}

@@ -115,6 +115,7 @@ button {
   min-height: 100vh;
 }
 .sidebar {
+  overflow-y: auto;
   width: 224px;
   flex-shrink: 0;
   background: #fff;

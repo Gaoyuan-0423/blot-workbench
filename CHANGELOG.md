@@ -2,6 +2,10 @@
 
 ## 0.2.0-dev.1 — 开发中 / Unreleased
 
+- 独立「使用教程 / User guide」页面，完整中英文步骤、API 说明、恢复提示与常见问题；可直接打开 `#guide`。
+  A dedicated bilingual user guide with workflow steps, API setup, recovery advice, and FAQs, available at `#guide`.
+- GitHub 首页改为中英文对照，补充完整英文 API 使用指南。载入示例或新建项目保留当前界面语言。
+  The repository landing page now presents Chinese and English together, with a complete English API guide. Loading an example or creating a project preserves the interface language.
 - 可选本机视觉 API 配置：Base URL、模型 ID、仅内存密钥、显式清除。
 - 使用固定内置合成 PNG 检查 Chat Completions 图像输入与候选矩形 JSON 响应；不发送项目图像或样本数据，不计算模型灰度。
 - 更换服务来源清除旧密钥；取消/超时、来源检查、配置版本与错误脱敏。

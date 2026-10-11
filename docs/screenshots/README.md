@@ -9,6 +9,11 @@
 | `repository-home.jpg` | 公开 GitHub 仓库首页，实际 CUA 视窗截图 | 2026-10-10；1280 × 720；main 提交 `7ea2154`；预发布创建前 |
 | `deployed-home.jpg` | 已上线 Pages 首页，实际 CUA 视窗截图 | 2026-10-10；`0.1.0-alpha.1`；1280 × 720；部署提交 `7ea2154` |
 | `vision-api-settings.jpg` | 本机 API 设置开发页，未配置、未调用模型 | 2026-10-11；`0.2.0-dev.1`；1280 × 720；源码为该文件首次加入的 Git 提交，详见[验证记录](../validation-vision-api.md) |
+| `user-guide-zh.jpg` / `user-guide-en.jpg` | 同一独立教程页切换中文与英文的实际截图 / Actual Chinese and English views of the same guide | 2026-10-11；`0.2.0-dev.1`；1265 × 712；Codex in-app Chromium；`http://127.0.0.1:5318/#guide`；源码为文件首次加入的 Git 提交 |
+
+教程截图使用默认视窗，未后处理；项目名保留合成示例自身的中英名称，教程正文和控件跟随界面语言。采集地址使用独立测试端口，没有更改用户在 4318 端口上的项目或 API 设置。 / The guide captures use the default viewport and are unedited. The synthetic project's own bilingual name is retained, while guide text and controls follow the interface language. A separate test port preserves the user's project and API settings on port 4318.
+
+教程改动的本机检查：36 项核心/服务测试及构建通过，Chrome 原有 7 项工作流测试通过；实际浏览器检查了中英完整正文、`#guide` 刷新恢复、载入示例保留英文、进入样本/API 页面及展开 FAQ。此记录不是科研定量验证。 / Local checks for the guide change passed 36 core/server tests, the build, and 7 existing Chrome workflow tests. Manual browser checks covered both languages, refreshing `#guide`, retaining English after loading the example, opening Samples/API settings, and expanding FAQs. These checks do not validate scientific quantification.
 
 两张应用截图于 **2026-10-10（Asia/Shanghai）** 从 macOS 27.0.1 上运行的本地应用采集，使用 Codex in-app Chromium 的 CUA 截图能力。应用源码与 [`729a3ecc2576e9fae7d0af407fadb2632b76e87f`](https://github.com/Gaoyuan-0423/blot-workbench/commit/729a3ecc2576e9fae7d0af407fadb2632b76e87f) 一致；文档与截图文件在后续提交归档不改变这个应用源码对应关系。
 

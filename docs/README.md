@@ -1,20 +1,39 @@
 # 文档 / Documentation
 
-本目录描述 `0.1.0-alpha.1` 合成数据演示与发布资料。可直接打开[在线演示](https://gaoyuan-0423.github.io/blot-workbench/)或查看[公开仓库](https://github.com/Gaoyuan-0423/blot-workbench)。计划中的能力均标记为未实现；验证状态以带环境和运行证据的记录为准，最终版本归档见 [alpha 预发布记录](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1)。
+本目录同时记录已发布的 `0.1.0-alpha.1` 合成数据演示和 `0.2.0-dev.1` 本机开发版。开发版增加视觉 API 接入与独立中英教程；公开网页与下载包仍为 `0.1`，真实图像批量定量未实现。
 
-| 文档 | 内容 |
+This directory covers both the published `0.1.0-alpha.1` synthetic-data demo and local development version `0.2.0-dev.1`. The development version adds vision API access and a standalone bilingual guide; the public website and downloads remain `0.1`. Real-image batch quantification is not implemented.
+
+[在线演示 / Published demo](https://gaoyuan-0423.github.io/blot-workbench/) · [源码 / Source](https://github.com/Gaoyuan-0423/blot-workbench) · [已发布版本 / Published release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1)
+
+## 从这里开始 / Start here
+
+开发版侧栏 **使用教程 / User guide** 打开独立 `#guide` 页面，跟随右上角 **EN / 中文** 切换。这个新入口尚未加入公开 `0.1` 网页；仓库中的完整中英操作指南如下。
+
+In the development version, **User guide / 使用教程** in the sidebar opens the standalone `#guide` page, following the top-right **EN / 中文** switch. This new entry is not yet in the published `0.1` site. Complete Chinese and English operating guides are available below.
+
+| 指南 / Guide | 中文 | English |
+| --- | --- | --- |
+| 项目与手动演示流程 / Projects and manual demo workflow | [使用指南](user-guide.md) | [User guide](user-guide.en.md) |
+| 本机 API 配置与合成图测试 / Local API setup and synthetic testing | [视觉 API 指南](vision-api.md) | [Vision API guide](vision-api.en.md) |
+| 项目首页与启动 / Overview and startup | [中英首页](../README.md) | [English README](../README.en.md) |
+
+## 方法、实现与证据 / Methods, implementation, and evidence
+
+| 文档 / Document | 内容 / Contents |
 | --- | --- |
-| [中文使用指南](user-guide.md) / [English user guide](user-guide.en.md) | 载入示例、检查、恢复和导出 |
-| [演示边界](demo-boundary.md) | 数据来源、独立样本与预置数值的限制 |
-| [方法](methods.md) | 玩具公式、未来验证要求、相关工作 |
-| [架构与路线图](architecture.md) | 当前组成与后续阶段 |
-| [隐私](privacy.md) | 浏览器存储、托管页面和可选模型接入边界 |
-| [验证记录与清单](validation.md) | 已执行检查、复现条件与未验证范围 |
-| [截图记录](screenshots/README.md) | 应用及仓库截图的来源 |
-| [版本说明](releases/v0.1.0-alpha.1.md) | 当前版本范围和限制 |
-| [发布记录与复现](publishing-plan.md) | 在线入口、CI 与部署证据、版本归档 |
+| [演示边界 / Demo boundaries](demo-boundary.md) | 合成来源、独立样本与预置数值限制 / Synthetic provenance, independent samples, and preset-value limits |
+| [方法与相关工作 / Methods and related work](methods.md) | 演示公式、验证要求及现有工具 / Demonstration formulas, validation requirements, and existing tools |
+| [架构与路线图 / Architecture and roadmap](architecture.md) | 当前组成与后续阶段 / Current components and future stages |
+| [批量自动流程设计 / Batch automation design](automation-design.md) | 尚未实现的真实图像流程 / Unimplemented experimental-image workflow |
+| [数据与隐私 / Data and privacy](privacy.md) | 浏览器存储、静态托管与可选服务数据流 / Browser storage, static hosting, and optional-service data flows |
+| [演示验证记录 / Demo validation](validation.md) | 已发布演示的运行证据与边界 / Released-demo evidence and limitations |
+| [API 接入验证 / API validation](validation-vision-api.md) | 开发版接口与模拟服务测试 / Development API and mock-provider checks |
+| [截图记录 / Screenshot record](screenshots/README.md) | 实际截图的版本和环境 / Versions and environments of actual screenshots |
+| [已发布版本说明 / Published release notes](releases/v0.1.0-alpha.1.md) | 已发布版本的范围和限制 / Scope and limitations of the published version |
+| [发布记录与复现 / Publication and reproducibility](publishing-plan.md) | 发布入口、构建证据及固定归档 / Publication links, build evidence, and fixed archives |
+| [贡献指南 / Contributing](../CONTRIBUTING.md) | 问题反馈、修改流程及许可 / Reporting, contribution workflow, and licensing |
 
-English: the README and user guide are available in English. Other documents include English summaries where relevant; full English parity for the technical documentation remains future work.
+用户指南与视觉 API 指南提供完整中英文版本。技术与验证文档目前以中文为主，部分附英文摘要；导航中的英文标题不表示正文已完整翻译。测试声明以具体版本、环境与运行记录为准，不能把计划或模拟服务测试写成科研验证。
 
-- [可配置视觉 API 接入（开发版）](vision-api.md)
-- [批量自动流程设计（尚未实现）](automation-design.md)
+The user guide and vision API guide have complete Chinese and English versions. Technical and validation documents remain primarily Chinese, some with English summaries; an English navigation label does not imply a full translation. Test claims apply to their recorded versions and environments. Plans and mock-provider checks are not scientific validation.
