@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "repository": "Gaoyuan-0423/blot-workbench",
+  "repositoryUrl": "https://github.com/Gaoyuan-0423/blot-workbench",
+  "collectionStartedAt": "2026-10-12T05:51:15.126Z",
+  "collectionFinishedAt": "2026-10-12T05:51:15.852Z",
+  "status": "complete",
+  "counts": {
+    "stars": 1,
+    "forks": 0,
+    "issues": {
+      "total": 0,
+      "open": 0,
+      "closed": 0
+    },
+    "pullRequests": {
+      "total": 5,
+      "open": 2,
+      "closed": 3,
+      "closedUnmerged": 0,
+      "merged": 3
+    },
+    "publishedReleases": 1,
+    "releaseAssetDownloads": 3
+  },
+  "releases": [
+    {
+      "id": 409017946,
+      "tag": "v0.1.0-alpha.1",
+      "prerelease": true,
+      "publishedAt": "2026-10-10T15:03:09Z",
+      "url": "https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1",
+      "assets": [
+        {
+          "id": 628245657,
+          "name": "blot-workbench-0.1.0-alpha.1-manifest.json",
+          "downloadCount": 1,
+          "source": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/releases/assets/628245657",
+          "downloadUrl": "https://github.com/Gaoyuan-0423/blot-workbench/releases/download/v0.1.0-alpha.1/blot-workbench-0.1.0-alpha.1-manifest.json"
+        },
+        {
+          "id": 628245660,
+          "name": "blot-workbench-0.1.0-alpha.1-web.zip",
+          "downloadCount": 1,
+          "source": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/releases/assets/628245660",
+          "downloadUrl": "https://github.com/Gaoyuan-0423/blot-workbench/releases/download/v0.1.0-alpha.1/blot-workbench-0.1.0-alpha.1-web.zip"
+        },
+        {
+          "id": 628245656,
+          "name": "SHA256SUMS",
+          "downloadCount": 1,
+          "source": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/releases/assets/628245656",
+          "downloadUrl": "https://github.com/Gaoyuan-0423/blot-workbench/releases/download/v0.1.0-alpha.1/SHA256SUMS"
+        }
+      ],
+      "assetDownloads": 3
+    }
+  ],
+  "methodology": {
+    "source": "GitHub REST API; every collection endpoint is paginated.",
+    "issues": "Excludes pull requests returned by the issues endpoint.",
+    "pullRequests": "Closed includes merged. Open, closedUnmerged, and merged are disjoint categories; do not add closed and merged.",
+    "downloads": "Sum of download_count for assets on currently published releases, including prereleases. Excludes source archive downloads, deleted releases/assets, and GitHub Pages visits. Not unique users.",
+    "unknownValues": "null means unavailable or incomplete; it never means zero.",
+    "interpretation": "Popularity and repository activity are not evidence of scientific correctness, validation, adoption, or publication readiness.",
+    "privacy": "No application analytics, image data, project data, or individual user identities are collected.",
+    "timing": "API reads are a time-bounded snapshot, not an atomic transaction; counts may change during collection."
+  },
+  "requests": [
+    {
+      "url": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/pulls?state=all&per_page=100",
+      "status": 200,
+      "observedAt": "2026-10-12T05:51:15.457Z"
+    },
+    {
+      "url": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/issues?state=all&per_page=100",
+      "status": 200,
+      "observedAt": "2026-10-12T05:51:15.546Z"
+    },
+    {
+      "url": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/releases?per_page=100",
+      "status": 200,
+      "observedAt": "2026-10-12T05:51:15.603Z"
+    },
+    {
+      "url": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench",
+      "status": 200,
+      "observedAt": "2026-10-12T05:51:15.613Z"
+    },
+    {
+      "url": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/releases/409017946/assets?per_page=100",
+      "status": 200,
+      "observedAt": "2026-10-12T05:51:15.852Z"
+    }
+  ],
+  "errors": [],
+  "trigger": "schedule",
+  "workflowRun": {
+    "id": "38209766114",
+    "attempt": "1"
+  }
+}
