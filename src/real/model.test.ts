@@ -124,7 +124,11 @@ function manifestChange(
 
 describe("real local pixel results and experimental units", () => {
   it("calculates within-experiment target/reference folds from original pixels and summarizes three independent experiments", async () => {
-    const project = review(await experimentProject());
+    const project = review(
+      applyNormalization(await experimentProject(), {
+        kind: "matched-control",
+      }),
+    );
     const rows = results(project);
     expect(rows).toHaveLength(6); // The trailing marker never becomes a measured sample.
     expect(rows.every((row) => row.status === "ready")).toBe(true);
@@ -172,7 +176,10 @@ describe("real local pixel results and experimental units", () => {
   });
 
   it("blocks ambiguous exposures and excludes repeat measurements from independent n", async () => {
-    let project = review(await experimentProject());
+    let project = applyNormalization(await experimentProject(), {
+      kind: "matched-control",
+    });
+    project = review(project);
     const original = project.images[0];
     const duplicate = {
       ...structuredClone(original),
@@ -305,7 +312,9 @@ describe("real local pixel results and experimental units", () => {
   });
 
   it("blocks overlapping measured bands while allowing shared background rectangles", async () => {
-    let project = await experimentProject();
+    let project = applyNormalization(await experimentProject(), {
+      kind: "matched-control",
+    });
     const overlapping = regions();
     overlapping[1].band = { ...overlapping[0].band };
     project = updateRealImage(project, project.images[0].id, {
@@ -326,7 +335,9 @@ describe("real local pixel results and experimental units", () => {
   });
 
   it("allows reviewed automatic candidates while retaining method information and consequential warnings", async () => {
-    let project = await experimentProject();
+    let project = applyNormalization(await experimentProject(), {
+      kind: "matched-control",
+    });
     for (const image of project.images)
       project = updateRealImage(project, image.id, {
         regions: regions().map((region) => ({
@@ -384,6 +395,7 @@ describe("real local pixel results and experimental units", () => {
     ]);
     for (const image of project.images)
       project = updateRealImage(project, image.id, { regions: regions() });
+    project = applyNormalization(project, { kind: "matched-control" });
     project = review(project);
     expect(results(project)[0].status).toBe("ready");
     expect(results(project)[0].warnings).toContain("RGB_MEAN_INTENSITY");
@@ -727,7 +739,9 @@ async function tissueProject(): Promise<RealProject> {
 
 describe("explicit individual pairing and shared reference normalization", () => {
   it("counts ten explicitly distinct individuals across two source groups, with each T normalized to its own N", async () => {
-    const project = await tissueProject();
+    const project = applyNormalization(await tissueProject(), {
+      kind: "matched-control",
+    });
     const rows = results(project);
     expect(rows).toHaveLength(20);
     expect(
@@ -771,7 +785,9 @@ describe("explicit individual pairing and shared reference normalization", () =>
   });
 
   it("canonicalizes IDs and never counts repeated individuals across groups as new n", async () => {
-    let project = await tissueProject();
+    let project = applyNormalization(await tissueProject(), {
+      kind: "matched-control",
+    });
     const pairs = project.pairedDesign!.pairs.map((pair) =>
       pair.unitId === "P6"
         ? { ...pair, groupId: " SetB ", unitId: " P1 " }
@@ -823,6 +839,43 @@ describe("explicit individual pairing and shared reference normalization", () =>
     const matched = applyNormalization(project, { kind: "matched-control" });
     expect(
       results(matched)
+        .filter((row) => row.sample === "NC")
+        .map((row) => row.fold),
+    ).toEqual([1, 1, 1]);
+  });
+
+  it("defaults new projects to the first control as a shared baseline without an explicit choice", async () => {
+    const project = review(await experimentProject());
+    expect(project.normalization).toBeUndefined();
+    expect(project.normalizationPreference).toBe("reference-unit");
+    const rows = results(project);
+    expect(
+      rows.filter((row) => row.sample === "NC").map((row) => row.fold),
+    ).toEqual([1, 2, 1.5]);
+    expect(
+      rows.filter((row) => row.sample === "Treatment").map((row) => row.fold),
+    ).toEqual([0.5, 1.5, 1.5]);
+    expect(
+      rows.every((row) => row.normalizationKind === "reference-unit"),
+    ).toBe(true);
+    expect(exportRealCsv(project)).toContain('"reference-unit"');
+    const restored = await importRealProject(await exportRealProject(project));
+    expect(restored.normalizationPreference).toBe("reference-unit");
+    expect(results(restored)).toEqual(rows);
+  });
+
+  it("keeps archives without a normalization preference on matched-control", async () => {
+    const project = review(await experimentProject());
+    const legacy = await importRealProject(
+      await rewrite(project, (entries) =>
+        manifestChange(entries, (value) => {
+          delete value.normalizationPreference;
+        }),
+      ),
+    );
+    expect(legacy.normalizationPreference).toBeUndefined();
+    expect(
+      results(legacy)
         .filter((row) => row.sample === "NC")
         .map((row) => row.fold),
     ).toEqual([1, 1, 1]);
@@ -911,7 +964,9 @@ describe("explicit individual pairing and shared reference normalization", () =>
 
 describe("explicit paired inference on original normalized signals", () => {
   it("uses the same raw target/reference inputs under matched or shared plot normalization", async () => {
-    let project = review(await experimentProject());
+    let project = applyNormalization(review(await experimentProject()), {
+      kind: "matched-control",
+    });
     expect(realPairedTests(project)[0]).toMatchObject({
       status: "unavailable",
       result: null,
@@ -985,9 +1040,10 @@ describe("explicit paired inference on original normalized signals", () => {
   });
 
   it("uses the same complete unique individual pairs for bars and tests", async () => {
-    let project = updateRealProject(await tissueProject(), {
-      statisticalTest: "paired-t",
-    });
+    let project = updateRealProject(
+      applyNormalization(await tissueProject(), { kind: "matched-control" }),
+      { statisticalTest: "paired-t" },
+    );
     expect(realPairedTests(project)[0].result?.n).toBe(10);
     project = updateRealImage(project, project.images[0].id, {
       regions: tissueRegions().filter((region) => region.lane !== 3),
@@ -1022,10 +1078,15 @@ describe("explicit paired inference on original normalized signals", () => {
 
 describe("inference scale warnings and reproducible statistical export", () => {
   it("warns about pooled membrane scales independently of plot normalization", async () => {
-    const project = updateRealProject(review(await experimentProject()), {
-      statisticalTest: "paired-t",
-    });
-    expect(project.normalization).toBeUndefined();
+    const project = updateRealProject(
+      review(
+        applyNormalization(await experimentProject(), {
+          kind: "matched-control",
+        }),
+      ),
+      { statisticalTest: "paired-t" },
+    );
+    expect(project.normalization).toEqual({ kind: "matched-control" });
     expect(results(project).every((row) => row.status === "ready")).toBe(true);
     const inference = realPairedTests(project)[0];
     expect(inference.quality).toBe("draft");
@@ -1036,7 +1097,9 @@ describe("inference scale warnings and reproducible statistical export", () => {
       "comparable scales have not been established",
     );
     // Five patients measured within one source image pair do not imply cross-membrane pooling.
-    const tissue = await tissueProject();
+    const tissue = review(
+      applyNormalization(await tissueProject(), { kind: "matched-control" }),
+    );
     const singleMembrane = updateRealProject(
       { ...tissue, images: tissue.images.slice(0, 2) },
       { statisticalTest: "paired-t" },

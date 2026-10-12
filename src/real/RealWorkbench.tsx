@@ -28,6 +28,7 @@ import {
   applyNormalization,
   createRealProject,
   descriptiveStatistics,
+  effectiveNormalization,
   exportRealCsv,
   exportRealProject,
   exportRealStatisticsCsv,
@@ -37,6 +38,7 @@ import {
   isControlLane,
   isExcludedLane,
   loadRealProject,
+  normalizationUnitIds,
   results,
   realPairedTests,
   saveRealProject,
@@ -418,6 +420,7 @@ function ResultFigure({
   plotStyle: "bars" | "paired";
 }) {
   const t: Translate = (zh, en) => (language === "zh" ? zh : en);
+  const normalizationPolicy = effectiveNormalization(project);
   const groups = summaries.filter((summary) => summary.protein === protein);
   const included = rows.filter(
     (row) =>
@@ -544,10 +547,10 @@ function ResultFigure({
           {draft ? "DRAFT" : t("已复核 · 实验功能", "REVIEWED · EXPERIMENTAL")}
         </text>
         <text x="28" y="56" fontSize="12" fill="#53695b">
-          {project.normalization?.kind === "reference-unit"
+          {normalizationPolicy.kind === "reference-unit"
             ? t(
-                `共同基准：${project.normalization.unitId} 的对照（目标 / 内参）= 1；其他对照保留实际差异。`,
-                `Common baseline: control target/reference in ${project.normalization.unitId} = 1; other controls retain variation.`,
+                `共同基准：${normalizationPolicy.unitId} 的对照（目标 / 内参）= 1；其他对照保留实际差异。`,
+                `Common baseline: control target/reference in ${normalizationPolicy.unitId} = 1; other controls retain variation.`,
               )
             : project.pairedDesign
               ? t(
@@ -632,7 +635,7 @@ function ResultFigure({
           fontSize="12"
           fill="#53695b"
         >
-          {project.normalization?.kind === "reference-unit"
+          {normalizationPolicy.kind === "reference-unit"
             ? t("相对共同基准的倍数", "Fold relative to common baseline")
             : t("相对配对对照的倍数", "Fold relative to matched control")}
         </text>
@@ -1115,14 +1118,10 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
   const protein = proteins.includes(selectedProtein)
     ? selectedProtein
     : (proteins[0] ?? "");
-  const normalizationUnits = project?.pairedDesign
-    ? unique(project.pairedDesign.pairs.map((pair) => pair.unitId))
-    : unique(
-        project?.images
-          .filter((entry) => entry.role === "target" && !entry.excluded)
-          .map((entry) => entry.replicate.trim())
-          .filter(Boolean) ?? [],
-      );
+  const normalizationUnits = project ? normalizationUnitIds(project) : [];
+  const normalizationPolicy = project
+    ? effectiveNormalization(project)
+    : null;
   const region =
     image?.regions.find((entry) => entry.lane === selectedRegion.lane) ??
     image?.regions[0];
@@ -2051,7 +2050,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                       {isExcludedLane(label)
                         ? t("不参与定量", "Excluded")
                         : isControlLane(label)
-                          ? project.normalization?.kind === "reference-unit"
+                          ? normalizationPolicy?.kind === "reference-unit"
                             ? t(
                                 "对照（共同基准归一化）",
                                 "Control (common baseline)",
@@ -2820,7 +2819,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
               <select
                 aria-label={t("归一化基准", "Normalization baseline")}
                 disabled={!!busy}
-                value={project.normalization?.kind ?? "matched-control"}
+                value={normalizationPolicy?.kind ?? "matched-control"}
                 onChange={(event) =>
                   commit((previous) =>
                     applyNormalization(
@@ -2849,14 +2848,14 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                 </option>
               </select>
             </label>
-            {project.normalization?.kind === "reference-unit" && (
+            {normalizationPolicy?.kind === "reference-unit" && (
               <label className="real-field">
                 {project.pairedDesign
                   ? t("基准个体的正常 N", "Baseline individual's normal N")
                   : t("基准实验的 NC", "Baseline experiment's NC")}
                 <select
                   aria-label={t("共同基准编号", "Common baseline ID")}
-                  value={project.normalization.unitId}
+                  value={normalizationPolicy.unitId}
                   disabled={!!busy}
                   onChange={(event) =>
                     commit((previous) =>
@@ -2867,11 +2866,9 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                     )
                   }
                 >
-                  {!normalizationUnits.includes(
-                    project.normalization.unitId,
-                  ) && (
-                    <option value={project.normalization.unitId}>
-                      {project.normalization.unitId} · {t("缺失", "missing")}
+                  {!normalizationUnits.includes(normalizationPolicy.unitId) && (
+                    <option value={normalizationPolicy.unitId}>
+                      {normalizationPolicy.unitId} · {t("缺失", "missing")}
                     </option>
                   )}
                   {normalizationUnits.map((unit) => (
@@ -2883,8 +2880,18 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
               </label>
             )}
           </div>
+          {project &&
+            !project.normalization &&
+            project.normalizationPreference === "reference-unit" && (
+              <p className="real-muted">
+                {t(
+                  "新项目默认使用共同基准：完成设计后自动以第一个对照为基准，可随时在上方更改。",
+                  "New projects default to a common baseline: after the design is set, the first control is chosen automatically; change it anytime above.",
+                )}
+              </p>
+            )}
           <p className="real-muted">
-            {project.normalization?.kind === "reference-unit"
+            {normalizationPolicy?.kind === "reference-unit"
               ? t(
                   "全部目标/内参比值除以所选对照的比值。只有该对照定义为 1；其他 NC/N 的高低均按真实计算保留。跨膜或批次可比性须另行验证，结果保留草稿提示。",
                   "All target/reference ratios are divided by the selected control ratio. Only that control is defined as 1; other NC/N values retain their calculated variation. Cross-membrane or batch comparability requires separate validation, so results retain a draft warning.",

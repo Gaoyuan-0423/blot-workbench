@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0-dev.3 — 开发中 / Unreleased
+
+- 新建真实项目默认使用共同基准：完成设计后自动以第一个可用对照为基准；可显式确认默认值或切换回各自配对对照。与默认一致的选择会被明确记录，不再被当作无操作丢弃；绘图基准不改变配对检验输入。旧存档（无偏好字段）保持匹配对照行为，已存策略不受影响。
+  New real projects default to a common baseline: after the design is set, the first available control is chosen automatically. Choices matching the default are recorded instead of being discarded, and plot baselines still never change paired-test inputs. Archives created before this preference keep matched-control behavior, and stored policies are untouched.
+
 ## 0.3.0-dev.2 — 开发中 / Unreleased
 
 - 明确的 N/T 个体配对表：来源图组、个体编号与两条泳道分别记录，不把图数、日期或重复曝光视为独立 n。

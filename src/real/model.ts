@@ -62,6 +62,8 @@ export interface RealProject {
   designConfirmed: boolean;
   pairedDesign?: { pairs: PairedLanePair[] };
   normalization?: NormalizationPolicy;
+  /** New projects prefer one shared baseline; archives created before this field keep matched-control until chosen. */
+  normalizationPreference?: "reference-unit";
   statisticalTest?: "none" | "paired-t";
   exampleKind?: "synthetic";
   images: RealImage[];
@@ -200,6 +202,7 @@ export function createRealProject(
     targetLabel: "Target",
     referenceLabel: "Reference",
     designConfirmed: false,
+    normalizationPreference: "reference-unit",
     images: [],
   };
 }
@@ -607,9 +610,12 @@ export function applyNormalization(
     checked.kind !== "reference-unit" || checked.unitId.length > 0,
     "Select a reference unit / 请选择归一化基准个体或实验",
   );
+  // Only a stored policy equal to the target is a true no-op. An explicit
+  // choice that matches the implicit default is still recorded, so the
+  // default can be confirmed or overridden predictably.
   if (
-    JSON.stringify(project.normalization ?? { kind: "matched-control" }) ===
-    JSON.stringify(checked)
+    project.normalization &&
+    JSON.stringify(project.normalization) === JSON.stringify(checked)
   )
     return project;
   return {
@@ -844,8 +850,38 @@ function hasActiveBandOverlap(image: RealImage, labels: string[]): boolean {
       ),
   );
 }
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)];
+}
+/** Units eligible as a common baseline: pair individuals, or non-excluded target experiment IDs. */
+export function normalizationUnitIds(project: RealProject): string[] {
+  return project.pairedDesign
+    ? uniqueStrings(project.pairedDesign.pairs.map((pair) => pair.unitId))
+    : uniqueStrings(
+        project.images
+          .filter((entry) => entry.role === "target" && !entry.excluded)
+          .map((entry) => entry.replicate.trim())
+          .filter(Boolean),
+      );
+}
+/**
+ * The policy results actually use. New projects default to one shared
+ * baseline (first available unit) until an explicit policy is chosen;
+ * archives without the preference keep the historical matched-control.
+ */
+export function effectiveNormalization(
+  project: RealProject,
+): NormalizationPolicy {
+  if (project.normalization) return project.normalization;
+  if (project.normalizationPreference === "reference-unit") {
+    const units = normalizationUnitIds(project);
+    if (units.length > 0) return { kind: "reference-unit", unitId: units[0] };
+  }
+  return { kind: "matched-control" };
+}
 export function results(project: RealProject): RealResult[] {
   const output: RealResult[] = [];
+  const policy = effectiveNormalization(project);
   const controlIndexes = project.laneLabels
     .map((label, index) => (isControlLane(label) ? index + 1 : 0))
     .filter(Boolean);
@@ -1082,8 +1118,8 @@ export function results(project: RealProject): RealResult[] {
       });
     }
   }
-  if (project.normalization?.kind === "reference-unit") {
-    const baselineId = project.normalization.unitId.trim();
+  if (policy.kind === "reference-unit") {
+    const baselineId = policy.unitId.trim();
     for (const row of output) {
       const controls = output.filter(
         (candidate) =>
@@ -1380,6 +1416,7 @@ export function realPairedTests(project: RealProject): RealPairedTest[] {
 }
 export function exportRealStatisticsCsv(project: RealProject): string {
   const exportedAt = now();
+  const policy = effectiveNormalization(project);
   const rows: (string | number | null)[][] = [
     [
       "project_id",
@@ -1439,10 +1476,8 @@ export function exportRealStatisticsCsv(project: RealProject): string {
       result ? JSON.stringify(result.ids) : "",
       JSON.stringify(test.inputPairs),
       String(project.designConfirmed),
-      project.normalization?.kind ?? "matched-control",
-      project.normalization?.kind === "reference-unit"
-        ? project.normalization.unitId
-        : "",
+      policy.kind,
+      policy.kind === "reference-unit" ? policy.unitId : "",
       "Two-sided paired t-test on original target/reference ratios; p is unadjusted; plot normalization does not change test inputs; quality warnings remain applicable",
     ]);
   }
@@ -1718,6 +1753,7 @@ const baseSchema = z
     designConfirmed: z.boolean(),
     pairedDesign: pairedDesignSchema.optional(),
     normalization: normalizationSchema.optional(),
+    normalizationPreference: z.literal("reference-unit").optional(),
     statisticalTest: z.enum(["none", "paired-t"]).optional(),
     exampleKind: z.literal("synthetic").optional(),
   })

@@ -187,14 +187,24 @@ test("real 8/16-bit batch maps lanes, recalculates manual pixels, and retains dr
     if (/^https?:/.test(request.url())) requests.push(request.url());
   });
   await importAndAnalyze(page);
+  // New projects default to the first control as a common baseline.
+  await expect(
+    page.getByLabel("Normalization baseline", { exact: true }),
+  ).toHaveValue("reference-unit");
+  await expect(
+    page.getByLabel("Common baseline ID", { exact: true }),
+  ).toHaveValue("1");
   const initial = await exportCsv(page);
   expect(initial).toHaveLength(4);
   expect(initial.every((row) => row.record_status === "DRAFT")).toBe(true);
   expect(
-    initial
-      .filter((row) => row.condition === "Drug")
-      .map((row) => Number(row.fold_vs_control)),
-  ).toEqual([1.2, 2]);
+    initial.every((row) => row.normalization_method === "reference-unit"),
+  ).toBe(true);
+  const initialDrugFolds = initial
+    .filter((row) => row.condition === "Drug")
+    .map((row) => Number(row.fold_vs_control));
+  expect(initialDrugFolds[0]).toBe(1.2);
+  expect(initialDrugFolds[1]).toBeCloseTo(1.12, 12);
   expect(
     initial.find((row) => row.image_name === "Target_rep2.png")!
       .source_bit_depth,
@@ -473,6 +483,11 @@ test("explicit paired inference, common baseline, and plot styles retain auditab
   test.setTimeout(90000);
   await openEnglish(page);
   await importAndAnalyze(page);
+  // Exercise the explicit matched path first; new projects would otherwise
+  // already sit on the first control as a common baseline.
+  await page
+    .getByLabel("Normalization baseline", { exact: true })
+    .selectOption("matched-control");
   const testChoice = page.getByRole("checkbox", {
     name: "Two-sided paired t-test",
     exact: true,
@@ -673,6 +688,11 @@ test("explicit N/T mapping counts distinct individuals across source groups and 
     .getByRole("button", { name: "Propose & calculate all", exact: true })
     .click();
   await expect(page.locator(".real-result-table tbody tr")).toHaveCount(8);
+  // Capture the paired P under the explicit matched path before switching to
+  // the common baseline; the test below asserts P does not move with it.
+  await page
+    .getByLabel("Normalization baseline", { exact: true })
+    .selectOption("matched-control");
   const before = await exportCsv(page);
   expect(new Set(before.map((row) => row.individual_id)).size).toBe(4);
   expect(

@@ -1,8 +1,10 @@
 # 真实图像开发验证 / Real-image development validation
 
-范围 / Scope: `0.3.0-dev.2`，开发预览，2026-10-12。本记录随实现提交保存，不改变 `0.1.0-alpha.1` 的发布声明。 / This record accompanies the implementation commit and does not amend the published alpha's claims.
+范围 / Scope: `0.3.0-dev.3`，开发预览，2026-10-12。本记录随实现提交保存，不改变 `0.1.0-alpha.1` 的发布声明。 / This record accompanies the implementation commit and does not amend the published alpha's claims.
 
-本次 `0.3.0-dev.2`：101 个单元测试、12 个脚本测试、12 个 Chrome 浏览器流程测试（含 5 个真实像素/配对流程）、TypeScript 与生产构建通过。新增推断测试、完整配对、共同基准、统计 CSV、双语导出与项目迁移已覆盖。当前只核验了本机 macOS Chrome；未重新运行无改动的视觉 API 套件，Windows/Edge 与远端 CI 状态不由此推定。 / Dev.2 passed 101 unit tests, 12 script tests, 12 Chrome workflows (including 5 real-pixel/pairing workflows), TypeScript, and the production build. This run covered local macOS Chrome only. The unchanged vision-API suite was not rerun; Windows/Edge and remote CI remain unverified.
+本次 `0.3.0-dev.3`：103 个单元测试（含新项目默认共同基准、旧存档保持匹配对照及基准选择持久化回归）、12 个脚本测试、12 个 Chrome 浏览器流程测试（含 5 个真实像素/配对流程，其中断言新项目默认共同基准且切换基准不改变 P 值）、TypeScript 与生产构建通过。当前只核验了本机 macOS Chrome；未重新运行无改动的视觉 API 套件，Windows/Edge 与远端 CI 状态不由此推定。 / Dev.3 passed 103 unit tests (covering the new common-baseline default, legacy-archive matched-control fallback, and explicit baseline-choice persistence), 12 script tests, 12 Chrome workflows (including 5 real-pixel/pairing workflows asserting the default baseline and P-value invariance across baseline switches), TypeScript, and the production build. This run covered local macOS Chrome only. The unchanged vision-API suite was not rerun; Windows/Edge and remote CI remain unverified.
+
+历史记录（`0.3.0-dev.2`）：101 个单元测试、12 个脚本测试、12 个 Chrome 浏览器流程测试（含 5 个真实像素/配对流程）、TypeScript 与生产构建通过。新增推断测试、完整配对、共同基准、统计 CSV、双语导出与项目迁移已覆盖。 / Historical dev.2 checks passed: 101 unit tests, 12 script tests, 12 Chrome workflows (including 5 real-pixel/pairing workflows), TypeScript, and the production build, covering paired inference, complete pairs, common baseline, statistics CSV, bilingual exports, and archive migration.
 
 历史记录（`0.3.0-dev.1`）：81 个单元测试、12 个脚本测试、10 个浏览器流程测试（其中 3 个真实像素流程）、4 个独立 API 模拟服务流程，以及 TypeScript 与生产构建通过。 / Historical dev.1 checks passed: 81 unit tests, 12 script tests, 10 browser workflow tests (3 for real pixels), 4 isolated API workflow tests, TypeScript, and the production build.
 

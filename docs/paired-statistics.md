@@ -10,9 +10,9 @@ Shared layouts pair by independent experiment ID. Explicit N/T designs record a 
 
 ## 数值尺度与图形 / Scale and figures
 
-每个泳道先得到扣背景净信号，再得到 `ratio = targetNet / referenceNet`。匹配对照模式按单位除以自己的对照 ratio，因此各对照均为 1。共同基准模式则选择一个单位的对照 ratio，为同蛋白的所有 ratio 提供相同分母；其他对照保留计算差异。基准单位与来源保存在结果中。
+每个泳道先得到扣背景净信号，再得到 `ratio = targetNet / referenceNet`。匹配对照模式按单位除以自己的对照 ratio，因此各对照均为 1。共同基准模式则选择一个单位的对照 ratio，为同蛋白的所有 ratio 提供相同分母；其他对照保留计算差异。基准单位与来源保存在结果中。新建项目默认使用共同基准模式，以第一个可用对照为基准；可在工作区更改基准或切换回匹配对照，旧存档行为不变。
 
-Each lane yields a background-corrected net signal and `ratio = targetNet / referenceNet`. Matched-control mode divides each unit by its own control ratio, so every control is 1. Common-baseline mode uses one selected unit's control ratio as the denominator for every ratio of the same protein, preserving differences between other controls. Results retain the baseline unit and source.
+Each lane yields a background-corrected net signal and `ratio = targetNet / referenceNet`. Matched-control mode divides each unit by its own control ratio, so every control is 1. Common-baseline mode uses one selected unit's control ratio as the denominator for every ratio of the same protein, preserving differences between other controls. Results retain the baseline unit and source. New projects start in common-baseline mode with the first available control as the baseline; switch modes or baselines in the workspace, while archives created earlier keep their behavior.
 
 共同基准不能恢复截断信号、校准膜/曝光差异，或证明不同批次可比；选一个基准并不等于解决批次效应。默认图形是柱图叠加单位点与均值 ± 样本 SD，可切换配对连线图。SD 描述实际纳入单位的离散程度；不是 SEM，也不是 95% CI。
 
