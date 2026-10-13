@@ -17,10 +17,51 @@
 | TIFF 元数据 / Metadata | 主图 EXIF/GPS 指针仅从解码副本移除，原文件不改、不遍历子目录；图像 SubIFD 仍拒绝 / EXIF/GPS pointers removed only from a decoding copy, never traversed; original retained; image SubIFDs rejected |
 | PNG | 非交错灰度、RGB 与全不透明 Alpha；不支持调色板、动画、透明键或 EXIF 方向 / Non-interlaced grayscale/RGB/opaque-alpha; no palette, animation, transparency keys, or EXIF orientation |
 | 限额 / Bounds | 每图 ≤64 MiB、≤8,388,608 像素、任一边 ≤16,384；项目 ≤48 图、原图 ≤256 MiB、总像素 ≤33,554,432；元数据有独立上限 / Per-image, aggregate, and metadata bounds are checked |
-| 定量 / Measurement | 原始数组求和；RGB 算术通道均值；局部均值扣背景；暗/亮信号；不使用 Canvas 读数 / Source-array sums, arithmetic RGB mean, local mean background, dark/light signals; no Canvas measurement |
+| 定量 / Measurement | 原始数组求和；RGB 算术通道均值；局部均值扣背景或与 ImageJ 数值一致的 rolling ball（可选半径）；暗/亮信号；不使用 Canvas 读数 / Source-array sums, arithmetic RGB mean, local mean background or an ImageJ-compatible rolling ball (optional radius); dark/light signals; no Canvas measurement |
 | 排除 / Rejection | 多页、BigTIFF、浮点/有符号、平铺、平面分通道、非标准方向、透明像素等明确失败，不自动转成 8 位 / Unsupported forms fail explicitly instead of conversion to 8 bits |
 
 支持原始位深不证明采集强度线性。RGB/PNG 色彩元数据不用于重新校正测量值；方法与原始字节一并保留。图像显示使用独立 8 位预览，不能替代原始定量数组。 / Preserving bit depth does not establish intensity linearity. Encoded intensities are measured without color-management remapping; display previews are separate.
+
+## Rolling ball 与 ImageJ 数值对照 / Rolling-ball parity with ImageJ
+
+`src/real/rolling-ball.ts` 是对 ImageJ 1.x 公共领域算法（`BackgroundSubtracter`/`RollingBall`，"Process › Subtract Background"，light background）的独立 TypeScript 实现。对照方法：同一图先由 ImageJ 转 8 位并存为基准，随后 ImageJ 与本实现分别执行 rolling=25/50/100 的背景扣除，逐像素比较校正结果并比较全图 IntDen（校正后像素和）。测试 `src/real/rolling-ball.parity.test.ts` 在本机语料缺失时自动跳过；完整扫描命令为 `npx tsx scripts/imagej-parity/run-parity.ts 10`。 / `src/real/rolling-ball.ts` is an independent TypeScript implementation of ImageJ 1.x's public-domain algorithm. Parity method: ImageJ converts each fixture to 8-bit as the shared input, then both ImageJ and this implementation subtract a rolling ball (r=25/50/100, light background); the corrected images are compared pixel-by-pixel and whole-image IntDen (corrected sum) is compared relatively.
+
+本机环境 / Environment: macOS (Apple Silicon)，本机 ImageJ 1.53a，Node 22，私有膜图语料（CST/Proteintech/Tanon 截图，不随仓库分发）。执行日期 / Executed: 2026-10-14。
+
+| fixture (staged id) | radius | pixels | exact | max \|Δ\| | mean \|Δ\| | IntDen rel. Δ |
+| --- | --- | --- | --- | --- | --- | --- |
+| fixture-0 | 25 | 182000 | 99.9995% | 1 | 0.0000 | 0.00000% |
+| fixture-0 | 50 | 182000 | 100.0000% | 0 | 0.0000 | 0.00000% |
+| fixture-0 | 100 | 182000 | 100.0000% | 0 | 0.0000 | 0.00000% |
+| fixture-1 | 25 | 791320 | 99.9996% | 1 | 0.0000 | 0.00000% |
+| fixture-1 | 50 | 791320 | 99.9996% | 1 | 0.0000 | 0.00000% |
+| fixture-1 | 100 | 791320 | 99.9997% | 1 | 0.0000 | 0.00000% |
+| fixture-2 | 25 | 876288 | 99.9998% | 1 | 0.0000 | 0.00000% |
+| fixture-2 | 50 | 876288 | 100.0000% | 0 | 0.0000 | 0.00000% |
+| fixture-2 | 100 | 876288 | 99.9998% | 1 | 0.0000 | 0.00000% |
+| fixture-3 | 25 | 876288 | 99.9991% | 1 | 0.0000 | 0.00000% |
+| fixture-3 | 50 | 876288 | 99.9999% | 1 | 0.0000 | 0.00000% |
+| fixture-3 | 100 | 876288 | 99.9997% | 1 | 0.0000 | 0.00000% |
+| fixture-4 | 25 | 728000 | 99.9999% | 1 | 0.0000 | 0.00000% |
+| fixture-4 | 50 | 728000 | 100.0000% | 0 | 0.0000 | 0.00000% |
+| fixture-4 | 100 | 728000 | 100.0000% | 0 | 0.0000 | 0.00000% |
+| fixture-5 | 25 | 876288 | 99.9991% | 1 | 0.0000 | 0.00000% |
+| fixture-5 | 50 | 876288 | 100.0000% | 0 | 0.0000 | 0.00000% |
+| fixture-5 | 100 | 876288 | 99.9998% | 1 | 0.0000 | 0.00000% |
+| fixture-6 | 25 | 876288 | 99.9981% | 1 | 0.0000 | 0.00001% |
+| fixture-6 | 50 | 876288 | 99.9999% | 1 | 0.0000 | 0.00000% |
+| fixture-6 | 100 | 876288 | 99.9998% | 1 | 0.0000 | 0.00000% |
+| fixture-7 | 25 | 876288 | 99.9989% | 1 | 0.0000 | 0.00000% |
+| fixture-7 | 50 | 876288 | 99.9998% | 1 | 0.0000 | 0.00000% |
+| fixture-7 | 100 | 876288 | 99.9999% | 1 | 0.0000 | 0.00000% |
+| fixture-8 | 25 | 876288 | 100.0000% | 0 | 0.0000 | 0.00000% |
+| fixture-8 | 50 | 876288 | 100.0000% | 0 | 0.0000 | 0.00000% |
+| fixture-8 | 100 | 876288 | 100.0000% | 0 | 0.0000 | 0.00000% |
+| fixture-9 | 25 | 269100 | 99.9989% | 1 | 0.0000 | 0.00000% |
+| fixture-9 | 50 | 269100 | 99.9996% | 1 | 0.0000 | 0.00000% |
+| fixture-9 | 100 | 269100 | 99.9955% | 1 | 0.0000 | 0.00002% |
+
+最差逐像素精确率 99.9955%，最大单像素差 1（8 位舍入一步），最差全图 IntDen 相对差 0.00002%。16 位输入的 rolling ball 语义按同一公式在原位深执行，尚未与 ImageJ 的 16 位路径单独对照；这属于「尚未验证」。 / Worst pixel-exact rate 99.9955%, worst single-pixel difference 1 (one 8-bit rounding step), worst whole-image IntDen relative difference 0.00002%. Rolling ball on 16-bit rasters applies the same formula at the original depth but has not been separately compared against ImageJ's 16-bit path; that remains outstanding.
 
 ## 新增回归范围 / Added regression scope
 

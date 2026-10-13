@@ -13,6 +13,7 @@
     "check": "npm run test && npm run build",
     "examples": "tsx scripts/generate-examples.ts",
     "test:scripts": "node --test scripts/*.check.mjs",
+    "test:parity": "tsx scripts/imagej-parity/run-parity.ts",
     "format": "prettier --write src tests scripts/generate-examples.ts *.ts",
     "local": "tsx server/local.ts",
     "local:preview": "tsx server/local.ts --production",
