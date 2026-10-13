@@ -870,13 +870,22 @@ export function proposeRegions(
     const bandTop = Math.max(0, selectedRow.start - 1),
       bandBottom = Math.min(height, selectedRow.end + 1);
 
-    // Walk the lane's own columns to refine x-boundaries inside the run.
+    // Refine x-boundaries by walking at the lower edge threshold, clamped to
+    // the midpoint between neighboring runs so faint lane edges (weaker than
+    // the Otsu threshold but far above background) are kept, never clipped.
+    const lower = index
+      ? Math.floor((laneBounds[index - 1].end + bound.start) / 2)
+      : 0;
+    const upper =
+      index + 1 < laneBounds.length
+        ? Math.floor((bound.end + laneBounds[index + 1].start) / 2)
+        : width;
     let start = bound.start,
       finish = bound.end;
-    while (start > 0 && columnProfile[start - 1] > peak * 0.22) start--;
-    while (finish < width && columnProfile[finish] > peak * 0.22) finish++;
-    const left = Math.max(bound.start, start - 1);
-    const right = Math.min(bound.end, finish + 1);
+    while (start > lower && columnProfile[start - 1] > peak * 0.22) start--;
+    while (finish < upper && columnProfile[finish] > peak * 0.22) finish++;
+    const left = Math.max(lower, start - 1);
+    const right = Math.min(upper, finish + 1);
     const band: Rect = {
       x: left,
       y: bandTop,

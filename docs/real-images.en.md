@@ -47,7 +47,15 @@ Cross-membrane, exposure, and batch comparability limits apply to both plotting 
 
 With small n, especially n=3, approximate normality of paired differences is difficult to assess. Do not select a baseline, ROI, exclusion, or test to obtain a smaller P-value. Additional conditions, nonparametric tests, technical-replicate aggregation, and multiplicity correction are not provided. See [statistical methods and limits](paired-statistics.md). Both target and reference signals still require an appropriate quantitative dynamic range; see [the WB quantification study](https://pmc.ncbi.nlm.nih.gov/articles/PMC3840294/).
 
-## 5. Export, save, and return
+## 5. Background methods, vision candidates, and composed figures (new in 0.4.0-dev.1)
+
+**Background correction**: next to the normalization settings, choose "Local background ROIs" (default) or "Rolling ball". The rolling ball is pixel-identical to ImageJ's "Process › Subtract Background" (light background); the radius ranges 10–200 (25–50 is common). In this mode background ROIs are unused and band IntDen is the corrected signal sum. Switching methods invalidates all review states; results and CSV record the method and radius. The ImageJ parity table lives in the [validation notes](validation-real-images.md).
+
+**Vision API candidates (optional)**: once the local vision service is configured, request candidates for one image or the whole batch. The app sends a downscaled preview plus the declared lane labels; returned rectangles are strictly validated, merged into the proposals, and always flagged for review. Requests are cached by image hash, preview size, provider, and model, and can be cancelled at any time. Keys stay in local process memory and images go only to the provider you configured. Model answers are candidates only — pixel measurement always happens locally on original pixels.
+
+**Composed figure**: the results bar gains "Composed figure SVG/PNG/TIFF", combining the ROI-annotated original, the quantification chart, and a method footer (background method/radius, normalization baseline, app version) into a single file for archiving or discussion.
+
+## 6. Export, save, and return
 
 CSV exports retain provenance, measurement method, normalization values, review state, and quality flags. Charts support SVG, PNG, and TIFF. Figure export renders results and does not modify measurement images. A TIFF figure export does not establish source-image bit-depth preservation.
 
