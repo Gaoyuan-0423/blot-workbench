@@ -1,6 +1,6 @@
 {
   "name": "blot-workbench",
-  "version": "0.1.0-alpha.1",
+  "version": "0.3.0-dev.3",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -13,14 +13,20 @@
     "check": "npm run test && npm run build",
     "examples": "tsx scripts/generate-examples.ts",
     "test:scripts": "node --test scripts/*.check.mjs",
-    "format": "prettier --write src tests scripts/generate-examples.ts *.ts"
+    "format": "prettier --write src tests scripts/generate-examples.ts *.ts",
+    "local": "tsx server/local.ts",
+    "local:preview": "tsx server/local.ts --production",
+    "test:vision:e2e": "playwright test --config playwright.vision.config.ts"
   },
   "dependencies": {
+    "fast-png": "8.0.0",
     "fflate": "0.8.3",
     "idb-keyval": "6.3.0",
+    "jstat": "1.9.6",
     "lucide-react": "1.55.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "tiff": "7.1.3",
     "zod": "4.6.5"
   },
   "devDependencies": {

@@ -1,6 +1,16 @@
 # User guide
 
-Applies to `0.1.0-alpha.1`. All images and numbers are synthetic demonstration material. Confirming an item records a workflow review; it does not certify scientific validity.
+> For the real TIFF/PNG development preview, open `#real` and read the [real-image guide](real-images.en.md). This page describes the legacy synthetic example; see [statistical methods](paired-statistics.md) for development-version individual N/T pairing, common baselines, and optional tests.
+
+[中文指南](user-guide.md) · [Local vision API guide](vision-api.en.md) · [Documentation index](README.md)
+
+This guide describes the manual synthetic-data workflow shared by published `0.1.0-alpha.1` and development version `0.2.0-dev.1`. The public website and downloads still run `0.1`. All example images and quantification values are synthetic demonstration material. Confirming an item records a workflow review; it does not certify scientific validity.
+
+## Open the standalone guide
+
+In the development version, select **User guide / 使用教程** in the sidebar to open the standalone `#guide` page. The guide follows the same top-right **EN / 中文** switch as the main interface. With the default local address, you can open `http://127.0.0.1:4318/#guide` directly; with a custom port, append `#guide` to the printed address. This new entry is not yet in the published `0.1` website. Users of that demo can read this repository guide.
+
+The development version's separate **Vision API settings** entry is optional and tests only a built-in synthetic image. It does not run automatic analysis on the project described below. See the [complete API guide](vision-api.en.md) for configuration, transmitted data, and billing boundaries.
 
 ## 1. Open a project
 
@@ -40,7 +50,7 @@ Batch reuse can reduce repeated setup. It does not replace checking band positio
 
 ## 5. Inspect illustrative results
 
-Explore sums for the fixed synthetic images and default regions, background correction, target/reference ratios, and relative values. These are preset `DEMO` fixtures. See their origin and limitations in [methods](methods.md).
+In Results & history, inspect the calculation workflow, net signals, target/reference ratios, and relative values. The exported CSV includes band-sum, ROI-area, and background-mean fields. All values come from fixed synthetic images and default regions and are preset `DEMO` fixtures. See their origin and limitations in [methods](methods.md).
 
 Before CSV export, use **Confirm review** for both a target and its paired reference. Both must still match the example settings. Unconfirmed, excluded, or stale records do not produce valid export rows. Changes to a reference also affect its paired targets.
 

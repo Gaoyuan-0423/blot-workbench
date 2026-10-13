@@ -7,5 +7,9 @@ test-results/
 playwright-report/
 coverage/
 .release/
+private-analysis/
 
 *.tsbuildinfo
+
+playwright-report-vision/
+test-results-vision/

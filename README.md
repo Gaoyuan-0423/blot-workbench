@@ -8,20 +8,32 @@ A Western blot project workbench for laboratories: organize images and sample re
 
 ## 版本与边界 / Versions and boundaries
 
-- **开发版 / Development — `0.2.0-dev.1`**：增加本机视觉 API 配置、内置合成图接口测试，以及独立中英使用教程。公开网页与下载包尚未被此开发版替换。 / Adds local vision API configuration, a built-in synthetic-image interface check, and a standalone bilingual guide. This development version has not replaced the public site or downloads.
+- **开发版 / Development — `0.3.0-dev.3`**：真实 TIFF/PNG 本机定量、手动 ROI 与批量候选；新增明确的个体 N/T 配对、共同对照基准（新项目默认）、柱图叠加个体点与均值 ± SD、可选双侧配对 t 检验。公开网页仍为旧版。 / Local TIFF/PNG measurements, manual ROIs, and batch proposals; adds explicit individual N/T pairs, a common control baseline (default for new projects), bars with individual points and mean ± SD, and an opt-in two-sided paired t-test. The public site remains on the older release.
 - **已发布 / Published — `0.1.0-alpha.1`**：2026-10-10 发布的纯合成数据流程演示。[直接体验 / Open demo](https://gaoyuan-0423.github.io/blot-workbench/)无需安装；固定版本与构建证据见 [Release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1)。 / A synthetic-data workflow demonstration dated 2026-10-10. The live demo needs no installation; the Release records the archived version and build evidence.
 
 开发功能位于 [`codex/configurable-vision-api` 分支 / development branch](https://github.com/Gaoyuan-0423/blot-workbench/tree/codex/configurable-vision-api)，尚未合入主线。本次双语首页更新不会替换线上应用。 / Development features remain on that branch and are not merged into the main application. Updating this bilingual homepage does not replace the deployed app.
 
-**两个版本都不能导入真实 TIFF/PNG 或进行科研定量。演示数值来自固定合成图与预设区域，修改 ROI 不会重新测量，不能用于实验结论或论文定量。**
+**开发版的 `#real` 工作区读取实际像素重新计算，仍是有限格式支持的实验性预览，尚未完成科研有效性验证。旧合成演示的数值仍为固定示例。两种工作区使用独立存储和项目包。**
 
-**Neither version imports real TIFF/PNG images or performs scientific quantification. Demonstration values come from fixed synthetic images and preset regions. Editing an ROI does not remeasure it; these values must not support experimental conclusions or publication quantification.**
+**The development `#real` workspace recomputes from actual pixels. It remains an experimental preview with bounded format support and incomplete scientific validation. The legacy synthetic demonstration still uses preset values. The two workspaces have separate storage and archive formats.**
 
 ![Blot Workbench 合成数据演示 / Synthetic-data demonstration](docs/screenshots/app-home.jpg)
 
 截图展示已发布演示的界面；环境与版本见[截图记录 / Screenshot record](docs/screenshots/README.md)，不构成算法或跨平台验证。 / The screenshot shows the released demonstration. Its recorded environment and version are not evidence of algorithm accuracy or cross-platform compatibility.
 
-## 可以体验什么 / What you can explore
+## 真实图像开发预览 / Real-image development preview
+
+本机打开 `http://127.0.0.1:4318/#real`：批量导入 → 核对蛋白/实验/膜 → 一次设置泳道 → 批量建议 → 手动复核 → CSV、SVG/PNG/TIFF 与项目包。支持的 8/16 位像素直接参与测量；图像不发送到 API。请先阅读[中英指南](docs/real-images.md)与[验证范围](docs/validation-real-images.md)。
+
+Open `http://127.0.0.1:4318/#real` locally: import → check protein/experiment/membrane → describe lanes once → batch proposals → manual review → CSV, SVG/PNG/TIFF, and project archive. Supported 8/16-bit pixels are measured directly; images are not sent to an API. Read the [English guide](docs/real-images.en.md) and [validation scope](docs/validation-real-images.md).
+
+公开可重算像素示例：[原图、项目包与预期结果 / Originals, archive, and expected results](public/examples/real/README.md)。网站内置示例、截图及公开验证文件仅使用原创合成数据；用户私有图片、结果和项目不会打包、预载或发布。 / Built-in examples, published screenshots, and public fixtures use synthetic data only; private user images, results, and projects are never bundled, preloaded, or published.
+
+默认图形为柱图叠加每个独立单位的数据点与均值 ± SD，也可切换配对连线图。选择共同基准只改变显示尺度，不证明跨批次可比；检验默认关闭，显式启用后对原始目标/内参比值做配对差值检验。[统计方法与限制 / Statistical methods and limits](docs/paired-statistics.md)。
+
+The default figure combines bars, individual-unit points, and mean ± SD, with an optional paired-line view. A common baseline changes the display scale without validating cross-batch comparability. Testing is off by default; an explicit selection tests paired differences of original target/reference ratios.
+
+## 旧合成示例 / Legacy synthetic example
 
 | 中文 | English |
 | --- | --- |
@@ -43,6 +55,7 @@ In the development version, **User guide / 使用教程** in the sidebar opens t
 
 | 教程 / Guide | 中文 | English |
 | --- | --- | --- |
+| 真实图像导入、定量与统计图 / Real images, measurement, and plots | [真实图像指南](docs/real-images.md) | [Real-image guide](docs/real-images.en.md) |
 | 项目、复核、恢复与导出 / Projects, review, recovery, and export | [使用指南](docs/user-guide.md) | [User guide](docs/user-guide.en.md) |
 | 本机视觉 API 配置与合成图测试 / Local vision API and synthetic test | [API 接入指南](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/vision-api.md) | [Vision API guide](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/vision-api.en.md) |
 
@@ -56,11 +69,11 @@ For a first walkthrough: load the example → check samples and exposures → re
 
 ## 尚未实现 / Not implemented
 
-真实 TIFF/PNG 解码与定量、已验证的高位深处理、真实图像自动条带识别、批量自动分析、统计检验、发表组图、免疫荧光、桌面安装器及 Wisp Science 插件均未实现。视觉 API 返回的候选数为 6，也不能证明框选正确或科研准确。
+任意仪器格式、可靠的无人复核分析、技术重复合并、自动跨膜校准、ANOVA/非参数及多重比较流程、发表组图排版、免疫荧光、桌面安装器及 Wisp Science 插件仍未实现。当前自动定位是需人工复核的本机候选，不代表科研准确性。
 
-Real TIFF/PNG decoding and quantification, validated high-bit-depth processing, automatic band detection on experimental images, batch automation, statistical tests, publication figures, immunofluorescence, desktop installers, and Wisp Science integration are not implemented. A vision API returning 6 candidates does not establish correct localization or scientific accuracy.
+Arbitrary instrument formats, reliable unattended analysis, technical-replicate aggregation, automatic cross-membrane calibration, ANOVA/nonparametric/multiple-comparison workflows, publication figure composition, immunofluorescence, desktop installers, and Wisp Science integration remain unimplemented. Local automatic proposals require human review and do not establish scientific accuracy.
 
-[架构与路线图 / Architecture and roadmap](docs/architecture.md) · [批量自动设计（未实现）/ Batch design (not implemented)](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/automation-design.md)
+[架构与路线图 / Architecture and roadmap](docs/architecture.md) · [批量自动设计与实施状态 / Batch design and status](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/automation-design.md)
 
 <a id="本地运行与开发"></a>
 

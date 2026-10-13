@@ -1,5 +1,25 @@
 # 数据与隐私 / Data and privacy
 
+## 真实图像开发版 / Real-image development workspace
+
+`0.3.0-dev.2` 的 `#real` 工作区在浏览器内读取并计算原始 TIFF/PNG；本流程不调用视觉 API、不发送图片、文件名或结果。原始文件、ROI 与历史保存在独立 IndexedDB 项目中；导出的项目 ZIP 含原始图像，因此需按实验数据保管。仅保留一个当前真实项目，另有独立的旧合成演示项目。
+
+The `#real` workspace reads and measures TIFF/PNG in the browser without calling the vision API or transmitting images, filenames, or results. Originals, ROIs, and history are held in a separate IndexedDB project. Exported ZIPs contain original images and should be handled as experimental data. There is one current real project, separate from the legacy synthetic workspace.
+
+内置网站示例、截图、公开测试及下载的示例项目仅包含合成数据。用户自行导入的私有数据不随网站发布、不作为预载示例；仅保存在该浏览器当前来源的工作区及用户主动导出的本机项目包中。
+
+Built-in website examples, published screenshots, public fixtures, and example archives contain synthetic data only. User-imported private data are never included in a site deployment or preloaded example; they remain in that browser/origin workspace and user-exported local archives.
+
+## 开发分支的可选 API 连接（0.2.0-dev.1）
+
+以下新增行为仅存在于本机接入开发版本，尚未部署到公开演示。打开设置会读取本机服务的安全配置元数据；保存配置不会调用模型。只有点击“发送合成图并测试”时，本机服务才将自带的固定合成 PNG 和提示词发给用户保存的服务。当前项目图像、样本名、泳道文字和分析结果不进入该请求。服务可能按其政策计费和处理图片。
+
+Base URL、模型名和密钥只保留在本机服务运行期间的内存中，重启即清除；密钥不会写入浏览器持久存储、日志、项目包或 GitHub。页面提交密钥后清空输入，后端不返回密钥。更换服务来源会清除旧密钥；没有自动重试、转发重定向或切换供应商。关闭设置/取消会中止本机等待与上游请求，但不能保证已送达服务的请求未被处理或计费。
+
+服务仅监听 `127.0.0.1`，验证 Host 和请求来源。公共 GitHub Pages 上不会提供密钥输入或向 `/api` 请求配置。后续真实图像或其他后端的数据路径必须重新说明，不能套用当前“仅合成图测试”的边界。
+
+## 已发布 alpha 的数据范围
+
 适用范围：`0.1.0-alpha.1` 网页演示，包括 [GitHub Pages 在线版本](https://gaoyuan-0423.github.io/blot-workbench/)和本机运行方式。部署者若修改代码、增加分析服务或嵌入第三方脚本，应重新说明数据流。
 
 ## 当前数据流

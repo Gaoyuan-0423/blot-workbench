@@ -1,6 +1,16 @@
 # 架构与路线图
 
+## 真实图像开发预览 / Real-image development preview
+
+`0.3.0-dev.2` 的 `src/real/pixels.ts` 提供不依赖 DOM 的解码、区域与定量；`model.ts` 管理来源字节、参数版本、配对、CSV/ZIP 和描述性汇总；`RealWorkbench.tsx` 提供双语界面，图形导出独立于测量像素。首次暂用独立 `#real` 路由与项目格式 v1；不能在旧演示与真实项目间直接互换。共享布局和显式个体 N/T 表均可运行。个体编号与来源图组分开记录，重复测量不增加独立 n；技术重复自动合并仍未实现。归一化策略与统计检验输入分离：共同基准影响图形尺度，`statistics.ts` 的配对检验使用未经该二次缩放的目标/内参比值。
+
+The new real-image route separates pure pixel computation, project/provenance logic, UI, and figure rendering. It uses a distinct version-1 archive and storage key. Shared-layout and explicit individual N/T workflows are implemented experimentally, with individual IDs distinct from source groups. Repeated measurements do not increase n; technical-replicate aggregation is not implemented. Plot normalization is separate from paired-test inputs, which retain original target/reference ratios. See [current workflow](real-images.en.md) and [validation](validation-real-images.md). The sections below preserve the earlier demonstration roadmap.
+
 本页以 `0.1.0-alpha.1` 为界区分已建立的演示结构与规划。路线图不承诺精确工期。
+
+## API 接入开发分支
+
+`0.2.0-dev.1` 在已有演示外增加同源本机 Node 服务和独立 `src/vision` 设置面板。当前协议为可配置的 OpenAI-compatible Chat Completions；只通过固定内置合成 PNG 检查服务响应，不接入真实图像项目或自动定量。配置与密钥不进入项目 schema，手动演示的保存/模板/导出流程保持独立。具体使用与测试边界见[API 指南](vision-api.md)，用户要求的批量自动主流程见[下一版设计](automation-design.md)。
 
 ## 当前演示结构
 
@@ -43,4 +53,4 @@ IF 的多通道读取、标定、阈值/分割、细胞或组织对象、视野�
 
 ## English summary
 
-The current browser alpha demonstrates project state and review workflows. Real image decoding, quantification, desktop packages, IF, and Wisp integration remain separate future stages. The analysis core and project format should be independent of UI hosts and language models. Each stage requires evidence before expanding its scope; Windows/macOS compatibility must be tested, not inferred from the web stack.
+The current browser alpha demonstrates project state and review workflows. Real-image decoding, quantification, explicit pairing, and opt-in inference are experimental development features with separate validation requirements. Desktop packages, IF, and Wisp integration remain future stages. The analysis core and project format should be independent of UI hosts and language models. Each stage requires evidence before expanding its scope; Windows/macOS compatibility must be tested, not inferred from the web stack.
