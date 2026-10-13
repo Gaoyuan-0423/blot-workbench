@@ -2902,6 +2902,86 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                 )}
           </p>
         </div>
+        <div className="real-normalization-box">
+          <div className="real-actions">
+            <label className="real-field">
+              {t("背景扣除方法", "Background correction")}
+              <select
+                aria-label={t("背景扣除方法", "Background correction")}
+                disabled={!!busy}
+                value={
+                  project.backgroundCorrection?.kind === "rolling-ball"
+                    ? "rolling-ball"
+                    : "local"
+                }
+                onChange={(event) =>
+                  commit((previous) =>
+                    updateRealProject(previous, {
+                      backgroundCorrection:
+                        event.target.value === "rolling-ball"
+                          ? {
+                              kind: "rolling-ball",
+                              radius:
+                                previous.backgroundCorrection?.kind ===
+                                "rolling-ball"
+                                  ? previous.backgroundCorrection.radius
+                                  : 50,
+                            }
+                          : { kind: "local" },
+                    }),
+                  )
+                }
+              >
+                <option value="local">
+                  {t("局部背景取样框（默认）", "Local background ROIs (default)")}
+                </option>
+                <option value="rolling-ball">
+                  {t(
+                    "Rolling ball（与 ImageJ 数值一致）",
+                    "Rolling ball (ImageJ-compatible)",
+                  )}
+                </option>
+              </select>
+            </label>
+            {project.backgroundCorrection?.kind === "rolling-ball" && (
+              <label className="real-field">
+                {t("Rolling ball 半径", "Rolling-ball radius")}
+                <input
+                  type="number"
+                  min={10}
+                  max={200}
+                  step={5}
+                  disabled={!!busy}
+                  value={project.backgroundCorrection.radius}
+                  onChange={(event) => {
+                    const radius = Number(event.target.value);
+                    if (!Number.isInteger(radius) || radius < 10 || radius > 200)
+                      return;
+                    commit((previous) =>
+                      updateRealProject(previous, {
+                        backgroundCorrection: {
+                          kind: "rolling-ball",
+                          radius,
+                        },
+                      }),
+                    );
+                  }}
+                />
+              </label>
+            )}
+          </div>
+          <p className="real-muted">
+            {project.backgroundCorrection?.kind === "rolling-ball"
+              ? t(
+                  "对全图计算 rolling ball 背景（与 ImageJ「Subtract Background」逐像素一致，见验证文档），条带 IntDen 为扣除后的信号和；此方法不使用背景取样框。半径越大，保留的低频背景越多；常用 25–50。切换方法会使全部复核状态失效。",
+                  "The rolling-ball background is computed over the whole image, pixel-identical to ImageJ's Subtract Background (see the validation notes); band IntDen is the corrected signal sum. Background ROIs are unused in this mode. A larger radius keeps more low-frequency background; 25–50 is common. Switching methods invalidates all review states.",
+                )
+              : t(
+                  "每条条带用其背景取样框的信号均值扣背景（默认方法）。",
+                  "Each band subtracts the mean signal of its own background ROIs (default method).",
+                )}
+          </p>
+        </div>
         <label className="real-checkbox real-test-choice">
           <input
             type="checkbox"
@@ -2976,6 +3056,14 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                   </option>
                 </select>
               </label>
+              <span className="real-method-badge" aria-live="polite">
+                {project.backgroundCorrection?.kind === "rolling-ball"
+                  ? t(
+                      `背景：Rolling ball r=${project.backgroundCorrection.radius}（ImageJ 一致）`,
+                      `Background: rolling ball r=${project.backgroundCorrection.radius} (ImageJ-compatible)`,
+                    )
+                  : t("背景：局部背景取样框", "Background: local background ROIs")}
+              </span>
               <div className="real-actions">
                 <button
                   className="real-button"
