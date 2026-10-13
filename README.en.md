@@ -6,13 +6,13 @@ A Western blot project workbench for laboratories. The first step is to make ima
 
 ## Versions and boundaries
 
-**Development version: `0.3.0-dev.3`.** Supports local TIFF/PNG measurements, shared lane mapping, batch proposals, manual regions, and original-image archives at `#real`. Adds explicit individual N/T pairs, a selected common control baseline (the default for new projects), bars with individual points and mean ± SD, an optional paired-line view, and an opt-in two-sided paired t-test. It has not replaced the public website or released downloads.
+**Released preview: [`v0.3.0-alpha.1`](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.3.0-alpha.1).** Supports local TIFF/PNG measurements, shared lane mapping, batch proposals, manual regions, and original-image archives at `#real`. Adds explicit individual N/T pairs, a selected common control baseline (the default for new projects), bars with individual points and mean ± SD, an optional paired-line view, and an opt-in two-sided paired t-test. It has not replaced the public website; it ships via GitHub Release assets.
 
-**Published version: `0.1.0-alpha.1`, dated 2026-10-10.** The [live demonstration](https://gaoyuan-0423.github.io/blot-workbench/) needs no installation. Its fixed archive and build evidence are in the [alpha Release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1).
+**Published online demo: `0.1.0-alpha.1`, dated 2026-10-10.** The [live demonstration](https://gaoyuan-0423.github.io/blot-workbench/) needs no installation. Its fixed archive and build evidence are in the [alpha Release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1).
 
-Development features remain on the [`codex/configurable-vision-api` branch](https://github.com/Gaoyuan-0423/blot-workbench/tree/codex/configurable-vision-api) and are not merged into the main application. Updating this bilingual repository homepage does not replace the deployed app.
+Development features are merged into `main`; the online site still deploys `0.1.0-alpha.1`, and redeploying requires the manual Pages workflow.
 
-**The development real-image workspace recomputes actual pixels but remains experimental, with bounded format support and incomplete scientific validation. The separate legacy demonstration continues to use preset synthetic values.**
+**The real-image workspace recomputes actual pixels but remains experimental, with bounded format support and incomplete scientific validation. The separate legacy demonstration continues to use preset synthetic values.**
 
 Start real analysis at `http://127.0.0.1:4318/#real`: import → check file metadata → describe lanes once → batch proposals → manual review → plots, CSV, and archive. Read the [real-image guide](docs/real-images.en.md) ([中文](docs/real-images.md)) and [validation scope](docs/validation-real-images.md).
 
