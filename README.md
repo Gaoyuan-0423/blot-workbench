@@ -8,7 +8,7 @@ A Western blot project workbench for laboratories: organize images and sample re
 
 ## 版本与边界 / Versions and boundaries
 
-- **开发版 / Development — `0.3.0-dev.2`**：真实 TIFF/PNG 本机定量、手动 ROI 与批量候选；新增明确的个体 N/T 配对、共同对照基准、柱图叠加个体点与均值 ± SD、可选双侧配对 t 检验。公开网页仍为旧版。 / Local TIFF/PNG measurements, manual ROIs, and batch proposals; adds explicit individual N/T pairs, a common control baseline, bars with individual points and mean ± SD, and an opt-in two-sided paired t-test. The public site remains on the older release.
+- **开发版 / Development — `0.3.0-dev.3`**：真实 TIFF/PNG 本机定量、手动 ROI 与批量候选；新增明确的个体 N/T 配对、共同对照基准（新项目默认）、柱图叠加个体点与均值 ± SD、可选双侧配对 t 检验。公开网页仍为旧版。 / Local TIFF/PNG measurements, manual ROIs, and batch proposals; adds explicit individual N/T pairs, a common control baseline (default for new projects), bars with individual points and mean ± SD, and an opt-in two-sided paired t-test. The public site remains on the older release.
 - **已发布 / Published — `0.1.0-alpha.1`**：2026-10-10 发布的纯合成数据流程演示。[直接体验 / Open demo](https://gaoyuan-0423.github.io/blot-workbench/)无需安装；固定版本与构建证据见 [Release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1)。 / A synthetic-data workflow demonstration dated 2026-10-10. The live demo needs no installation; the Release records the archived version and build evidence.
 
 开发功能位于 [`codex/configurable-vision-api` 分支 / development branch](https://github.com/Gaoyuan-0423/blot-workbench/tree/codex/configurable-vision-api)，尚未合入主线。本次双语首页更新不会替换线上应用。 / Development features remain on that branch and are not merged into the main application. Updating this bilingual homepage does not replace the deployed app.

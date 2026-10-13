@@ -6,7 +6,7 @@ A Western blot project workbench for laboratories. The first step is to make ima
 
 ## Versions and boundaries
 
-**Development version: `0.3.0-dev.2`.** Supports local TIFF/PNG measurements, shared lane mapping, batch proposals, manual regions, and original-image archives at `#real`. Adds explicit individual N/T pairs, a selected common control baseline, bars with individual points and mean ± SD, an optional paired-line view, and an opt-in two-sided paired t-test. It has not replaced the public website or released downloads.
+**Development version: `0.3.0-dev.3`.** Supports local TIFF/PNG measurements, shared lane mapping, batch proposals, manual regions, and original-image archives at `#real`. Adds explicit individual N/T pairs, a selected common control baseline (the default for new projects), bars with individual points and mean ± SD, an optional paired-line view, and an opt-in two-sided paired t-test. It has not replaced the public website or released downloads.
 
 **Published version: `0.1.0-alpha.1`, dated 2026-10-10.** The [live demonstration](https://gaoyuan-0423.github.io/blot-workbench/) needs no installation. Its fixed archive and build evidence are in the [alpha Release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1).
 
