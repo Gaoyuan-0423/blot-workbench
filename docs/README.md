@@ -1,10 +1,10 @@
 # 文档 / Documentation
 
-本目录同时记录已发布的 `0.1.0-alpha.1` 合成数据演示和 `0.3.0-dev.3` 本机开发版。开发版提供真实像素测量、明确个体配对、可选配对检验、视觉 API 合成测试与中英教程；公开网页与下载包仍为 `0.1`，真实图像本机定量已进入实验性开发预览。
+本目录同时记录在线演示 `0.1.0-alpha.1` 合成数据演示和 `0.3.0-alpha.1` 真实图像发布预览。后者提供真实像素测量、明确个体配对、可选配对检验、视觉 API 合成测试与中英教程；公开网页仍为 `0.1`，`0.3.0-alpha.1` 经 [GitHub Release 附件](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.3.0-alpha.1)分发。
 
-This directory covers both the published `0.1.0-alpha.1` synthetic-data demo and local development version `0.3.0-dev.3`. The development version provides source-pixel measurements, explicit individual pairs, optional paired inference, synthetic vision API tests, and bilingual guides; the public website and downloads remain `0.1`. Real-image local measurement is now an experimental development preview.
+This directory covers both the published `0.1.0-alpha.1` synthetic-data demo and the `0.3.0-alpha.1` real-image released preview. The latter provides source-pixel measurements, explicit individual pairs, optional paired inference, synthetic vision API tests, and bilingual guides; the public website remains `0.1`, and `0.3.0-alpha.1` ships via [GitHub Release assets](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.3.0-alpha.1).
 
-[在线演示 / Published demo](https://gaoyuan-0423.github.io/blot-workbench/) · [源码 / Source](https://github.com/Gaoyuan-0423/blot-workbench) · [已发布版本 / Published release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1)
+[在线演示 / Published demo](https://gaoyuan-0423.github.io/blot-workbench/) · [源码 / Source](https://github.com/Gaoyuan-0423/blot-workbench) · [发布版本 / Releases](https://github.com/Gaoyuan-0423/blot-workbench/releases)
 
 ## 从这里开始 / Start here
 
