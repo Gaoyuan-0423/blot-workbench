@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "repository": "Gaoyuan-0423/blot-workbench",
+  "repositoryUrl": "https://github.com/Gaoyuan-0423/blot-workbench",
+  "collectionStartedAt": "2026-10-13T05:07:17.537Z",
+  "collectionFinishedAt": "2026-10-13T05:07:18.835Z",
+  "status": "complete",
+  "counts": {
+    "stars": 1,
+    "forks": 0,
+    "issues": {
+      "total": 0,
+      "open": 0,
+      "closed": 0
+    },
+    "pullRequests": {
+      "total": 6,
+      "open": 1,
+      "closed": 5,
+      "closedUnmerged": 0,
+      "merged": 5
+    },
+    "publishedReleases": 2,
+    "releaseAssetDownloads": 3
+  },
+  "releases": [
+    {
+      "id": 411298068,
+      "tag": "v0.3.0-alpha.1",
+      "prerelease": true,
+      "publishedAt": "2026-10-13T05:06:59Z",
+      "url": "https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.3.0-alpha.1",
+      "assets": [
+        {
+          "id": 635957316,
+          "name": "blot-workbench-0.3.0-alpha.1-web.zip",
+          "downloadCount": 0,
+          "source": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/releases/assets/635957316",
+          "downloadUrl": "https://github.com/Gaoyuan-0423/blot-workbench/releases/download/v0.3.0-alpha.1/blot-workbench-0.3.0-alpha.1-web.zip"
+        }
+      ],
+      "assetDownloads": 0
+    },
+    {
+      "id": 409017946,
+      "tag": "v0.1.0-alpha.1",
+      "prerelease": true,
+      "publishedAt": "2026-10-10T15:03:09Z",
+      "url": "https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1",
+      "assets": [
+        {
+          "id": 628245657,
+          "name": "blot-workbench-0.1.0-alpha.1-manifest.json",
+          "downloadCount": 1,
+          "source": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/releases/assets/628245657",
+          "downloadUrl": "https://github.com/Gaoyuan-0423/blot-workbench/releases/download/v0.1.0-alpha.1/blot-workbench-0.1.0-alpha.1-manifest.json"
+        },
+        {
+          "id": 628245660,
+          "name": "blot-workbench-0.1.0-alpha.1-web.zip",
+          "downloadCount": 1,
+          "source": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/releases/assets/628245660",
+          "downloadUrl": "https://github.com/Gaoyuan-0423/blot-workbench/releases/download/v0.1.0-alpha.1/blot-workbench-0.1.0-alpha.1-web.zip"
+        },
+        {
+          "id": 628245656,
+          "name": "SHA256SUMS",
+          "downloadCount": 1,
+          "source": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/releases/assets/628245656",
+          "downloadUrl": "https://github.com/Gaoyuan-0423/blot-workbench/releases/download/v0.1.0-alpha.1/SHA256SUMS"
+        }
+      ],
+      "assetDownloads": 3
+    }
+  ],
+  "methodology": {
+    "source": "GitHub REST API; every collection endpoint is paginated.",
+    "issues": "Excludes pull requests returned by the issues endpoint.",
+    "pullRequests": "Closed includes merged. Open, closedUnmerged, and merged are disjoint categories; do not add closed and merged.",
+    "downloads": "Sum of download_count for assets on currently published releases, including prereleases. Excludes source archive downloads, deleted releases/assets, and GitHub Pages visits. Not unique users.",
+    "unknownValues": "null means unavailable or incomplete; it never means zero.",
+    "interpretation": "Popularity and repository activity are not evidence of scientific correctness, validation, adoption, or publication readiness.",
+    "privacy": "No application analytics, image data, project data, or individual user identities are collected.",
+    "timing": "API reads are a time-bounded snapshot, not an atomic transaction; counts may change during collection."
+  },
+  "requests": [
+    {
+      "url": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench",
+      "status": 200,
+      "observedAt": "2026-10-13T05:07:18.302Z"
+    },
+    {
+      "url": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/releases?per_page=100",
+      "status": 200,
+      "observedAt": "2026-10-13T05:07:18.349Z"
+    },
+    {
+      "url": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/pulls?state=all&per_page=100",
+      "status": 200,
+      "observedAt": "2026-10-13T05:07:18.351Z"
+    },
+    {
+      "url": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/issues?state=all&per_page=100",
+      "status": 200,
+      "observedAt": "2026-10-13T05:07:18.374Z"
+    },
+    {
+      "url": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/releases/411298068/assets?per_page=100",
+      "status": 200,
+      "observedAt": "2026-10-13T05:07:18.602Z"
+    },
+    {
+      "url": "https://api.github.com/repos/Gaoyuan-0423/blot-workbench/releases/409017946/assets?per_page=100",
+      "status": 200,
+      "observedAt": "2026-10-13T05:07:18.834Z"
+    }
+  ],
+  "errors": [],
+  "trigger": "release",
+  "workflowRun": {
+    "id": "38349765174",
+    "attempt": "1"
+  }
+}
