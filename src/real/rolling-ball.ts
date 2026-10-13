@@ -219,6 +219,45 @@ export function rollingBallBackground(
   return background;
 }
 
+const backgroundCache = new WeakMap<
+  object,
+  Map<string, Float64Array>
+>();
+
+/**
+ * Cached background surface keyed on the raster's pixel buffer, radius, and
+ * signal polarity. The sync path inside project measurement hits this cache;
+ * the UI can prewarm it through the worker before results render.
+ */
+export function cachedRollingBallBackground(
+  raster: Raster,
+  radius: number,
+  signal: Signal,
+): Float64Array {
+  validateRasterForBackground(raster);
+  let byKey = backgroundCache.get(raster.pixels);
+  if (!byKey) {
+    byKey = new Map();
+    backgroundCache.set(raster.pixels, byKey);
+  }
+  const key = `${radius}|${signal}`;
+  const cached = byKey.get(key);
+  if (cached) return cached;
+  const surface = rollingBallBackground(raster, radius, {
+    lightBackground: signal === "dark",
+  });
+  byKey.set(key, surface);
+  return surface;
+}
+
+function validateRasterForBackground(raster: Raster) {
+  if (
+    raster.pixels.length !== raster.width * raster.height ||
+    ![8, 16].includes(raster.bitDepth)
+  )
+    fail("Invalid raster data.");
+}
+
 export interface RollingBallMeasurement extends LaneMeasurement {
   /** Fraction of band pixels whose ImageJ correction was clamped at 0 or the depth maximum. */
   saturatedFraction: number;

@@ -1158,3 +1158,92 @@ describe("inference scale warnings and reproducible statistical export", () => {
     expect(realPairedTests(changed)[0].result).toEqual(test.result);
   });
 });
+
+describe("rolling-ball background method", () => {
+  it("validates the correction, invalidates review once, and round-trips archives", async () => {
+    const project = review(await experimentProject());
+    expect(() =>
+      updateRealProject(project, {
+        backgroundCorrection: { kind: "rolling-ball", radius: 9 },
+      }),
+    ).toThrow();
+    expect(() =>
+      updateRealProject(project, {
+        backgroundCorrection: { kind: "rolling-ball", radius: 201 },
+      }),
+    ).toThrow();
+    const changed = updateRealProject(project, {
+      backgroundCorrection: { kind: "rolling-ball", radius: 50 },
+    });
+    expect(changed.backgroundCorrection).toEqual({
+      kind: "rolling-ball",
+      radius: 50,
+    });
+    expect(changed.images.every((image) => !image.reviewed)).toBe(true);
+    // Re-applying the identical policy must not reset review again.
+    const stable = updateRealProject(review(changed), {
+      backgroundCorrection: { kind: "rolling-ball", radius: 50 },
+    });
+    expect(stable.images.every((image) => image.reviewed)).toBe(true);
+    const archive = await exportRealProject(
+      updateRealProject(await experimentProject(), {
+        backgroundCorrection: { kind: "rolling-ball", radius: 25 },
+      }),
+    );
+    const restored = await importRealProject(archive);
+    expect(restored.backgroundCorrection).toEqual({
+      kind: "rolling-ball",
+      radius: 25,
+    });
+  });
+
+  it("measures through the rolling-ball engine and labels rows and CSV", async () => {
+    const local = review(
+      applyNormalization(await experimentProject(), {
+        kind: "matched-control",
+      }),
+    );
+    const rolling = review(
+      applyNormalization(
+        updateRealProject(await experimentProject(), {
+          backgroundCorrection: { kind: "rolling-ball", radius: 50 },
+        }),
+        { kind: "matched-control" },
+      ),
+    );
+    const localRows = results(local);
+    const rollingRows = results(rolling);
+    expect(rollingRows.length).toBe(localRows.length);
+    expect(
+      rollingRows.every(
+        (row) =>
+          row.backgroundMethod === "rolling-ball" &&
+          row.rollingBallRadius === 50,
+      ),
+    ).toBe(true);
+    expect(
+      localRows.every(
+        (row) => row.backgroundMethod === "local" && row.rollingBallRadius === null,
+      ),
+    ).toBe(true);
+    // The plateau fixture bridges completely: rolling-ball nets match the
+    // local-mean nets within the per-pixel quantization budget.
+    for (const [index, row] of rollingRows.entries()) {
+      const reference = localRows[index];
+      expect(Math.abs(row.targetNet! - reference.targetNet!)).toBeLessThanOrEqual(
+        row.area!,
+      );
+      expect(
+        Math.abs(row.referenceNet! - reference.referenceNet!),
+      ).toBeLessThanOrEqual(row.area!);
+      expect(row.status).toBe("ready");
+    }
+    const csv = exportRealCsv(rolling);
+    expect(csv).toContain("background_method");
+    expect(csv).toContain("rolling_ball_radius");
+    expect(csv).toContain("rolling-ball");
+    expect(csv).toContain("imagej1-rolling-ball-1");
+    const localCsv = exportRealCsv(local);
+    expect(localCsv).toContain("local");
+  });
+});
