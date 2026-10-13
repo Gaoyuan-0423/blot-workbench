@@ -666,7 +666,46 @@ function segments(
   return output;
 }
 
-/** Heuristic candidates only: one dominant horizontal band row, first N resolved lanes left-to-right. */
+/** Otsu threshold of a normalized [0,1] profile, clamped to a sane lane/gutter range. */
+function otsuThreshold(profile: Float64Array): number {
+  const bins = 64;
+  const histogram = new Float64Array(bins);
+  for (const value of profile)
+    histogram[Math.max(0, Math.min(bins - 1, Math.floor(value * bins)))]++;
+  const total = profile.length;
+  let sumAll = 0;
+  for (let i = 0; i < bins; i++) sumAll += i * histogram[i];
+  let sumBackground = 0,
+    weightBackground = 0,
+    best = 0,
+    bestVariance = -1;
+  for (let i = 0; i < bins; i++) {
+    weightBackground += histogram[i];
+    if (!weightBackground) continue;
+    const weightForeground = total - weightBackground;
+    if (!weightForeground) break;
+    sumBackground += i * histogram[i];
+    const meanBackground = sumBackground / weightBackground;
+    const meanForeground = (sumAll - sumBackground) / weightForeground;
+    const variance =
+      weightBackground * weightForeground * (meanBackground - meanForeground) ** 2;
+    if (variance > bestVariance) {
+      bestVariance = variance;
+      best = i;
+    }
+  }
+  return Math.min(0.6, Math.max(0.08, (best + 1) / bins));
+}
+
+/**
+ * Projection-based lane/band candidates. Lanes come from an Otsu-segmented
+ * column profile (leftmost N runs; extra right-hand lanes such as markers are
+ * reported, never silently shifted), falling back to peak relaxation with an
+ * explicit separation warning. Each lane's band is then located by its OWN row
+ * projection, so uneven runs (smiling) do not shift every lane to one global
+ * row. Multiple comparable peaks inside a lane stay ambiguous for the
+ * one-band-per-lane model and require manual ROIs.
+ */
 export function proposeRegions(
   raster: Raster,
   laneCount: number,
@@ -703,83 +742,162 @@ export function proposeRegions(
         ? baseline - pixels[y * width + x]
         : pixels[y * width + x] - baseline,
     );
-  const rows = new Float64Array(height);
-  for (let y = 0; y < height; y++)
-    for (let x = 0; x < width; x++) rows[y] += contrast(x, y) / width;
-  const rowProfile = smooth(rows, Math.max(1, Math.round(height / 300)));
-  let dominant = 0;
-  for (let y = 1; y < height; y++)
-    if (rowProfile[y] > rowProfile[dominant]) dominant = y;
-  if (rowProfile[dominant] < max * 0.01)
-    fail("No band row has sufficient contrast; select ROIs manually.");
-  const rowSegments = segments(rowProfile, rowProfile[dominant] * 0.35);
-  const selectedRow = rowSegments.find(
-    (part) => part.start <= dominant && part.end > dominant,
-  )!;
-  if (
-    rowSegments.some(
-      (part) =>
-        part !== selectedRow && part.strength >= selectedRow.strength * 0.8,
-    )
-  )
-    fail("Multiple comparable band rows are ambiguous; select ROIs manually.");
-  const y = Math.max(0, selectedRow.start - 1),
-    bottom = Math.min(height, selectedRow.end + 1);
+
+  // ── Lane x-segmentation on the column profile ─────────────────────────
   const columns = new Float64Array(width);
-  for (let x = 0; x < width; x++)
-    for (let row = selectedRow.start; row < selectedRow.end; row++)
-      columns[x] += contrast(x, row) / (selectedRow.end - selectedRow.start);
+  for (let x = 0; x < width; x++) {
+    let sum = 0;
+    for (let y = 0; y < height; y++) sum += contrast(x, y);
+    columns[x] = sum / height;
+  }
   const columnProfile = smooth(columns, Math.max(1, Math.round(width / 150)));
   let peak = 0;
   for (const value of columnProfile) peak = Math.max(peak, value);
-  // A higher threshold may expose a real valley between touching bands. A flat plateau is never divided by lane count.
-  let threshold = 0.22;
-  let found = segments(columnProfile, peak * threshold).filter(
-    (part) => part.end - part.start >= 2,
-  );
-  for (const candidate of [0.32, 0.42, 0.52, 0.62, 0.72, 0.82]) {
-    if (found.length >= laneCount) break;
-    threshold = candidate;
-    found = segments(columnProfile, peak * threshold).filter(
+  if (peak < max * 0.01)
+    fail("No band row has sufficient contrast; select ROIs manually.");
+
+  const warnings: string[] = [];
+  const closeWidth = Math.max(3, Math.floor(width / 60));
+  const minWidth = Math.max(2, Math.floor(width / 80));
+  const normalized = columnProfile.map((value) => value / peak);
+  const otsu = otsuThreshold(normalized);
+  const binary = new Uint8Array(width);
+  for (let x = 0; x < width; x++) binary[x] = normalized[x] >= otsu ? 1 : 0;
+  // Close narrow within-lane dips before extracting runs.
+  {
+    const closed = new Uint8Array(width);
+    for (let x = 0; x < width; x++) {
+      if (binary[x]) {
+        closed[x] = 1;
+        continue;
+      }
+      const left = Math.max(0, x - closeWidth);
+      const right = Math.min(width - 1, x + closeWidth);
+      for (let i = left; i <= right && !closed[x]; i++)
+        if (binary[i] && binary[left] && binary[right]) closed[x] = 1;
+    }
+    binary.set(closed);
+  }
+  const runs: { start: number; end: number }[] = [];
+  for (let x = 0; x < width; x++) {
+    if (!binary[x]) continue;
+    const start = x;
+    while (x + 1 < width && binary[x + 1]) x++;
+    if (x - start + 1 >= minWidth) runs.push({ start, end: x + 1 });
+  }
+
+  let laneBounds: { start: number; end: number }[];
+  if (runs.length >= laneCount) {
+    // Leftmost N runs; trailing marker lanes are reported, never shifted in.
+    laneBounds = runs.slice(0, laneCount);
+    if (runs.length > laneCount) warnings.push("EXTRA_LANES_IGNORED");
+    // A shallow gutter between resolved lanes means weak separation.
+    for (let index = 1; index < laneBounds.length; index++) {
+      let valley = 0;
+      for (let x = laneBounds[index - 1].end; x < laneBounds[index].start; x++)
+        valley = Math.max(valley, columnProfile[x]);
+      if (valley > peak * 0.35) {
+        warnings.push("LOW_LANE_SEPARATION");
+        break;
+      }
+    }
+  } else {
+    // Fallback: relax the peak threshold until the requested count resolves.
+    let threshold = 0.22;
+    let found = segments(columnProfile, peak * threshold).filter(
       (part) => part.end - part.start >= 2,
     );
+    for (const candidate of [0.32, 0.42, 0.52, 0.62, 0.72, 0.82]) {
+      if (found.length >= laneCount) break;
+      threshold = candidate;
+      found = segments(columnProfile, peak * threshold).filter(
+        (part) => part.end - part.start >= 2,
+      );
+    }
+    if (found.length < laneCount)
+      fail(
+        "Fewer resolved lanes than requested; overlapping or weak bands need manual ROIs.",
+      );
+    laneBounds = found
+      .slice(0, laneCount)
+      .map((part) => ({ start: part.start, end: part.end }));
+    warnings.push("LOW_LANE_SEPARATION");
   }
-  if (found.length < laneCount)
-    fail(
-      "Fewer resolved lanes than requested; overlapping or weak bands need manual ROIs.",
-    );
-  const chosen = found.slice(0, laneCount);
+
+  // ── Per-lane band y-localisation ─────────────────────────────────────
   const regions: LaneRegion[] = [];
-  for (let index = 0; index < chosen.length; index++) {
-    const lane = chosen[index];
-    const lower = index
-      ? Math.floor((found[index - 1].end + lane.start) / 2)
-      : 0;
-    const upper =
-      index + 1 < found.length
-        ? Math.floor((lane.end + found[index + 1].start) / 2)
-        : width;
-    let start = lane.start,
-      finish = lane.end;
-    while (start > lower && columnProfile[start - 1] > peak * 0.22) start--;
-    while (finish < upper && columnProfile[finish] > peak * 0.22) finish++;
-    const left = Math.max(lower, start - 1);
-    const right = Math.min(upper, finish + 1);
-    const band: Rect = { x: left, y, width: right - left, height: bottom - y };
+  for (let index = 0; index < laneBounds.length; index++) {
+    const bound = laneBounds[index];
+    const laneWidth = bound.end - bound.start;
+    const rows = new Float64Array(height);
+    for (let y = 0; y < height; y++) {
+      let sum = 0;
+      for (let x = bound.start; x < bound.end; x++) sum += contrast(x, y);
+      rows[y] = sum / laneWidth;
+    }
+    const rowProfile = smooth(rows, Math.max(1, Math.round(height / 300)));
+    let lanePeak = 0,
+      lanePeakY = 0;
+    for (let y = 0; y < height; y++)
+      if (rowProfile[y] > lanePeak) {
+        lanePeak = rowProfile[y];
+        lanePeakY = y;
+      }
+    if (lanePeak < peak * 0.1)
+      fail(
+        "A requested lane has no resolvable band; overlapping or empty lanes need manual ROIs.",
+      );
+    const rowSegments = segments(rowProfile, lanePeak * 0.35).filter(
+      (part) => part.end - part.start >= 2,
+    );
+    const selectedRow =
+      rowSegments.find(
+        (part) => part.start <= lanePeakY && part.end > lanePeakY,
+      ) ?? rowSegments.at(-1);
+    if (!selectedRow)
+      fail(
+        "A requested lane has no resolvable band; overlapping or empty lanes need manual ROIs.",
+      );
+    if (
+      rowSegments.some(
+        (part) =>
+          part !== selectedRow && part.strength >= selectedRow.strength * 0.8,
+      )
+    )
+      fail(
+        "Multiple comparable band rows are ambiguous; select ROIs manually.",
+      );
+    const bandTop = Math.max(0, selectedRow.start - 1),
+      bandBottom = Math.min(height, selectedRow.end + 1);
+
+    // Walk the lane's own columns to refine x-boundaries inside the run.
+    let start = bound.start,
+      finish = bound.end;
+    while (start > 0 && columnProfile[start - 1] > peak * 0.22) start--;
+    while (finish < width && columnProfile[finish] > peak * 0.22) finish++;
+    const left = Math.max(bound.start, start - 1);
+    const right = Math.min(bound.end, finish + 1);
+    const band: Rect = {
+      x: left,
+      y: bandTop,
+      width: right - left,
+      height: bandBottom - bandTop,
+    };
+
     const gap = 2;
     const bgHeight = Math.max(2, Math.min(12, band.height));
     const choices: Rect[] = [];
-    if (y - gap - bgHeight >= 0)
+    if (bandTop - gap - bgHeight >= 0)
       choices.push({
         x: left,
-        y: y - gap - bgHeight,
+        y: bandTop - gap - bgHeight,
         width: band.width,
         height: bgHeight,
       });
-    if (bottom + gap + bgHeight <= height)
+    if (bandBottom + gap + bgHeight <= height)
       choices.push({
         x: left,
-        y: bottom + gap,
+        y: bandBottom + gap,
         width: band.width,
         height: bgHeight,
       });
@@ -787,7 +905,6 @@ export function proposeRegions(
       fail(
         "Insufficient adjacent background space; select band/background ROIs manually.",
       );
-    // Prefer the adjacent patch with less signal, but still require human confirmation.
     const score = (rect: Rect) => {
       let sum = 0;
       for (let yy = rect.y; yy < rect.y + rect.height; yy++)
@@ -796,15 +913,12 @@ export function proposeRegions(
       return sum / (rect.width * rect.height);
     };
     choices.sort((a, b) => score(a) - score(b));
-    const warnings: string[] = [];
-    if (found.length > laneCount) warnings.push("EXTRA_LANES_IGNORED");
-    if (threshold > 0.22) warnings.push("LOW_LANE_SEPARATION");
     regions.push({
       lane: index + 1,
       band,
       background: choices[0],
       source: "automatic",
-      warnings,
+      warnings: [...warnings],
     });
   }
   return regions;

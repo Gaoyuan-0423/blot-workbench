@@ -561,6 +561,23 @@ describe("reviewable lane proposals", () => {
     paint(twoRows, 40, 50, 15, 8, 10);
     expect(() => proposeRegions(twoRows, 2, "dark")).toThrow(/ambiguous/);
   });
+  it("locates each lane's band at its own row when runs are uneven", () => {
+    for (const signal of ["dark", "light"] as const) {
+      const image = raster(120, 90, signal === "dark" ? 220 : 30);
+      const value = signal === "dark" ? 40 : 210;
+      paint(image, 12, 15, 18, 8, value);
+      paint(image, 55, 55, 18, 8, value);
+      const found = proposeRegions(image, 2, signal);
+      expect(found).toHaveLength(2);
+      expect(found[0].band.y).toBeLessThan(30);
+      expect(found[1].band.y).toBeGreaterThan(40);
+      expect(found[0].band.y).not.toBe(found[1].band.y);
+      for (const lane of found) {
+        expect(measureRegion(image, lane, signal).net).toBeGreaterThan(0);
+        expect(lane.warnings).not.toContain("LOW_LANE_SEPARATION");
+      }
+    }
+  });
   it("requires manual review for bands separated only at a higher threshold", () => {
     const image = raster(100, 70, 220);
     paint(image, 10, 25, 55, 8, 40);
