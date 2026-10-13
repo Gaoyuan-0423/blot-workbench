@@ -59,6 +59,15 @@ import {
   type Rect,
 } from "./pixels";
 import { renderFigure } from "./figure-export";
+import {
+  analyzeVisionCandidates,
+  getVisionConfig,
+} from "../vision/client";
+import {
+  applyVisionCandidates,
+  VisionCandidateCache,
+  visionCacheKey,
+} from "./vision-candidates";
 import "./real-workbench.css";
 
 type Language = "zh" | "en";
@@ -846,11 +855,37 @@ function ResultFigure({
   );
 }
 
+const VISION_ANALYZE_PROMPT_VERSION = "wb-lane-band-candidates-v1";
+const VISION_UPLOAD_PREVIEW_WIDTH = 1024;
+const visionCandidatesCache = new VisionCandidateCache();
+
+/** Downscaled 8-bit grayscale PNG for optional vision providers. */
+async function uploadPreviewDataUrl(bytes: Uint8Array): Promise<string> {
+  const bitmap = await createImageBitmap(
+    new Blob([new Uint8Array(bytes)], { type: "image/png" }),
+  );
+  try {
+    const scale = Math.min(1, VISION_UPLOAD_PREVIEW_WIDTH / bitmap.width);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext("2d");
+    if (!context)
+      throw new Error("Canvas is unavailable for the upload preview.");
+    context.imageSmoothingEnabled = true;
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/png");
+  } finally {
+    bitmap.close();
+  }
+}
+
 export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
   const [project, setProject] = useState<RealProject | null>(null);
   const currentProject = useRef<RealProject | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const visionAbort = useRef<AbortController | null>(null);
   const working = useRef(false);
   const [saveState, setSaveState] = useState<"saving" | "saved" | "error">(
     "saved",
@@ -939,6 +974,108 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
     } finally {
       working.current = false;
       setBusy(null);
+    }
+  };
+
+  const proposeVisionRegions = async (target: "all" | RealImage) => {
+    const config = await getVisionConfig(new AbortController().signal);
+    if (!config.keyConfigured || !config.baseUrl || !config.model)
+      throw new Error(
+        "请先在「视觉服务」设置中配置服务、模型与密钥；候选仍需人工复核，像素测量始终在本机完成。/ Configure the vision service (base URL, model, key) first. Candidates still require manual review and pixel measurement stays local.",
+      );
+    const controller = new AbortController();
+    visionAbort.current = controller;
+    try {
+      const targets =
+        target === "all"
+          ? (currentProject.current as RealProject).images.filter(
+              (image) => !image.excluded,
+            )
+          : [target];
+      if (!targets.length) return;
+      if (target === "all") commit((previous) => analyzeAll(previous));
+      let done = 0;
+      for (const image of targets) {
+        if (controller.signal.aborted)
+          throw new Error("已取消视觉候选请求 / Vision candidate requests cancelled.");
+        done += 1;
+        setBusy(
+          t(
+            `正在获取视觉候选 ${done}/${targets.length}…`,
+            `Requesting vision candidates ${done}/${targets.length}…`,
+          ),
+        );
+        const current = (
+          currentProject.current as RealProject
+        ).images.find((entry) => entry.id === image.id)!;
+        const raster = imageRaster(current);
+        const laneCount = requiredLaneCount(
+          currentProject.current as RealProject,
+          current,
+        );
+        const laneLabels = (currentProject.current as RealProject).laneLabels;
+        const cacheKey = visionCacheKey({
+          imageHash: current.hash,
+          uploadPreviewWidth: VISION_UPLOAD_PREVIEW_WIDTH,
+          baseUrl: config.baseUrl,
+          model: config.model,
+          promptVersion: VISION_ANALYZE_PROMPT_VERSION,
+          laneCount,
+          laneLabels,
+          signal: current.signal,
+          revision: config.revision,
+        });
+        let bands = visionCandidatesCache.get(cacheKey);
+        if (!bands) {
+          const preview = await uploadPreviewDataUrl(rasterPreview(raster));
+          let result;
+          try {
+            result = await analyzeVisionCandidates(
+              {
+                revision: config.revision,
+                laneCount,
+                laneLabels: laneLabels.map((label) => label.slice(0, 60)),
+                signal: current.signal,
+                imageDataUrl: preview,
+              },
+              controller.signal,
+            );
+          } catch (problem) {
+            if (problem instanceof DOMException && problem.name === "AbortError")
+              throw new Error(
+                "已取消视觉候选请求 / Vision candidate requests cancelled.",
+              );
+            throw problem;
+          }
+          bands = result.bands;
+          visionCandidatesCache.set(cacheKey, bands);
+        }
+        const baseRegions = current.regions.length
+          ? current.regions
+          : proposeRegions(raster, laneCount, current.signal);
+        commit((previous) =>
+          updateRealImage(previous, image.id, {
+            regions: applyVisionCandidates(baseRegions, bands, {
+              width: raster.width,
+              height: raster.height,
+              maxLane: laneCount,
+            }),
+          }),
+        );
+      }
+      setNotice(
+        target === "all"
+          ? t(
+              "视觉候选已合并，全部候选（含视觉来源）必须逐图人工复核；测量始终使用本机原始像素。",
+              "Vision candidates are merged in. All candidates (including vision-sourced) require per-image review; measurement always uses local original pixels.",
+            )
+          : t(
+              "视觉候选已合并，请人工复核此图。",
+              "Vision candidates are merged in; review this image manually.",
+            ),
+      );
+    } finally {
+      visionAbort.current = null;
     }
   };
 
@@ -1614,6 +1751,14 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
         <div className="real-notice" role="status">
           <LoaderCircle size={17} />
           <span>{busy}</span>
+          {visionAbort.current && (
+            <button
+              className="real-button"
+              onClick={() => visionAbort.current?.abort()}
+            >
+              {t("取消视觉请求", "Cancel vision requests")}
+            </button>
+          )}
         </div>
       )}
       <nav
@@ -2340,6 +2485,25 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
             <ScanLine size={16} />
             {t("全部建议并计算", "Propose & calculate all")}
           </button>
+          <button
+            className="real-button"
+            disabled={
+              !!busy ||
+              !project.images.length ||
+              designMode !== (project.pairedDesign ? "paired" : "shared") ||
+              lanePreview !== null ||
+              laneDraft !== project.laneDescription
+            }
+            onClick={() =>
+              void run(
+                t("正在获取视觉候选…", "Requesting vision candidates…"),
+                () => proposeVisionRegions("all"),
+              )
+            }
+          >
+            <ScanLine size={16} />
+            {t("视觉 API 候选（可选）", "Vision API candidates (optional)")}
+          </button>
         </div>
         {!image || !raster ? (
           <div className="real-empty">
@@ -2743,6 +2907,21 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                   }}
                 >
                   {t("按当前区域重算", "Recalculate current regions")}
+                </button>
+                <button
+                  className="real-button"
+                  disabled={!!busy || image.excluded}
+                  onClick={() =>
+                    void run(
+                      t("正在获取视觉候选…", "Requesting vision candidates…"),
+                      () => proposeVisionRegions(image),
+                    )
+                  }
+                >
+                  {t(
+                    "视觉 API 候选（此图，可选）",
+                    "Vision API candidates (this image, optional)",
+                  )}
                 </button>
                 <hr />
                 <label className="real-field">

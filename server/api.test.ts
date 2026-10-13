@@ -570,3 +570,90 @@ describe("synthetic-only connection test", () => {
     );
   });
 });
+
+describe("real-image vision candidate analysis", () => {
+  const analyzeBody = (
+    patch: Record<string, unknown> = {},
+  ): Record<string, unknown> => ({
+    revision: 1,
+    laneCount: 3,
+    laneLabels: ["NC", "siLDHB", "marker"],
+    signal: "dark",
+    image:
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    ...patch,
+  });
+  const normalizedCompletion = (content: unknown) =>
+    completion(content as Record<string, unknown>);
+
+  it("returns validated normalized band candidates for the declared lanes", async () => {
+    const content = {
+      bands: [
+        { lane: 1, x: 0.05, y: 0.2, width: 0.1, height: 0.3 },
+        { lane: 2, x: 0.4, y: 0.2, width: 0.1, height: 0.3 },
+      ],
+    };
+    const api = await harness(
+      vi.fn<typeof fetch>().mockImplementation(async () => normalizedCompletion(content)),
+    );
+    await api.config();
+    const response = await api.call("/api/vision/analyze", "POST", analyzeBody());
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      baseUrl: "https://provider.example/v1",
+      model: "vision-test",
+      promptVersion: "wb-lane-band-candidates-v1",
+      bands: content.bands,
+    });
+    const [url, init] = api.fetchImpl.mock.calls[0];
+    expect(String(url)).toBe("https://provider.example/v1/chat/completions");
+    const sent = JSON.parse(String(init?.body));
+    expect(sent.messages[1].content[0].text).toContain("1 = NC");
+    expect(sent.messages[1].content[1].image_url.url.startsWith("data:image/png")).toBe(true);
+  });
+
+  it("rejects provider payloads with unknown lanes, duplicates, or out-of-range boxes", async () => {
+    for (const content of [
+      { bands: [{ lane: 4, x: 0.1, y: 0.1, width: 0.1, height: 0.1 }] },
+      {
+        bands: [
+          { lane: 1, x: 0.1, y: 0.1, width: 0.1, height: 0.1 },
+          { lane: 1, x: 0.5, y: 0.1, width: 0.1, height: 0.1 },
+        ],
+      },
+      { bands: [{ lane: 1, x: 0.9, y: 0.1, width: 0.3, height: 0.1 }] },
+      { unexpected: true },
+    ]) {
+      const api = await harness(
+        vi.fn<typeof fetch>().mockImplementation(async () => normalizedCompletion(content)),
+      );
+      await api.config();
+      const response = await api.call("/api/vision/analyze", "POST", analyzeBody());
+      expect(response.status).toBe(502);
+      expect(response.body.error.code).toBe("INVALID_RESPONSE");
+    }
+  });
+
+  it("requires a matching revision, a configured key, and the local origin", async () => {
+    const api = await harness(
+      vi.fn<typeof fetch>().mockImplementation(async () => normalizedCompletion({ bands: [] })),
+    );
+    await api.config({ apiKey: undefined });
+    const noKey = await api.call("/api/vision/analyze", "POST", analyzeBody());
+    expect(noKey.status).toBe(409);
+    await api.config();
+    const stale = await api.call("/api/vision/analyze", "POST", analyzeBody({ revision: 99 }));
+    expect(stale.status).toBe(409);
+    const wrongOrigin = await fetch(`${api.origin}/api/vision/analyze`, {
+      method: "POST",
+      headers: { Origin: "https://evil.example", "Content-Type": "application/json" },
+      body: JSON.stringify(analyzeBody()),
+    });
+    expect(wrongOrigin.status).toBe(403);
+    const oversized = await api.call("/api/vision/analyze", "POST", {
+      ...analyzeBody(),
+      image: `data:image/png;base64,${"A".repeat(13 * 1024 * 1024)}`,
+    });
+    expect([409, 413]).toContain(oversized.status);
+  });
+});
