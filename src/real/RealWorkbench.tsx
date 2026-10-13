@@ -59,6 +59,9 @@ import {
   type Rect,
 } from "./pixels";
 import { renderFigure } from "./figure-export";
+import { buildComposedFigureSvg } from "./figure-compose";
+import { ROLLING_BALL_ALGORITHM } from "./rolling-ball";
+import { APP_VERSION } from "../core/types";
 import {
   analyzeVisionCandidates,
   getVisionConfig,
@@ -1529,6 +1532,53 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
         `${isDraft ? "DRAFT-" : "EXPERIMENTAL-"}${fileStem(protein)}-paired.${format === "tiff" ? "tif" : format}`,
       );
     });
+  const composedFigureSvg = async (): Promise<string> => {
+    const chart = figureRef.current;
+    if (!chart)
+      throw new Error("Quantification chart is not rendered / 定量图尚未渲染");
+    if (!image)
+      throw new Error("Select an image first / 请先选择图像");
+    const current = currentProject.current;
+    const raster = imageRaster(image);
+    const bytes = rasterPreview(raster);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000)
+      binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    const correction = current?.backgroundCorrection;
+    const policy = current ? effectiveNormalization(current) : null;
+    return buildComposedFigureSvg({
+      layout: "side-by-side",
+      imageHref: `data:image/png;base64,${btoa(binary)}`,
+      imageWidth: raster.width,
+      imageHeight: raster.height,
+      regions: image.regions,
+      laneLabels: current?.laneLabels ?? [],
+      chartSvg: new XMLSerializer().serializeToString(chart),
+      captionLines: [
+        t("定量：", "Quantitation: ") +
+          (correction?.kind === "rolling-ball"
+            ? `rolling ball r=${correction.radius} (${ROLLING_BALL_ALGORITHM})`
+            : t("局部背景取样框", "local background ROIs")),
+        t("归一化：", "Normalization: ") +
+        (policy?.kind === "reference-unit"
+          ? `reference-unit ${policy.unitId}`
+          : "matched-control"),
+        `blot-workbench ${APP_VERSION}`,
+      ],
+    });
+  };
+  const exportComposedFigure = async (format: "svg" | "png" | "tiff") => {
+    const svg = await composedFigureSvg();
+    format === "svg"
+      ? saveBlob(
+          new Blob([svg], { type: "image/svg+xml;charset=utf-8" }),
+          `${fileStem(project?.name ?? "blot-workbench")}-figure.svg`,
+        )
+      : saveBlob(
+          await renderFigure(svg, format),
+          `${fileStem(project?.name ?? "blot-workbench")}-figure.${format}`,
+        );
+  };
 
   if (!project)
     return (
@@ -3289,6 +3339,22 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                   >
                     <Download size={15} />
                     {format.toUpperCase()}
+                  </button>
+                ))}
+                {(["svg", "png", "tiff"] as const).map((format) => (
+                  <button
+                    className="real-button"
+                    key={`composed-${format}`}
+                    disabled={!!busy || !figureAvailable}
+                    onClick={() =>
+                      void run(
+                        t("正在合成组合图版…", "Composing the figure…"),
+                        () => exportComposedFigure(format),
+                      )
+                    }
+                  >
+                    <Layers size={15} />
+                    {t("组合图版", "Composed figure")} {format.toUpperCase()}
                   </button>
                 ))}
               </div>
