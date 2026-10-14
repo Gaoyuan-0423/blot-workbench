@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 
 async function ready(page: Page) {
-  await page.goto("/");
+  await page.goto("/#demo");
   await expect(
     page.getByRole("heading", { name: "项目总览", exact: true }),
   ).toBeVisible();

@@ -2158,3 +2158,109 @@ tbody tr:hover {
     transition: none !important;
   }
 }
+
+/* ── 根入口页 / Landing hub ── */
+.home {
+  min-height: 100vh;
+  background: #f6f8f7;
+  color: #1c2b26;
+  font-family: "Source Sans Pro", -apple-system, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+}
+.home-topbar {
+  align-items: center;
+  border-bottom: 1px solid #e2e6e4;
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 28px;
+}
+.home-brand {
+  align-items: center;
+  color: #1f5c4d;
+  display: flex;
+  font-size: 19px;
+  font-weight: 700;
+  gap: 9px;
+}
+.home-lang {
+  background: #fff;
+  border: 1px solid #cfd8d4;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 12px;
+}
+.home-main {
+  margin: 0 auto;
+  max-width: 980px;
+  padding: 40px 24px;
+}
+.home-main h1 {
+  font-size: 30px;
+  margin: 0 0 8px;
+}
+.home-tagline {
+  color: #4d5c56;
+  font-size: 15px;
+  margin: 0 0 28px;
+}
+.home-cards {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+.home-card {
+  background: #fff;
+  border: 1px solid #dde3e0;
+  border-radius: 10px;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px 22px;
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.home-card:hover {
+  border-color: #1f5c4d;
+  box-shadow: 0 2px 12px rgba(31, 92, 77, 0.12);
+}
+.home-card-primary {
+  border-color: #1f5c4d;
+}
+.home-card-guide {
+  grid-column: 1 / -1;
+}
+.home-card-head {
+  align-items: baseline;
+  color: #1f5c4d;
+  display: flex;
+  gap: 10px;
+}
+.home-card-head h2 {
+  font-size: 17px;
+  margin: 0;
+}
+.home-card-en {
+  color: #7a8a84;
+  font-size: 12px;
+}
+.home-card p {
+  flex: 1;
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin: 0;
+}
+.home-card-cta {
+  color: #1f5c4d;
+  font-size: 13px;
+  font-weight: 600;
+}
+.home-footer {
+  color: #7a8a84;
+  font-size: 12.5px;
+  margin-top: 30px;
+}
+.home-footer a {
+  color: #1f5c4d;
+}
