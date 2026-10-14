@@ -55,6 +55,17 @@ With small n, especially n=3, approximate normality of paired differences is dif
 
 **Composed figure**: the results bar gains "Composed figure SVG/PNG/TIFF", combining the ROI-annotated original, the quantification chart, and a method footer (background method/radius, normalization baseline, app version) into a single file for archiving or discussion.
 
+**Run all & report**: the batch bar gains "Run all & report" — proposals rerun for every image and a graded report is produced: issues (blocker/warning/info with stable codes and the image/lane involved) plus prioritized recommendations (confirm the design, fix nonpositive-net boxes, shorten exposures to avoid saturation, draw manual ROIs for ambiguous images). The report downloads as JSON.
+
+**Local automation API**: the local server (`npm run local:preview` or `npm run reviewer:start`) exposes `POST /api/analyze` for scripts and other tools: upload original TIFF/PNG files (base64) plus the lane description, and the full pipeline — decode, propose, measure, normalize — runs locally, returning the report JSON, complete results, and the audit CSV. Only same-origin local requests are accepted; images never leave the machine. Options include `backgroundCorrection` (rolling-ball radius) and `normalization`. Example:
+
+```sh
+curl -s -X POST http://127.0.0.1:4318/api/analyze \
+  -H "Origin: http://127.0.0.1:4318" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"QA","laneDescription":"1=NC; 2=Drug; 3=marker","images":[{"name":"Target_rep1.png","base64":"..."}]}'
+```
+
 ## 6. Export, save, and return
 
 CSV exports retain provenance, measurement method, normalization values, review state, and quality flags. Charts support SVG, PNG, and TIFF. Figure export renders results and does not modify measurement images. A TIFF figure export does not establish source-image bit-depth preservation.

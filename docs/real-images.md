@@ -55,6 +55,17 @@
 
 **组合图版**：结果区新增「组合图版 SVG/PNG/TIFF」导出，把标注 ROI 的原图与定量图、方法说明（背景方法与半径、归一化基准、软件版本）合成为单张文件，便于归档或讨论。
 
+**一键分析并体检**：批量区新增「一键分析并体检」——重跑全部候选后生成分级问题清单（阻塞/警告/提示，附问题码与所在图/泳道）和按优先级排序的优化建议（如确认设计、修正非正净信号取样框、缩短曝光避免饱和、对歧义图手动框选），并可下载报告 JSON。
+
+**本机自动化 API**：本地服务（`npm run local:preview` 或 `npm run reviewer:start`）暴露 `POST /api/analyze`，供脚本或其他工具程序化调用：上传原始 TIFF/PNG（base64）与泳道说明，即可完成解码、候选、测量、归一化全流程，返回报告 JSON、完整结果与审计 CSV。仅接受本机同源请求，图像不离开本机；选项支持 `backgroundCorrection`（rolling ball 半径）与 `normalization`。示例：
+
+```sh
+curl -s -X POST http://127.0.0.1:4318/api/analyze \
+  -H "Origin: http://127.0.0.1:4318" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"QA","laneDescription":"1=NC; 2=Drug; 3=marker","images":[{"name":"Target_rep1.png","base64":"..."}]}'
+```
+
 ## 6. 导出、保存与恢复
 
 导出 CSV 保留来源、取样方法、归一化中间量、复核及质量状态；统计图支持 SVG、PNG 和 TIFF。图形导出是结果的渲染，不改变测量图像。不要把 TIFF 图形导出当作原始图像位深保真的证据。

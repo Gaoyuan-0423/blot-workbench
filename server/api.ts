@@ -65,7 +65,7 @@ const failures = {
 } as const;
 type FailureCode = keyof typeof failures;
 
-class ApiFailure extends Error {
+export class ApiFailure extends Error {
   constructor(readonly code: FailureCode) {
     super(code);
   }
@@ -127,7 +127,7 @@ export function hasTrustedHost(
   return hostCount === 1 && request.headers.host === expected;
 }
 
-function assertLocalRequest(request: IncomingMessage, origin: string): void {
+export function assertLocalRequest(request: IncomingMessage, origin: string): void {
   if (!hasTrustedHost(request, origin)) fail("FORBIDDEN");
   const requestOrigin = request.headers.origin;
   const fetchSite = request.headers["sec-fetch-site"];

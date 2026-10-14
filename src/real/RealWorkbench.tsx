@@ -61,6 +61,10 @@ import {
 import { renderFigure } from "./figure-export";
 import { buildComposedFigureSvg } from "./figure-compose";
 import { ROLLING_BALL_ALGORITHM } from "./rolling-ball";
+import {
+  buildAnalysisReport,
+  type AnalysisReport,
+} from "./analysis-report";
 import { APP_VERSION } from "../core/types";
 import {
   analyzeVisionCandidates,
@@ -889,6 +893,9 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
   const [loadFailed, setLoadFailed] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const visionAbort = useRef<AbortController | null>(null);
+  const [analysisReport, setAnalysisReport] = useState<AnalysisReport | null>(
+    null,
+  );
   const working = useRef(false);
   const [saveState, setSaveState] = useState<"saving" | "saved" | "error">(
     "saved",
@@ -1811,6 +1818,91 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           )}
         </div>
       )}
+      {analysisReport && (
+        <div
+          className="real-report"
+          role="region"
+          aria-label={t("一键分析报告", "One-click analysis report")}
+        >
+          <div className="real-report-head">
+            <h3>{t("一键分析报告", "One-click analysis report")}</h3>
+            <span className="real-method-badge">
+              {t(
+                `${analysisReport.summary.images} 图 · 就绪 ${analysisReport.summary.results.ready} · 草稿 ${analysisReport.summary.results.draft} · 阻断 ${analysisReport.summary.results.blocked} · 阻塞问题 ${analysisReport.summary.issues.blocker} · 警告 ${analysisReport.summary.issues.warning}`,
+                `${analysisReport.summary.images} images · ready ${analysisReport.summary.results.ready} · draft ${analysisReport.summary.results.draft} · blocked ${analysisReport.summary.results.blocked} · blockers ${analysisReport.summary.issues.blocker} · warnings ${analysisReport.summary.issues.warning}`,
+              )}
+            </span>
+            <div className="real-actions">
+              <button
+                className="real-button"
+                onClick={() =>
+                  saveBlob(
+                    new Blob([JSON.stringify(analysisReport, null, 2)], {
+                      type: "application/json;charset=utf-8",
+                    }),
+                    `${fileStem(project?.name ?? "blot-workbench")}-report.json`,
+                  )
+                }
+              >
+                <Download size={15} />
+                {t("下载报告 JSON", "Download report JSON")}
+              </button>
+              <button
+                className="real-button"
+                onClick={() => setAnalysisReport(null)}
+              >
+                {t("关闭", "Close")}
+              </button>
+            </div>
+          </div>
+          {analysisReport.issues.length ? (
+            <ul className="real-report-issues">
+              {analysisReport.issues.map((issue, index) => (
+                <li
+                  key={`${issue.code}-${index}`}
+                  className={`real-report-issue ${issue.severity}`}
+                >
+                  <span className="real-report-code">{issue.code}</span>
+                  <span>{issue.message}</span>
+                  {issue.imageName && (
+                    <small>
+                      {issue.imageName}
+                      {issue.lane
+                        ? ` · ${t("泳道", "lane")} ${issue.lane}`
+                        : ""}
+                    </small>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="real-muted">
+              {t("未发现问题。", "No issues found.")}
+            </p>
+          )}
+          {analysisReport.recommendations.length > 0 && (
+            <div className="real-report-recs">
+              <strong>
+                {t("优化方向（按优先级）", "Recommended next steps (by priority)")}
+              </strong>
+              <ol>
+                {[...analysisReport.recommendations]
+                  .sort((a, b) => a.priority - b.priority)
+                  .map((rec) => (
+                    <li key={rec.code}>
+                      <strong>
+                        {language === "zh" ? rec.title.zh : rec.title.en}
+                      </strong>
+                      <p>
+                        {language === "zh" ? rec.detail.zh : rec.detail.en}
+                      </p>
+                    </li>
+                  ))}
+              </ol>
+            </div>
+          )}
+        </div>
+      )}
       <nav
         className="real-progress-nav"
         aria-label={t("分析步骤", "Analysis steps")}
@@ -2553,6 +2645,23 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           >
             <ScanLine size={16} />
             {t("视觉 API 候选（可选）", "Vision API candidates (optional)")}
+          </button>
+          <button
+            className="real-button"
+            disabled={!!busy || !project.images.length}
+            onClick={() =>
+              void run(
+                t("正在一键分析所有图像…", "Running one-click analysis…"),
+                () => {
+                  commit((previous) => analyzeAll(previous, true));
+                  const next = currentProject.current;
+                  if (next) setAnalysisReport(buildAnalysisReport(next));
+                },
+              )
+            }
+          >
+            <ShieldCheck size={16} />
+            {t("一键分析并体检", "Run all & report")}
           </button>
         </div>
         {!image || !raster ? (

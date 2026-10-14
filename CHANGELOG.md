@@ -10,6 +10,8 @@
   Optional vision-API candidates: `POST /api/vision/analyze` forwards a downscaled preview plus declared lane labels to the user-configured OpenAI-compatible provider (key only in local process memory) and strictly validates normalized per-lane band rectangles. Merged via a hash+preview+model+prompt-bounded cache, always marked for review. Pixel measurement stays fully local, and the whole flow works without any API key.
 - 组合图版导出：标注 ROI 的原图 + 定量图 + 方法说明（背景方法/半径、归一化基准、版本）合成为单张 SVG/PNG/TIFF。
   Composed figure export: ROI-annotated original plus the quantification chart and a method footer (background method/radius, normalization baseline, version) assembled into one SVG/PNG/TIFF.
+- 一键分析接口与报告：工作台新增「一键分析并体检」，本地服务新增 `POST /api/analyze`——上传原始图与泳道说明即完成解码、候选、测量、归一化全流程，返回结构化报告（分级问题清单 + 按优先级的优化建议）、完整结果与审计 CSV。全部计算在本机完成；问题码与建议规则有单元测试覆盖。
+  One-click analysis: a "Run all & report" action plus `POST /api/analyze` on the local server — upload originals and the lane description to run decode → propose → measure → normalize end-to-end, returning a structured report (graded issues + prioritized recommendations), full results, and the audit CSV. All computation stays local; issue codes and recommendation rules are unit-tested.
 
 ## 0.3.0-alpha.1 — 2026-10-13 · 预发布 / Pre-release
 
