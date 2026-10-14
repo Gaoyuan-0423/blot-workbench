@@ -6,6 +6,9 @@ import type {
 import { performance } from "node:perf_hooks";
 import { z } from "zod";
 import { getFixtures } from "../src/core/fixtures";
+import {
+  providerBandsSchema as sharedProviderBandsSchema,
+} from "../src/vision/schema";
 
 const MAX_REQUEST_BYTES = 8 * 1024;
 const MAX_ANALYZE_REQUEST_BYTES = 12 * 1024 * 1024;
@@ -209,24 +212,9 @@ const analyzeSchema = z
       request.laneLabels.length === 0 ||
       request.laneLabels.length === request.laneCount,
   );
-const providerBandSchema = z
-  .object({
-    lane: z.number().int().min(1).max(MAX_LANES),
-    x: z.number().min(0).max(1),
-    y: z.number().min(0).max(1),
-    width: z.number().gt(0).max(1),
-    height: z.number().gt(0).max(1),
-  })
-  .strict()
-  .refine(
-    (band) => band.x + band.width <= 1 + 1e-9 && band.y + band.height <= 1 + 1e-9,
-  );
-const providerBandsSchema = z
-  .object({ bands: z.array(providerBandSchema).max(MAX_LANES) })
-  .strict()
-  .refine(
-    ({ bands }) => new Set(bands.map((band) => band.lane)).size === bands.length,
-  );
+// Provider band candidates are validated through the shared schema so the
+// local server and the browser-direct BYOK client stay strictly identical.
+const providerBandsSchema = sharedProviderBandsSchema;
 const rectangleSchema = z
   .object({
     x: z
