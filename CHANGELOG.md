@@ -12,6 +12,10 @@
   Composed figure export: ROI-annotated original plus the quantification chart and a method footer (background method/radius, normalization baseline, version) assembled into one SVG/PNG/TIFF.
 - 一键分析接口与报告：工作台新增「一键分析并体检」，本地服务新增 `POST /api/analyze`——上传原始图与泳道说明即完成解码、候选、测量、归一化全流程，返回结构化报告（分级问题清单 + 按优先级的优化建议）、完整结果与审计 CSV。全部计算在本机完成；问题码与建议规则有单元测试覆盖。
   One-click analysis: a "Run all & report" action plus `POST /api/analyze` on the local server — upload originals and the lane description to run decode → propose → measure → normalize end-to-end, returning a structured report (graded issues + prioritized recommendations), full results, and the audit CSV. All computation stays local; issue codes and recommendation rules are unit-tested.
+- 视觉服务改为自带 API（BYOK）浏览器直连：`#real` 内新增「视觉服务（自带 API）」面板——预置 OpenAI / DashScope / 硅基流动 / DeepSeek 五家浏览器直连友好的服务商并支持自定义 https 地址；密钥默认仅存页面内存，显式勾选才写入本设备（明文可清除）；「发送合成图测试」不发项目数据。候选校验移入共享 schema，本机服务端路由与浏览器直连共用同一规则。
+  Vision candidates switch to BYOK browser-direct: a panel inside #real presets five CORS-friendly providers (OpenAI / DashScope / SiliconFlow / DeepSeek) plus custom https URLs; the key stays in page memory unless explicitly remembered (plaintext, clearable); the connectivity test sends a synthetic image only. Candidate validation moved to a shared schema used by both the local server route and the direct client.
+- 分步使用说明与教程：四步导航各加「本步怎么做」折叠帮助；使用教程新增真实工作台七章（示例载入 → 一键分析 → 逐图复核 → 视觉 API 配置 → 背景方法 → 归一化统计 → 导出与报告）；空状态增加「载入内置示例」直达入口。
+  Step-by-step guidance: collapsible per-step help in the four-step nav, a seven-chapter real-workbench walkthrough in the user guide (example → run → review → BYOK → background → normalize → export), and a "Load the built-in example" shortcut in the empty state.
 
 ## 0.3.0-alpha.1 — 2026-10-13 · 预发布 / Pre-release
 

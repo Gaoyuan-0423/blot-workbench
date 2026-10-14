@@ -57,6 +57,10 @@ With small n, especially n=3, approximate normality of paired differences is dif
 
 **Run all & report**: the batch bar gains "Run all & report" — proposals rerun for every image and a graded report is produced: issues (blocker/warning/info with stable codes and the image/lane involved) plus prioritized recommendations (confirm the design, fix nonpositive-net boxes, shorten exposures to avoid saturation, draw manual ROIs for ambiguous images). The report downloads as JSON.
 
+**Vision service (BYOK, works on the public site)**: expand "Vision service (your own API)" in the batch bar and fill the base URL, model, and API key. Presets cover OpenAI, Alibaba DashScope (CN/intl), SiliconFlow, and DeepSeek — all known to accept browser requests — plus custom https URLs (must allow CORS and the model must accept images). The key stays in page memory by default and clears on refresh; check "remember" to persist it in localStorage (plaintext, clearable). "Send synthetic test" transmits one built-in synthetic image. Candidate requests go only to your address and are always flagged for review; pixel measurement stays fully local.
+
+**Public website**: the real workspace ships with the main site: `https://gaoyuan-0423.github.io/blot-workbench/#real` (example data built in; no local service required).
+
 **Local automation API**: the local server (`npm run local:preview` or `npm run reviewer:start`) exposes `POST /api/analyze` for scripts and other tools: upload original TIFF/PNG files (base64) plus the lane description, and the full pipeline — decode, propose, measure, normalize — runs locally, returning the report JSON, complete results, and the audit CSV. Only same-origin local requests are accepted; images never leave the machine. Options include `backgroundCorrection` (rolling-ball radius) and `normalization`. Example:
 
 ```sh

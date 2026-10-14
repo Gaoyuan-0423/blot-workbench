@@ -860,3 +860,22 @@
 .real-report-recs ol { margin: 6px 0 0 18px; padding: 0; }
 .real-report-recs li { margin: 8px 0; font-size: 13px; }
 .real-report-recs p { margin: 2px 0 0; color: #556; }
+
+.real-step-help {
+  background: #f7f8fa;
+  border: 1px solid #e3e5ea;
+  border-radius: 6px;
+  font-size: 13px;
+  margin: 6px 0;
+  padding: 6px 10px;
+}
+.real-step-help summary {
+  color: #2b5a4c;
+  cursor: pointer;
+  font-weight: 600;
+}
+.real-step-help ol {
+  margin: 6px 0 2px 18px;
+  padding: 0;
+}
+.real-step-help li { margin: 4px 0; }
