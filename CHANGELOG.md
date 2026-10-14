@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.0-dev.1 — 开发中 / Unreleased
+
+- 可选的 rolling ball 背景扣除：与 ImageJ「Subtract Background」逐像素一致（独立 TypeScript 实现其公共领域算法），与现有局部背景取样框方法共存可切换；切换会使全部复核状态失效。结果与 CSV 记录 `background_method`、`rolling_ball_radius`，10 张膜 × 半径 25/50/100 的实测对照见验证文档（最差逐像素精确率 99.9955%、IntDen 相对差 ≤0.00002%）。
+  Optional rolling-ball background correction, pixel-compatible with ImageJ's Subtract Background (independent implementation of its public-domain algorithm), coexists with the existing local-background-ROI method; switching invalidates review states. Results and CSV record `background_method` and `rolling_ball_radius`; a 10-membrane × 3-radius parity table is in the validation notes (worst pixel-exact 99.9955%, worst IntDen delta 0.00002%).
+- 泳道候选升级为列投影 + Otsu 分割（左侧 N 条，右侧 marker 明确报告），每条泳道用自身行投影定位条带（不均匀跑带不再整体塌缩到同一行）；泳道间浅沟与多排歧义保持显式警告或阻断。
+  Lane proposals upgrade to column-projection + Otsu segmentation (leftmost N runs; trailing markers reported), with each lane's band located by its own row projection so uneven runs no longer collapse onto one row. Shallow gutters and multi-row ambiguity keep explicit warnings or blocks.
+- 可选视觉 API 候选：`POST /api/vision/analyze` 把缩小预览与已声明泳道标签转发到用户配置的 OpenAI 兼容服务（密钥仅存本机进程内存），严格校验归一化的逐泳道条带矩形；结果经哈希+预览+模型+提示词绑定缓存合并进候选并全部标记待复核。像素测量仍 100% 本机；无 API Key 时完整流程不受影响。
+  Optional vision-API candidates: `POST /api/vision/analyze` forwards a downscaled preview plus declared lane labels to the user-configured OpenAI-compatible provider (key only in local process memory) and strictly validates normalized per-lane band rectangles. Merged via a hash+preview+model+prompt-bounded cache, always marked for review. Pixel measurement stays fully local, and the whole flow works without any API key.
+- 组合图版导出：标注 ROI 的原图 + 定量图 + 方法说明（背景方法/半径、归一化基准、版本）合成为单张 SVG/PNG/TIFF。
+  Composed figure export: ROI-annotated original plus the quantification chart and a method footer (background method/radius, normalization baseline, version) assembled into one SVG/PNG/TIFF.
+- 一键分析接口与报告：工作台新增「一键分析并体检」，本地服务新增 `POST /api/analyze`——上传原始图与泳道说明即完成解码、候选、测量、归一化全流程，返回结构化报告（分级问题清单 + 按优先级的优化建议）、完整结果与审计 CSV。全部计算在本机完成；问题码与建议规则有单元测试覆盖。
+  One-click analysis: a "Run all & report" action plus `POST /api/analyze` on the local server — upload originals and the lane description to run decode → propose → measure → normalize end-to-end, returning a structured report (graded issues + prioritized recommendations), full results, and the audit CSV. All computation stays local; issue codes and recommendation rules are unit-tested.
+- 视觉服务改为自带 API（BYOK）浏览器直连：`#real` 内新增「视觉服务（自带 API）」面板——预置 OpenAI / DashScope / 硅基流动 / DeepSeek 五家浏览器直连友好的服务商并支持自定义 https 地址；密钥默认仅存页面内存，显式勾选才写入本设备（明文可清除）；「发送合成图测试」不发项目数据。候选校验移入共享 schema，本机服务端路由与浏览器直连共用同一规则。
+  Vision candidates switch to BYOK browser-direct: a panel inside #real presets five CORS-friendly providers (OpenAI / DashScope / SiliconFlow / DeepSeek) plus custom https URLs; the key stays in page memory unless explicitly remembered (plaintext, clearable); the connectivity test sends a synthetic image only. Candidate validation moved to a shared schema used by both the local server route and the direct client.
+- 分步使用说明与教程：四步导航各加「本步怎么做」折叠帮助；使用教程新增真实工作台七章（示例载入 → 一键分析 → 逐图复核 → 视觉 API 配置 → 背景方法 → 归一化统计 → 导出与报告）；空状态增加「载入内置示例」直达入口。
+  Step-by-step guidance: collapsible per-step help in the four-step nav, a seven-chapter real-workbench walkthrough in the user guide (example → run → review → BYOK → background → normalize → export), and a "Load the built-in example" shortcut in the empty state.
+
 ## 0.3.0-alpha.1 — 2026-10-13 · 预发布 / Pre-release
 
 以 `0.3.0-dev.1`–`0.3.0-dev.3` 开发预览合并发布。公开网页仍部署 `0.1.0-alpha.1`；本版经 GitHub Release 附件分发。 / Released from development previews dev.1–dev.3. The public website still deploys `0.1.0-alpha.1`; this version ships via GitHub Release assets.

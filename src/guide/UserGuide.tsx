@@ -345,6 +345,122 @@ export default function UserGuide({
         </ol>
       </section>
 
+      <section
+        className="guide-real"
+        aria-labelledby="guide-real-title"
+      >
+        <div className="guide-section-heading">
+          <span className="guide-section-number" aria-hidden="true">
+            02
+          </span>
+          <div>
+            <h2 id="guide-real-title">
+              {t(
+                "真实图像工作台：从示例到出报告",
+                "Real-image workbench: from the example to a report",
+              )}
+            </h2>
+            <p>
+              {t(
+                "真实工作区从原始像素计算，全部在本机浏览器完成；以下七步用内置合成示例走通全流程。",
+                "The real workspace measures original pixels entirely in your browser. The seven steps below walk the built-in synthetic example through the whole flow.",
+              )}
+            </p>
+          </div>
+          <ScanLine size={25} aria-hidden="true" />
+        </div>
+        <ol className="guide-step-grid">
+          {[
+            {
+              title: t("载入内置示例", "Load the built-in example"),
+              paragraphs: [
+                t(
+                  "打开 #real，点「载入内置示例」并确认导入。示例是脚本合成的三组目标/内参图对（NC 与 Treatment），不含任何真实实验数据。",
+                  "Open #real, click \"Load the built-in example\", and confirm the import. The example is a script-generated set of three target/reference pairs (NC and Treatment) with no real experimental data.",
+                ),
+              ],
+            },
+            {
+              title: t("一键分析并体检", "Run all & report"),
+              paragraphs: [
+                t(
+                  "点「一键分析并体检」：程序提出条带与背景候选、读取原始像素、按共同基准归一化，并给出分级问题清单与按优先级的优化建议。示例的预期 Treatment fold 为 0.5 / 0.75 / 1。",
+                  "Click \"Run all & report\": the app drafts band/background candidates, reads original pixels, normalizes against a common baseline, and produces graded issues plus prioritized recommendations. The expected example folds are 0.5 / 0.75 / 1.",
+                ),
+              ],
+            },
+            {
+              title: t("逐图复核候选", "Review candidates per image"),
+              paragraphs: [
+                t(
+                  "在「图片分析」里逐图核对条带与背景框（可拖动、缩放、精确调坐标），确认后勾选「已人工检查此图」。手动修改会重置该图复核。",
+                  "In the analysis view, check each band/background box (drag, scale, or edit coordinates), then tick \"I reviewed this image\". Manual edits reset that image's review.",
+                ),
+              ],
+            },
+            {
+              title: t("需要时配置自己的视觉 API", "Optionally configure your own vision API"),
+              paragraphs: [
+                t(
+                  "想用视觉模型提候选：在「视觉服务（自带 API）」里填服务地址、模型与 API Key（预置 OpenAI / DashScope / 硅基流动 / DeepSeek，也支持自定义 https 地址）。密钥默认仅存页面内存，勾选记住才写入本设备；可先「发送合成图测试」。候选仍需人工复核，像素测量始终在本机。",
+                  "To draft candidates with a vision model, fill the base URL, model, and API key in the vision panel (presets for OpenAI / DashScope / SiliconFlow / DeepSeek, plus custom https URLs). The key stays in page memory unless you check \"remember\"; run the synthetic test first. Candidates still need manual review, and pixel measurement stays local.",
+                ),
+              ],
+            },
+            {
+              title: t("选择背景方法", "Choose a background method"),
+              paragraphs: [
+                t(
+                  "默认局部背景取样框；也可切换 rolling ball（与 ImageJ「Subtract Background」逐像素一致，半径可调）。切换会使复核失效，结果与 CSV 记录所用方法。",
+                  "Local background ROIs are the default; you can switch to the rolling ball (pixel-compatible with ImageJ's Subtract Background, adjustable radius). Switching invalidates review states; results and CSV record the method.",
+                ),
+              ],
+            },
+            {
+              title: t("归一化与统计", "Normalize and test"),
+              paragraphs: [
+                t(
+                  "选归一化基准（共同基准 = 指定一个对照为 1；其他对照保留真实变异），需要 P 值时明确勾选配对 t 检验。",
+                  "Pick the normalization baseline (a common baseline sets one control to 1; other controls keep their variation) and explicitly enable the paired t-test when you need P values.",
+                ),
+              ],
+            },
+            {
+              title: t("导出与报告", "Export and report"),
+              paragraphs: [
+                t(
+                  "导出 CSV（含审计列）、统计 CSV、SVG/PNG/TIFF 图形、组合图版（原图+图表+方法说明）与项目包；报告 JSON 汇总问题与建议。",
+                  "Export CSV (with audit columns), statistics CSV, SVG/PNG/TIFF figures, the composed figure (original + chart + method footer), and the project package; the report JSON summarizes issues and recommendations.",
+                ),
+              ],
+            },
+          ].map((step, index) => (
+            <li className="guide-step" key={`real-${index}`}>
+              <div className="guide-step-heading">
+                <span
+                  className="guide-step-number"
+                  aria-label={t(`第 ${index + 1} 步`, `Step ${index + 1}`)}
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <h3>{step.title}</h3>
+              </div>
+              <div className="guide-step-copy">
+                {step.paragraphs.map((paragraph, i) => (
+                  <p key={i}>{paragraph}</p>
+                ))}
+              </div>
+            </li>
+          ))}
+        </ol>
+        <p>
+          {t(
+            "数据只在浏览器本机处理与保存；导出项目包才是可靠备份。公共演示不包含你的私人图像。",
+            "Data is processed and saved only in your browser; the exported project package is the only reliable backup. The public demo never contains your private images.",
+          )}
+        </p>
+      </section>
+
       <section className="guide-api" aria-labelledby="guide-api-title">
         <div className="guide-section-heading">
           <span className="guide-section-number" aria-hidden="true">

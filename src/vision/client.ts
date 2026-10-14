@@ -115,8 +115,31 @@ function parseResult(value: unknown): VisionTestResult {
   };
 }
 
+export interface VisionBandCandidate {
+  lane: number;
+  rect: { x: number; y: number; width: number; height: number };
+}
+
+export interface VisionAnalyzeRequest {
+  revision: number;
+  laneCount: number;
+  /** Declared lane labels; may be empty when only counts are known. */
+  laneLabels: string[];
+  signal: "dark" | "light";
+  /** PNG data URL of the upload preview. */
+  imageDataUrl: string;
+}
+
+export interface VisionAnalyzeResult {
+  baseUrl: string;
+  model: string;
+  promptVersion: string;
+  bands: VisionBandCandidate[];
+  elapsedMs: number;
+}
+
 async function request(
-  path: "/api/vision/config" | "/api/vision/test",
+  path: "/api/vision/config" | "/api/vision/test" | "/api/vision/analyze",
   method: "GET" | "POST" | "DELETE",
   signal: AbortSignal,
   body?: object,
@@ -190,4 +213,66 @@ export async function testVisionConfig(revision: number, signal: AbortSignal) {
   return parseResult(
     await request("/api/vision/test", "POST", signal, { revision }),
   );
+}
+
+function parseBandCandidates(value: unknown): VisionBandCandidate[] {
+  if (!record(value) || !Array.isArray(value.bands)) {
+    throw new VisionClientError("invalid-response");
+  }
+  if (value.bands.length > 32) throw new VisionClientError("invalid-response");
+  return value.bands.map((entry) => {
+    if (
+      !record(entry) ||
+      !Number.isSafeInteger(entry.lane) ||
+      (entry.lane as number) < 1 ||
+      !record(entry.rect)
+    ) {
+      throw new VisionClientError("invalid-response");
+    }
+    const rect = entry.rect as Record<string, unknown>;
+    for (const key of ["x", "y", "width", "height"]) {
+      if (typeof rect[key] !== "number" || !Number.isFinite(rect[key] as number)) {
+        throw new VisionClientError("invalid-response");
+      }
+    }
+    return {
+      lane: entry.lane as number,
+      rect: {
+        x: rect.x as number,
+        y: rect.y as number,
+        width: rect.width as number,
+        height: rect.height as number,
+      },
+    };
+  });
+}
+
+export async function analyzeVisionCandidates(
+  body: VisionAnalyzeRequest,
+  signal: AbortSignal,
+): Promise<VisionAnalyzeResult> {
+  const payload = await request(
+    "/api/vision/analyze",
+    "POST",
+    signal,
+    body as unknown as object,
+  );
+  if (
+    !record(payload) ||
+    !text(payload.baseUrl) ||
+    serviceOrigin(payload.baseUrl) === null ||
+    !text(payload.model, 256) ||
+    !text(payload.promptVersion, 128) ||
+    typeof payload.elapsedMs !== "number" ||
+    !Number.isFinite(payload.elapsedMs)
+  ) {
+    throw new VisionClientError("invalid-response");
+  }
+  return {
+    baseUrl: payload.baseUrl,
+    model: payload.model,
+    promptVersion: payload.promptVersion,
+    bands: parseBandCandidates(payload),
+    elapsedMs: payload.elapsedMs,
+  };
 }

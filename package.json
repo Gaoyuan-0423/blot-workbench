@@ -1,6 +1,6 @@
 {
   "name": "blot-workbench",
-  "version": "0.3.0-alpha.1",
+  "version": "0.4.0-dev.1",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -13,6 +13,7 @@
     "check": "npm run test && npm run build",
     "examples": "tsx scripts/generate-examples.ts",
     "test:scripts": "node --test scripts/*.check.mjs",
+    "test:parity": "tsx scripts/imagej-parity/run-parity.ts",
     "format": "prettier --write src tests scripts/generate-examples.ts *.ts",
     "local": "tsx server/local.ts",
     "local:preview": "tsx server/local.ts --production",

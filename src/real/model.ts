@@ -13,6 +13,12 @@ import {
   type Raster,
   type Signal,
 } from "./pixels";
+import {
+  cachedRollingBallBackground,
+  ROLLING_BALL_ALGORITHM,
+  ROLLING_BALL_RADIUS_RANGE,
+  measureRegionRollingBall,
+} from "./rolling-ball";
 
 export interface ImageAnalysis {
   protein: string;
@@ -47,6 +53,14 @@ export interface PairedLanePair {
 }
 export type NormalizationPolicy =
   { kind: "matched-control" } | { kind: "reference-unit"; unitId: string };
+/**
+ * Project-wide background correction. Absent means the historical local
+ * mean-background method; "rolling-ball" is ImageJ-compatible (see
+ * src/real/rolling-ball.ts) and carries its radius.
+ */
+export type BackgroundCorrection =
+  | { kind: "local" }
+  | { kind: "rolling-ball"; radius: number };
 export interface RealProject {
   format: "blot-workbench-real";
   version: 1;
@@ -62,6 +76,7 @@ export interface RealProject {
   designConfirmed: boolean;
   pairedDesign?: { pairs: PairedLanePair[] };
   normalization?: NormalizationPolicy;
+  backgroundCorrection?: BackgroundCorrection;
   /** New projects prefer one shared baseline; archives created before this field keep matched-control until chosen. */
   normalizationPreference?: "reference-unit";
   statisticalTest?: "none" | "paired-t";
@@ -91,6 +106,9 @@ export interface RealResult {
   bandSum: number | null;
   area: number | null;
   backgroundMean: number | null;
+  backgroundMethod: "local" | "rolling-ball";
+  /** Rolling-ball radius when backgroundMethod is "rolling-ball"; else null. */
+  rollingBallRadius: number | null;
   clippedFraction: number | null;
   referenceClippedFraction: number | null;
   ratio: number | null;
@@ -218,6 +236,7 @@ export function updateRealProject(
       | "designConfirmed"
       | "exampleKind"
       | "statisticalTest"
+      | "backgroundCorrection"
     >
   >,
 ): RealProject {
@@ -229,6 +248,7 @@ export function updateRealProject(
     "designConfirmed",
     "exampleKind",
     "statisticalTest",
+    "backgroundCorrection",
   ]);
   ensure(
     Object.keys(patch).every((key) => allowed.has(key)),
@@ -262,6 +282,17 @@ export function updateRealProject(
       typeof patch.designConfirmed === "boolean",
       "Invalid design confirmation / 实验设计确认值无效",
     );
+  if (patch.backgroundCorrection !== undefined) {
+    const correction = patch.backgroundCorrection;
+    ensure(
+      correction.kind === "local" ||
+        (correction.kind === "rolling-ball" &&
+          Number.isSafeInteger(correction.radius) &&
+          correction.radius >= ROLLING_BALL_RADIUS_RANGE.min &&
+          correction.radius <= ROLLING_BALL_RADIUS_RANGE.max),
+      "Invalid background correction / 背景扣除方法无效",
+    );
+  }
   if (
     Object.entries(patch).every(
       ([key, value]) => value === project[key as keyof RealProject],
@@ -273,10 +304,21 @@ export function updateRealProject(
       patch.targetLabel !== project.targetLabel) ||
     (patch.referenceLabel !== undefined &&
       patch.referenceLabel !== project.referenceLabel);
-  const images = labelsChanged
+  const correctionChanged =
+    patch.backgroundCorrection !== undefined &&
+    JSON.stringify(patch.backgroundCorrection) !==
+      JSON.stringify(project.backgroundCorrection);
+  const methodChanged = labelsChanged || correctionChanged;
+  const images = methodChanged
     ? project.images.map((image) =>
         image.reviewed
-          ? revise(image, { reviewed: false }, "protein-settings-changed")
+          ? revise(
+              image,
+              { reviewed: false },
+              correctionChanged
+                ? "background-method-changed"
+                : "protein-settings-changed",
+            )
           : image,
       )
     : project.images;
@@ -796,11 +838,28 @@ export function analyzeAll(project: RealProject, force = false): RealProject {
   return next;
 }
 
-function measurement(image: RealImage, lane: number): LaneMeasurement | null {
+function measurement(
+  project: RealProject,
+  image: RealImage,
+  lane: number,
+): LaneMeasurement | null {
   const region = image.regions.find((entry) => entry.lane === lane);
   if (!region) return null;
   try {
-    const result = measureRegion(imageRaster(image), region, image.signal);
+    const correction = project.backgroundCorrection;
+    const result =
+      correction?.kind === "rolling-ball"
+        ? measureRegionRollingBall(
+            imageRaster(image),
+            region,
+            image.signal,
+            cachedRollingBallBackground(
+              imageRaster(image),
+              correction.radius,
+              image.signal,
+            ),
+          )
+        : measureRegion(imageRaster(image), region, image.signal);
     return {
       ...result,
       warnings: result.warnings.filter(
@@ -1003,10 +1062,10 @@ export function results(project: RealProject): RealResult[] {
         blocked = true;
       };
       const targetControl = controlLane
-        ? measurement(target, controlLane)
+        ? measurement(project, target, controlLane)
         : null;
       const referenceControl =
-        reference && controlLane ? measurement(reference, controlLane) : null;
+        reference && controlLane ? measurement(project, reference, controlLane) : null;
       if (!targetControl || !referenceControl)
         blockRow(
           "Control band/background regions are missing / 缺少对照条带或背景区域",
@@ -1040,8 +1099,8 @@ export function results(project: RealProject): RealResult[] {
         referenceControl.net > 0
           ? targetControl.net / referenceControl.net
           : null;
-      const measured = measurement(target, lane);
-      const measuredReference = reference ? measurement(reference, lane) : null;
+      const measured = measurement(project, target, lane);
+      const measuredReference = reference ? measurement(project, reference, lane) : null;
       if (!measured || !measuredReference) {
         blocked = true;
         warnings.push(
@@ -1104,6 +1163,14 @@ export function results(project: RealProject): RealResult[] {
         bandSum: measured?.bandSum ?? null,
         area: measured?.area ?? null,
         backgroundMean: measured?.backgroundMean ?? null,
+        backgroundMethod:
+          project.backgroundCorrection?.kind === "rolling-ball"
+            ? "rolling-ball"
+            : "local",
+        rollingBallRadius:
+          project.backgroundCorrection?.kind === "rolling-ball"
+            ? project.backgroundCorrection.radius
+            : null,
         clippedFraction: measured?.clippedFraction ?? null,
         referenceClippedFraction: measuredReference?.clippedFraction ?? null,
         ratio: blocked ? null : ratio,
@@ -1520,6 +1587,8 @@ export function exportRealCsv(project: RealProject): string {
       "band_sum",
       "area_px",
       "background_mean",
+      "background_method",
+      "rolling_ball_radius",
       "target_net",
       "reference_net",
       "target_clipped_fraction",
@@ -1576,7 +1645,7 @@ export function exportRealCsv(project: RealProject): string {
       (region) => region.lane === row.lane,
     );
     const referenceMeasurement = reference
-      ? measurement(reference, row.lane)
+      ? measurement(project, reference, row.lane)
       : null;
     const controlRegion = image.regions.find(
       (region) => region.lane === controlLane,
@@ -1609,6 +1678,8 @@ export function exportRealCsv(project: RealProject): string {
       row.bandSum,
       row.area,
       row.backgroundMean,
+      row.backgroundMethod,
+      row.rollingBallRadius,
       row.targetNet,
       row.referenceNet,
       row.clippedFraction,
@@ -1616,7 +1687,9 @@ export function exportRealCsv(project: RealProject): string {
       row.ratio,
       row.controlRatio,
       row.fold,
-      "local original pixels; local mean background; (target/reference)/declared baseline target/reference ratio",
+      row.backgroundMethod === "rolling-ball"
+        ? `local original pixels; ImageJ-compatible rolling ball r=${row.rollingBallRadius} (${ROLLING_BALL_ALGORITHM}); (target/reference)/declared baseline target/reference ratio`
+        : "local original pixels; local mean background; (target/reference)/declared baseline target/reference ratio",
       project.statisticalTest === "paired-t"
         ? "paired-t requested; raw target/reference ratios; two-sided; unadjusted; actual results in separate statistics CSV"
         : "none; descriptive only",
@@ -1644,9 +1717,9 @@ export function exportRealCsv(project: RealProject): string {
       referenceMeasurement?.area ?? null,
       referenceMeasurement?.backgroundMean ?? null,
       controlLane || null,
-      controlLane ? (measurement(image, controlLane)?.net ?? null) : null,
+      controlLane ? (measurement(project, image, controlLane)?.net ?? null) : null,
       reference && controlLane
-        ? (measurement(reference, controlLane)?.net ?? null)
+        ? (measurement(project, reference, controlLane)?.net ?? null)
         : null,
       rectJson(controlRegion?.band),
       rectJson(controlRegion?.background),
@@ -1720,6 +1793,15 @@ const normalizationSchema = z.discriminatedUnion("kind", [
     .object({ kind: z.literal("reference-unit"), unitId: shortText.min(1) })
     .strict(),
 ]);
+const backgroundCorrectionSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("local") }).strict(),
+  z
+    .object({
+      kind: z.literal("rolling-ball"),
+      radius: z.number().int().min(ROLLING_BALL_RADIUS_RANGE.min).max(ROLLING_BALL_RADIUS_RANGE.max),
+    })
+    .strict(),
+]);
 const pairedDesignSchema = z
   .object({
     pairs: z
@@ -1753,6 +1835,7 @@ const baseSchema = z
     designConfirmed: z.boolean(),
     pairedDesign: pairedDesignSchema.optional(),
     normalization: normalizationSchema.optional(),
+    backgroundCorrection: backgroundCorrectionSchema.optional(),
     normalizationPreference: z.literal("reference-unit").optional(),
     statisticalTest: z.enum(["none", "paired-t"]).optional(),
     exampleKind: z.literal("synthetic").optional(),

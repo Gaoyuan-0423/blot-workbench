@@ -47,7 +47,30 @@ Cross-membrane, exposure, and batch comparability limits apply to both plotting 
 
 With small n, especially n=3, approximate normality of paired differences is difficult to assess. Do not select a baseline, ROI, exclusion, or test to obtain a smaller P-value. Additional conditions, nonparametric tests, technical-replicate aggregation, and multiplicity correction are not provided. See [statistical methods and limits](paired-statistics.md). Both target and reference signals still require an appropriate quantitative dynamic range; see [the WB quantification study](https://pmc.ncbi.nlm.nih.gov/articles/PMC3840294/).
 
-## 5. Export, save, and return
+## 5. Background methods, vision candidates, and composed figures (new in 0.4.0-dev.1)
+
+**Background correction**: next to the normalization settings, choose "Local background ROIs" (default) or "Rolling ball". The rolling ball is pixel-identical to ImageJ's "Process › Subtract Background" (light background); the radius ranges 10–200 (25–50 is common). In this mode background ROIs are unused and band IntDen is the corrected signal sum. Switching methods invalidates all review states; results and CSV record the method and radius. The ImageJ parity table lives in the [validation notes](validation-real-images.md).
+
+**Vision API candidates (optional)**: once the local vision service is configured, request candidates for one image or the whole batch. The app sends a downscaled preview plus the declared lane labels; returned rectangles are strictly validated, merged into the proposals, and always flagged for review. Requests are cached by image hash, preview size, provider, and model, and can be cancelled at any time. Keys stay in local process memory and images go only to the provider you configured. Model answers are candidates only — pixel measurement always happens locally on original pixels.
+
+**Composed figure**: the results bar gains "Composed figure SVG/PNG/TIFF", combining the ROI-annotated original, the quantification chart, and a method footer (background method/radius, normalization baseline, app version) into a single file for archiving or discussion.
+
+**Run all & report**: the batch bar gains "Run all & report" — proposals rerun for every image and a graded report is produced: issues (blocker/warning/info with stable codes and the image/lane involved) plus prioritized recommendations (confirm the design, fix nonpositive-net boxes, shorten exposures to avoid saturation, draw manual ROIs for ambiguous images). The report downloads as JSON.
+
+**Vision service (BYOK, works on the public site)**: expand "Vision service (your own API)" in the batch bar and fill the base URL, model, and API key. Presets cover OpenAI, Alibaba DashScope (CN/intl), SiliconFlow, and DeepSeek — all known to accept browser requests — plus custom https URLs (must allow CORS and the model must accept images). The key stays in page memory by default and clears on refresh; check "remember" to persist it in localStorage (plaintext, clearable). "Send synthetic test" transmits one built-in synthetic image. Candidate requests go only to your address and are always flagged for review; pixel measurement stays fully local.
+
+**Public website**: the real workspace ships with the main site: `https://gaoyuan-0423.github.io/blot-workbench/#real` (example data built in; no local service required).
+
+**Local automation API**: the local server (`npm run local:preview` or `npm run reviewer:start`) exposes `POST /api/analyze` for scripts and other tools: upload original TIFF/PNG files (base64) plus the lane description, and the full pipeline — decode, propose, measure, normalize — runs locally, returning the report JSON, complete results, and the audit CSV. Only same-origin local requests are accepted; images never leave the machine. Options include `backgroundCorrection` (rolling-ball radius) and `normalization`. Example:
+
+```sh
+curl -s -X POST http://127.0.0.1:4318/api/analyze \
+  -H "Origin: http://127.0.0.1:4318" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"QA","laneDescription":"1=NC; 2=Drug; 3=marker","images":[{"name":"Target_rep1.png","base64":"..."}]}'
+```
+
+## 6. Export, save, and return
 
 CSV exports retain provenance, measurement method, normalization values, review state, and quality flags. Charts support SVG, PNG, and TIFF. Figure export renders results and does not modify measurement images. A TIFF figure export does not establish source-image bit-depth preservation.
 

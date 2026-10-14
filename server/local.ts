@@ -16,6 +16,7 @@ import {
 } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createVisionApi, hasTrustedHost } from "./api";
+import { createAnalyzeApi } from "./analyze-api";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const types: Record<string, string> = {
@@ -137,6 +138,7 @@ export async function startLocalServer({
     throw new Error("WB_PORT must be an integer from 1 to 65535.");
   const origin = `http://127.0.0.1:${port}`;
   const api = createVisionApi({ origin });
+  const analyzeApi = createAnalyzeApi({ origin });
   let dev:
     Awaited<ReturnType<(typeof import("vite"))["createServer"]>> | undefined;
   const server = createServer((request, response) => {
@@ -145,7 +147,9 @@ export async function startLocalServer({
       return;
     }
     if ((request.url ?? "").startsWith("/api")) {
-      api(request, response);
+      if ((request.url ?? "").startsWith("/api/analyze"))
+        analyzeApi(request, response);
+      else api(request, response);
       return;
     }
     if (production) {

@@ -59,6 +59,24 @@ import {
   type Rect,
 } from "./pixels";
 import { renderFigure } from "./figure-export";
+import { buildComposedFigureSvg } from "./figure-compose";
+import { ROLLING_BALL_ALGORITHM } from "./rolling-ball";
+import {
+  buildAnalysisReport,
+  type AnalysisReport,
+} from "./analysis-report";
+import { APP_VERSION } from "../core/types";
+import { analyzeBandsByok, KNOWN_PROVIDERS } from "../vision/byok";
+import {
+  clearByokConfig,
+  loadByokConfig,
+  saveByokConfig,
+} from "../vision/byok-store";
+import {
+  applyVisionCandidates,
+  VisionCandidateCache,
+  visionCacheKey,
+} from "./vision-candidates";
 import "./real-workbench.css";
 
 type Language = "zh" | "en";
@@ -846,11 +864,57 @@ function ResultFigure({
   );
 }
 
+const VISION_ANALYZE_PROMPT_VERSION = "wb-lane-band-candidates-v1";
+const VISION_UPLOAD_PREVIEW_WIDTH = 1024;
+/** Built-in 1×1 PNG for connectivity tests only — never project data. */
+const SYNTHETIC_TEST_PNG =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+const visionCandidatesCache = new VisionCandidateCache();
+
+/** Downscaled 8-bit grayscale PNG for optional vision providers. */
+async function uploadPreviewDataUrl(bytes: Uint8Array): Promise<string> {
+  const bitmap = await createImageBitmap(
+    new Blob([new Uint8Array(bytes)], { type: "image/png" }),
+  );
+  try {
+    const scale = Math.min(1, VISION_UPLOAD_PREVIEW_WIDTH / bitmap.width);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext("2d");
+    if (!context)
+      throw new Error("Canvas is unavailable for the upload preview.");
+    context.imageSmoothingEnabled = true;
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/png");
+  } finally {
+    bitmap.close();
+  }
+}
+
 export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
   const [project, setProject] = useState<RealProject | null>(null);
   const currentProject = useRef<RealProject | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const visionAbort = useRef<AbortController | null>(null);
+  const [analysisReport, setAnalysisReport] = useState<AnalysisReport | null>(
+    null,
+  );
+  const [byokPanelOpen, setByokPanelOpen] = useState(false);
+  const [byokReady, setByokReady] = useState(
+    () => loadByokConfig() !== null,
+  );
+  const [byokDraft, setByokDraft] = useState(() => {
+    const saved = loadByokConfig();
+    return {
+      baseUrl: saved?.baseUrl ?? "",
+      model: saved?.model ?? "",
+      apiKey: saved?.apiKey ?? "",
+      remember: false,
+    };
+  });
+  const [byokNotice, setByokNotice] = useState("");
   const working = useRef(false);
   const [saveState, setSaveState] = useState<"saving" | "saved" | "error">(
     "saved",
@@ -939,6 +1003,108 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
     } finally {
       working.current = false;
       setBusy(null);
+    }
+  };
+
+  const proposeVisionRegions = async (target: "all" | RealImage) => {
+    const config = loadByokConfig();
+    if (!config)
+      throw new Error(
+        "请先在「视觉服务（自带 API）」中填写服务地址、模型与 API Key；候选仍需人工复核，像素测量始终在本机完成。/ Configure your own provider (base URL, model, API key) in the vision panel first. Candidates still require manual review and pixel measurement stays local.",
+      );
+    const controller = new AbortController();
+    visionAbort.current = controller;
+    try {
+      const targets =
+        target === "all"
+          ? (currentProject.current as RealProject).images.filter(
+              (image) => !image.excluded,
+            )
+          : [target];
+      if (!targets.length) return;
+      if (target === "all") commit((previous) => analyzeAll(previous));
+      let done = 0;
+      for (const image of targets) {
+        if (controller.signal.aborted)
+          throw new Error("已取消视觉候选请求 / Vision candidate requests cancelled.");
+        done += 1;
+        setBusy(
+          t(
+            `正在获取视觉候选 ${done}/${targets.length}…`,
+            `Requesting vision candidates ${done}/${targets.length}…`,
+          ),
+        );
+        const current = (
+          currentProject.current as RealProject
+        ).images.find((entry) => entry.id === image.id)!;
+        const raster = imageRaster(current);
+        const laneCount = requiredLaneCount(
+          currentProject.current as RealProject,
+          current,
+        );
+        const laneLabels = (currentProject.current as RealProject).laneLabels;
+        const cacheKey = visionCacheKey({
+          imageHash: current.hash,
+          uploadPreviewWidth: VISION_UPLOAD_PREVIEW_WIDTH,
+          baseUrl: config.baseUrl,
+          model: config.model,
+          promptVersion: VISION_ANALYZE_PROMPT_VERSION,
+          laneCount,
+          laneLabels,
+          signal: current.signal,
+          revision: 0,
+        });
+        let bands = visionCandidatesCache.get(cacheKey);
+        if (!bands) {
+          const preview = await uploadPreviewDataUrl(rasterPreview(raster));
+          let result;
+          try {
+            result = await analyzeBandsByok(
+              config,
+              {
+                laneCount,
+                laneLabels: laneLabels.map((label) => label.slice(0, 60)),
+                signal: current.signal,
+                imageDataUrl: preview,
+              },
+              controller.signal,
+            );
+          } catch (problem) {
+            if (problem instanceof DOMException && problem.name === "AbortError")
+              throw new Error(
+                "已取消视觉候选请求 / Vision candidate requests cancelled.",
+              );
+            throw problem;
+          }
+          bands = result.bands;
+          visionCandidatesCache.set(cacheKey, bands);
+        }
+        const baseRegions = current.regions.length
+          ? current.regions
+          : proposeRegions(raster, laneCount, current.signal);
+        commit((previous) =>
+          updateRealImage(previous, image.id, {
+            regions: applyVisionCandidates(baseRegions, bands, {
+              width: raster.width,
+              height: raster.height,
+              maxLane: laneCount,
+            }),
+          }),
+        );
+      }
+      setNotice(
+        target === "all"
+          ? t(
+              "视觉候选已合并，全部候选（含视觉来源）必须逐图人工复核；测量始终使用本机原始像素。",
+              "Vision candidates are merged in. All candidates (including vision-sourced) require per-image review; measurement always uses local original pixels.",
+            )
+          : t(
+              "视觉候选已合并，请人工复核此图。",
+              "Vision candidates are merged in; review this image manually.",
+            ),
+      );
+    } finally {
+      visionAbort.current = null;
     }
   };
 
@@ -1392,6 +1558,53 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
         `${isDraft ? "DRAFT-" : "EXPERIMENTAL-"}${fileStem(protein)}-paired.${format === "tiff" ? "tif" : format}`,
       );
     });
+  const composedFigureSvg = async (): Promise<string> => {
+    const chart = figureRef.current;
+    if (!chart)
+      throw new Error("Quantification chart is not rendered / 定量图尚未渲染");
+    if (!image)
+      throw new Error("Select an image first / 请先选择图像");
+    const current = currentProject.current;
+    const raster = imageRaster(image);
+    const bytes = rasterPreview(raster);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000)
+      binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    const correction = current?.backgroundCorrection;
+    const policy = current ? effectiveNormalization(current) : null;
+    return buildComposedFigureSvg({
+      layout: "side-by-side",
+      imageHref: `data:image/png;base64,${btoa(binary)}`,
+      imageWidth: raster.width,
+      imageHeight: raster.height,
+      regions: image.regions,
+      laneLabels: current?.laneLabels ?? [],
+      chartSvg: new XMLSerializer().serializeToString(chart),
+      captionLines: [
+        t("定量：", "Quantitation: ") +
+          (correction?.kind === "rolling-ball"
+            ? `rolling ball r=${correction.radius} (${ROLLING_BALL_ALGORITHM})`
+            : t("局部背景取样框", "local background ROIs")),
+        t("归一化：", "Normalization: ") +
+        (policy?.kind === "reference-unit"
+          ? `reference-unit ${policy.unitId}`
+          : "matched-control"),
+        `blot-workbench ${APP_VERSION}`,
+      ],
+    });
+  };
+  const exportComposedFigure = async (format: "svg" | "png" | "tiff") => {
+    const svg = await composedFigureSvg();
+    format === "svg"
+      ? saveBlob(
+          new Blob([svg], { type: "image/svg+xml;charset=utf-8" }),
+          `${fileStem(project?.name ?? "blot-workbench")}-figure.svg`,
+        )
+      : saveBlob(
+          await renderFigure(svg, format),
+          `${fileStem(project?.name ?? "blot-workbench")}-figure.${format}`,
+        );
+  };
 
   if (!project)
     return (
@@ -1468,6 +1681,15 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           >
             {language === "zh" ? "EN" : "中文"}
           </button>
+          <a
+            type="button"
+            className="real-button subtle"
+            href="#guide"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t("使用教程", "User guide")}
+          </a>
           <button
             type="button"
             className="real-button"
@@ -1614,6 +1836,99 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
         <div className="real-notice" role="status">
           <LoaderCircle size={17} />
           <span>{busy}</span>
+          {visionAbort.current && (
+            <button
+              className="real-button"
+              onClick={() => visionAbort.current?.abort()}
+            >
+              {t("取消视觉请求", "Cancel vision requests")}
+            </button>
+          )}
+        </div>
+      )}
+      {analysisReport && (
+        <div
+          className="real-report"
+          role="region"
+          aria-label={t("一键分析报告", "One-click analysis report")}
+        >
+          <div className="real-report-head">
+            <h3>{t("一键分析报告", "One-click analysis report")}</h3>
+            <span className="real-method-badge">
+              {t(
+                `${analysisReport.summary.images} 图 · 就绪 ${analysisReport.summary.results.ready} · 草稿 ${analysisReport.summary.results.draft} · 阻断 ${analysisReport.summary.results.blocked} · 阻塞问题 ${analysisReport.summary.issues.blocker} · 警告 ${analysisReport.summary.issues.warning}`,
+                `${analysisReport.summary.images} images · ready ${analysisReport.summary.results.ready} · draft ${analysisReport.summary.results.draft} · blocked ${analysisReport.summary.results.blocked} · blockers ${analysisReport.summary.issues.blocker} · warnings ${analysisReport.summary.issues.warning}`,
+              )}
+            </span>
+            <div className="real-actions">
+              <button
+                className="real-button"
+                onClick={() =>
+                  saveBlob(
+                    new Blob([JSON.stringify(analysisReport, null, 2)], {
+                      type: "application/json;charset=utf-8",
+                    }),
+                    `${fileStem(project?.name ?? "blot-workbench")}-report.json`,
+                  )
+                }
+              >
+                <Download size={15} />
+                {t("下载报告 JSON", "Download report JSON")}
+              </button>
+              <button
+                className="real-button"
+                onClick={() => setAnalysisReport(null)}
+              >
+                {t("关闭", "Close")}
+              </button>
+            </div>
+          </div>
+          {analysisReport.issues.length ? (
+            <ul className="real-report-issues">
+              {analysisReport.issues.map((issue, index) => (
+                <li
+                  key={`${issue.code}-${index}`}
+                  className={`real-report-issue ${issue.severity}`}
+                >
+                  <span className="real-report-code">{issue.code}</span>
+                  <span>{issue.message}</span>
+                  {issue.imageName && (
+                    <small>
+                      {issue.imageName}
+                      {issue.lane
+                        ? ` · ${t("泳道", "lane")} ${issue.lane}`
+                        : ""}
+                    </small>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="real-muted">
+              {t("未发现问题。", "No issues found.")}
+            </p>
+          )}
+          {analysisReport.recommendations.length > 0 && (
+            <div className="real-report-recs">
+              <strong>
+                {t("优化方向（按优先级）", "Recommended next steps (by priority)")}
+              </strong>
+              <ol>
+                {[...analysisReport.recommendations]
+                  .sort((a, b) => a.priority - b.priority)
+                  .map((rec) => (
+                    <li key={rec.code}>
+                      <strong>
+                        {language === "zh" ? rec.title.zh : rec.title.en}
+                      </strong>
+                      <p>
+                        {language === "zh" ? rec.detail.zh : rec.detail.en}
+                      </p>
+                    </li>
+                  ))}
+              </ol>
+            </div>
+          )}
         </div>
       )}
       <nav
@@ -1665,6 +1980,14 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
               )}
             </p>
           </div>
+          <details className="real-step-help">
+            <summary>{t("本步怎么做", "How to do this step")}</summary>
+            <ol>
+              <li>{t("把仪器导出的原始 TIFF/PNG 一次拖入或批量选择；原图字节原样保留，不上传。", "Drag in or batch-select the original TIFF/PNG exports; original bytes are kept and never uploaded.")}</li>
+              <li>{t("核对自动推断的蛋白名、目标/内参角色、实验与膜编号——文件名只是建议，错了直接改。", "Check the inferred protein, target/reference role, experiment and membrane IDs — filenames are suggestions; edit anything that is wrong.")}</li>
+              <li>{t("项目自动保存在本浏览器；「导出项目」生成的项目包（含原图）才是可靠备份。", "The project autosaves in this browser; the exported project package (with originals) is the only reliable backup.")}</li>
+            </ol>
+          </details>
           <span className="real-count">
             {project.images.length} / 48 {t("张图", "images")}
           </span>
@@ -1908,6 +2231,14 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
               )}
             </p>
           </div>
+          <details className="real-step-help">
+            <summary>{t("本步怎么做", "How to do this step")}</summary>
+            <ol>
+              <li>{t("用一句话从左到右描述泳道，如「1=NC; 2=Drug; 3=marker」；先「解析预览」核对，再「全部确认应用」。", "Describe the lanes left to right in one line, e.g. \"1=NC; 2=Drug; 3=marker\". Parse & preview first, then apply to all.")}</li>
+              <li>{t("marker/ladder 泳道自动排除，不计入 n；排除不可逆删除数据，只是不参与统计。", "Marker/ladder lanes are excluded from n; exclusion never deletes data, it only removes lanes from statistics.")}</li>
+              <li>{t("选比较设计：共享泳道的独立实验，或个体 N/T 配对表。确认独立性后才能启用配对 t 检验。", "Pick the design: independent experiments sharing lanes, or an individual N/T pair table. Paired t-tests unlock only after independence is confirmed.")}</li>
+            </ol>
+          </details>
         </div>
         <div className="real-design-select">
           <label className="real-field">
@@ -2307,6 +2638,15 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
               )}
             </p>
           </div>
+          <details className="real-step-help">
+            <summary>{t("本步怎么做", "How to do this step")}</summary>
+            <ol>
+              <li>{t("「全部建议并计算」用本机算法提出条带与背景候选，不需要任何 API Key。", "\"Propose & calculate all\" drafts band/background candidates with the local algorithm — no API key needed.")}</li>
+              <li>{t("「视觉 API 候选（可选）」把缩小预览发给你自己的视觉模型服务（先在「视觉服务（自带 API）」里填地址、模型与密钥）；返回的框全部标记待复核。", "\"Vision API candidates (optional)\" sends a downscaled preview to your own vision provider (configure it in the vision panel first); returned boxes are always flagged for review.")}</li>
+              <li>{t("逐图检查：拖动/缩放条带与背景框，双击背景区可增删；复核后旧候选警告会消失。", "Review per image: drag/scale the band and background boxes; mark reviewed once satisfied.")}</li>
+              <li>{t("背景方法二选一：局部背景取样框（默认），或 rolling ball（与 ImageJ 一致，半径可调，不需背景框）。切换会使复核失效。", "Pick a background method: local background ROIs (default) or the ImageJ-compatible rolling ball (adjustable radius, no ROIs needed). Switching invalidates review states.")}</li>
+            </ol>
+          </details>
           <button
             className="real-button primary"
             disabled={
@@ -2340,14 +2680,260 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
             <ScanLine size={16} />
             {t("全部建议并计算", "Propose & calculate all")}
           </button>
+          <button
+            className="real-button"
+            disabled={
+              !!busy ||
+              !project.images.length ||
+              designMode !== (project.pairedDesign ? "paired" : "shared") ||
+              lanePreview !== null ||
+              laneDraft !== project.laneDescription
+            }
+            onClick={() =>
+              void run(
+                t("正在获取视觉候选…", "Requesting vision candidates…"),
+                () => proposeVisionRegions("all"),
+              )
+            }
+          >
+            <ScanLine size={16} />
+            {t("视觉 API 候选（可选）", "Vision API candidates (optional)")}
+          </button>
+          <button
+            className="real-button"
+            disabled={!!busy || !project.images.length}
+            onClick={() =>
+              void run(
+                t("正在一键分析所有图像…", "Running one-click analysis…"),
+                () => {
+                  commit((previous) => analyzeAll(previous, true));
+                  const next = currentProject.current;
+                  if (next) setAnalysisReport(buildAnalysisReport(next));
+                },
+              )
+            }
+          >
+            <ShieldCheck size={16} />
+            {t("一键分析并体检", "Run all & report")}
+          </button>
+          <button
+            className="real-button"
+            disabled={!!busy}
+            aria-expanded={byokPanelOpen}
+            onClick={() => {
+              setByokPanelOpen((open) => !open);
+              setByokReady(loadByokConfig() !== null);
+            }}
+          >
+            {t("视觉服务（自带 API）", "Vision service (your own API)")}
+            {byokReady ? " ✓" : ""}
+          </button>
         </div>
+        {byokPanelOpen && (
+          <div className="real-normalization-box" aria-label={t("视觉服务设置（自带 API）", "Vision service settings (BYOK)")}>
+            <div className="real-actions">
+              <label className="real-field">
+                {t("服务商", "Provider")}
+                <select
+                  value={
+                    KNOWN_PROVIDERS.some(
+                      (provider) => provider.baseUrl === byokDraft.baseUrl,
+                    )
+                      ? byokDraft.baseUrl
+                      : ""
+                  }
+                  onChange={(event) => {
+                    if (event.target.value)
+                      setByokDraft((draft) => ({
+                        ...draft,
+                        baseUrl: event.target.value,
+                      }));
+                  }}
+                >
+                  <option value="">{t("自定义…", "Custom…")}</option>
+                  {KNOWN_PROVIDERS.map((provider) => (
+                    <option key={provider.baseUrl} value={provider.baseUrl}>
+                      {provider.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="real-field">
+                {t("服务地址", "Base URL")}
+                <input
+                  type="text"
+                  value={byokDraft.baseUrl}
+                  placeholder="https://api.example.com/v1"
+                  onChange={(event) =>
+                    setByokDraft((draft) => ({
+                      ...draft,
+                      baseUrl: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className="real-field">
+                {t("模型（须支持图像）", "Model (must accept images)")}
+                <input
+                  type="text"
+                  value={byokDraft.model}
+                  onChange={(event) =>
+                    setByokDraft((draft) => ({
+                      ...draft,
+                      model: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <label className="real-field">
+                {t("API Key", "API key")}
+                <input
+                  type="password"
+                  value={byokDraft.apiKey}
+                  autoComplete="off"
+                  onChange={(event) =>
+                    setByokDraft((draft) => ({
+                      ...draft,
+                      apiKey: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+            </div>
+            <label className="real-checkbox">
+              <input
+                type="checkbox"
+                checked={byokDraft.remember}
+                onChange={(event) =>
+                  setByokDraft((draft) => ({
+                    ...draft,
+                    remember: event.target.checked,
+                  }))
+                }
+              />
+              <span>
+                {t(
+                  "在此设备记住（明文保存在浏览器 localStorage，可随时清除）",
+                  "Remember on this device (plaintext in browser localStorage, clearable anytime)",
+                )}
+              </span>
+            </label>
+            <div className="real-actions">
+              <button
+                className="real-button primary"
+                disabled={!!busy}
+                onClick={() =>
+                  void run(
+                    t("正在保存视觉服务配置…", "Saving vision config…"),
+                    () => {
+                      const saved = saveByokConfig(
+                        {
+                          baseUrl: byokDraft.baseUrl,
+                          model: byokDraft.model,
+                          apiKey: byokDraft.apiKey,
+                        },
+                        byokDraft.remember,
+                      );
+                      setByokReady(true);
+                      setByokDraft((draft) => ({ ...draft, baseUrl: saved.baseUrl }));
+                      setByokNotice(
+                        t(
+                          "已保存" +
+                            (byokDraft.remember ? "并记住此设备" : "（仅本次页面）") +
+                            "。",
+                          "Saved" +
+                            (byokDraft.remember ? " and remembered on this device" : " for this page only") +
+                            ".",
+                        ),
+                      );
+                    },
+                  )
+                }
+              >
+                {t("保存并使用", "Save & use")}
+              </button>
+              <button
+                className="real-button"
+                disabled={!!busy}
+                onClick={() =>
+                  void run(t("正在清除…", "Clearing…"), () => {
+                    clearByokConfig();
+                    setByokDraft({ baseUrl: "", model: "", apiKey: "", remember: false });
+                    setByokReady(false);
+                    setByokNotice(
+                      t("已清除本机保存的视觉服务配置。", "Cleared the locally saved vision config."),
+                    );
+                  })
+                }
+              >
+                {t("清除已保存", "Clear saved")}
+              </button>
+              <button
+                className="real-button"
+                disabled={!!busy || !byokDraft.baseUrl || !byokDraft.model || !byokDraft.apiKey}
+                onClick={() =>
+                  void run(
+                    t("正在发送合成测试图…", "Sending the synthetic test image…"),
+                    async () => {
+                      const result = await analyzeBandsByok(
+                        {
+                          baseUrl: byokDraft.baseUrl,
+                          model: byokDraft.model,
+                          apiKey: byokDraft.apiKey,
+                        },
+                        {
+                          laneCount: 1,
+                          laneLabels: [],
+                          signal: "dark",
+                          imageDataUrl: SYNTHETIC_TEST_PNG,
+                        },
+                        new AbortController().signal,
+                      );
+                      setByokNotice(
+                        t(
+                          `连接成功：返回 ${result.bands.length} 个候选框（合成图）。`,
+                          `Connected: ${result.bands.length} candidate boxes returned (synthetic image).`,
+                        ),
+                      );
+                    },
+                  )
+                }
+              >
+                {t("发送合成图测试", "Send synthetic test")}
+              </button>
+            </div>
+            {byokNotice && <p className="real-muted">{byokNotice}</p>}
+            <p className="real-muted">
+              {t(
+                "密钥默认仅保存在当前页面内存，刷新即清；勾选「记住」才写入本设备。测试按钮只发送一张内置合成小图，不发送项目图像；正式候选请求只发往你填写的服务地址，且候选仍需人工复核，像素测量始终在本机完成。",
+                "The key stays in page memory by default and clears on refresh; it is written to this device only when \"remember\" is checked. The test sends one built-in synthetic image, never project data. Candidate requests go only to the address you entered, remain draft candidates for manual review, and pixel measurement always runs locally.",
+              )}
+            </p>
+          </div>
+        )}
         {!image || !raster ? (
           <div className="real-empty">
             <ScanLine size={30} />
             {t(
-              "先导入原图，再确认泳道映射。",
-              "Import originals and confirm the lane mapping first.",
+              "先导入原图，再确认泳道映射；或先载入内置合成示例，走一遍完整流程。",
+              "Import originals and confirm the lane mapping first — or load the built-in synthetic example and walk through the whole flow.",
             )}
+          <div>
+            <button
+              className="real-button"
+              disabled={!!busy}
+              onClick={() => void archive()}
+            >
+              <FlaskConical size={15} />
+              {t("载入内置示例", "Load the built-in example")}
+            </button>
+          </div>
+          <small className="real-muted">
+            {t(
+              "示例为脚本合成的三组目标/内参图对（NC 与 Treatment），用于走通流程；载入后点「一键分析并体检」即可看到报告。",
+              "The example is a script-generated set of three target/reference pairs (NC and Treatment) for walking through the flow. After loading, click \"Run all & report\" to see the report.",
+            )}
+          </small>
           </div>
         ) : (
           <>
@@ -2744,6 +3330,21 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                 >
                   {t("按当前区域重算", "Recalculate current regions")}
                 </button>
+                <button
+                  className="real-button"
+                  disabled={!!busy || image.excluded}
+                  onClick={() =>
+                    void run(
+                      t("正在获取视觉候选…", "Requesting vision candidates…"),
+                      () => proposeVisionRegions(image),
+                    )
+                  }
+                >
+                  {t(
+                    "视觉 API 候选（此图，可选）",
+                    "Vision API candidates (this image, optional)",
+                  )}
+                </button>
                 <hr />
                 <label className="real-field">
                   {t("复核备注", "Review notes")}
@@ -2811,6 +3412,15 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
               )}
             </p>
           </div>
+          <details className="real-step-help">
+            <summary>{t("本步怎么做", "How to do this step")}</summary>
+            <ol>
+              <li>{t("选归一化基准：共同基准（指定一个对照 = 1，其他对照保留真实变异）或各自配对对照。绘图基准不改变检验输入。", "Pick a normalization baseline: a common baseline (one control = 1, other controls keep their variation) or each matched control. Plot baselines never change test inputs.")}</li>
+              <li>{t("需要 P 值时勾选双侧配对 t 检验：确认独立性、恰好两个条件、至少两对有效配对。", "For P values, enable the two-sided paired t-test: confirm independence, exactly two conditions, at least two valid pairs.")}</li>
+              <li>{t("「一键分析并体检」汇总所有阻断项、警告与按优先级的优化建议，可下载报告 JSON。", "\"Run all & report\" aggregates blockers, warnings, and prioritized recommendations; download the report as JSON.")}</li>
+              <li>{t("导出：CSV（含全部审计列）、统计 CSV、SVG/PNG/TIFF 图形、组合图版与项目包。", "Export: CSV (full audit columns), statistics CSV, SVG/PNG/TIFF figures, composed figures, and the project package.")}</li>
+            </ol>
+          </details>
         </div>
         <div className="real-normalization-box">
           <div className="real-actions">
@@ -2902,6 +3512,86 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                 )}
           </p>
         </div>
+        <div className="real-normalization-box">
+          <div className="real-actions">
+            <label className="real-field">
+              {t("背景扣除方法", "Background correction")}
+              <select
+                aria-label={t("背景扣除方法", "Background correction")}
+                disabled={!!busy}
+                value={
+                  project.backgroundCorrection?.kind === "rolling-ball"
+                    ? "rolling-ball"
+                    : "local"
+                }
+                onChange={(event) =>
+                  commit((previous) =>
+                    updateRealProject(previous, {
+                      backgroundCorrection:
+                        event.target.value === "rolling-ball"
+                          ? {
+                              kind: "rolling-ball",
+                              radius:
+                                previous.backgroundCorrection?.kind ===
+                                "rolling-ball"
+                                  ? previous.backgroundCorrection.radius
+                                  : 50,
+                            }
+                          : { kind: "local" },
+                    }),
+                  )
+                }
+              >
+                <option value="local">
+                  {t("局部背景取样框（默认）", "Local background ROIs (default)")}
+                </option>
+                <option value="rolling-ball">
+                  {t(
+                    "Rolling ball（与 ImageJ 数值一致）",
+                    "Rolling ball (ImageJ-compatible)",
+                  )}
+                </option>
+              </select>
+            </label>
+            {project.backgroundCorrection?.kind === "rolling-ball" && (
+              <label className="real-field">
+                {t("Rolling ball 半径", "Rolling-ball radius")}
+                <input
+                  type="number"
+                  min={10}
+                  max={200}
+                  step={5}
+                  disabled={!!busy}
+                  value={project.backgroundCorrection.radius}
+                  onChange={(event) => {
+                    const radius = Number(event.target.value);
+                    if (!Number.isInteger(radius) || radius < 10 || radius > 200)
+                      return;
+                    commit((previous) =>
+                      updateRealProject(previous, {
+                        backgroundCorrection: {
+                          kind: "rolling-ball",
+                          radius,
+                        },
+                      }),
+                    );
+                  }}
+                />
+              </label>
+            )}
+          </div>
+          <p className="real-muted">
+            {project.backgroundCorrection?.kind === "rolling-ball"
+              ? t(
+                  "对全图计算 rolling ball 背景（与 ImageJ「Subtract Background」逐像素一致，见验证文档），条带 IntDen 为扣除后的信号和；此方法不使用背景取样框。半径越大，保留的低频背景越多；常用 25–50。切换方法会使全部复核状态失效。",
+                  "The rolling-ball background is computed over the whole image, pixel-identical to ImageJ's Subtract Background (see the validation notes); band IntDen is the corrected signal sum. Background ROIs are unused in this mode. A larger radius keeps more low-frequency background; 25–50 is common. Switching methods invalidates all review states.",
+                )
+              : t(
+                  "每条条带用其背景取样框的信号均值扣背景（默认方法）。",
+                  "Each band subtracts the mean signal of its own background ROIs (default method).",
+                )}
+          </p>
+        </div>
         <label className="real-checkbox real-test-choice">
           <input
             type="checkbox"
@@ -2976,6 +3666,14 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                   </option>
                 </select>
               </label>
+              <span className="real-method-badge" aria-live="polite">
+                {project.backgroundCorrection?.kind === "rolling-ball"
+                  ? t(
+                      `背景：Rolling ball r=${project.backgroundCorrection.radius}（ImageJ 一致）`,
+                      `Background: rolling ball r=${project.backgroundCorrection.radius} (ImageJ-compatible)`,
+                    )
+                  : t("背景：局部背景取样框", "Background: local background ROIs")}
+              </span>
               <div className="real-actions">
                 <button
                   className="real-button"
@@ -3022,6 +3720,22 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                   >
                     <Download size={15} />
                     {format.toUpperCase()}
+                  </button>
+                ))}
+                {(["svg", "png", "tiff"] as const).map((format) => (
+                  <button
+                    className="real-button"
+                    key={`composed-${format}`}
+                    disabled={!!busy || !figureAvailable}
+                    onClick={() =>
+                      void run(
+                        t("正在合成组合图版…", "Composing the figure…"),
+                        () => exportComposedFigure(format),
+                      )
+                    }
+                  >
+                    <Layers size={15} />
+                    {t("组合图版", "Composed figure")} {format.toUpperCase()}
                   </button>
                 ))}
               </div>
