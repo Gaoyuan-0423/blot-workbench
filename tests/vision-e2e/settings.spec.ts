@@ -134,7 +134,7 @@ test.afterEach(async ({ request }) => {
     .toBe(200);
 });
 
-async function ready(page: Page, url = "/") {
+async function ready(page: Page, url = "/#demo") {
   await page.goto(url);
   await expect(
     page.getByRole("heading", { name: "项目总览", exact: true }),
@@ -402,7 +402,7 @@ test("a hosted page shows local startup guidance and never reads or submits API 
     );
     await route.fulfill({ response: local });
   });
-  await ready(page, "https://blot-workbench.test/");
+  await ready(page, "https://blot-workbench.test/#demo");
   await page
     .getByRole("button", { name: "视觉 API 设置", exact: true })
     .click();
