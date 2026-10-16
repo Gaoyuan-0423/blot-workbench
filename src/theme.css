@@ -34,6 +34,13 @@ body {
   border-radius: 7px;
   font-weight: 550;
 }
+.suite-with-home {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.sidebar-bottom .suite-with-home {
+  max-width: calc(100% - 8px);
+}
 .suite-nav a[aria-current="page"] {
   background: #fff;
   color: #4f46e5;
