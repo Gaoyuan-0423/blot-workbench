@@ -6,20 +6,28 @@
     <meta name="theme-color" content="#4f46e5" />
     <meta
       name="description"
-      content="WispLab 实验分析工具：Western blot 条带识别、病理图像分析与 PCR 数据分析。选择工具，从图像与表格开始。"
+      data-i18n-content="page.description"
+      content="WispLab 实验分析工具：Western blot 条带识别、IHC 免疫组化、H&amp;E／Masson 染色、IF 双通道共定位与 PCR 数据分析。选择工具，从图像与表格开始。"
     />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'"
     />
-    <title>WispLab · 实验分析工作台</title>
+    <title data-i18n="page.title">WispLab · 实验分析工作台</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./locale.js"></script>
   </head>
   <body>
-    <a class="skip-link" href="#main">跳到主要内容</a>
+    <a class="skip-link" href="#main" data-i18n="skip">跳到主要内容</a>
     <header class="site-header">
-      <a class="brand" href="./" aria-label="WispLab 首页">
+      <a
+        class="brand"
+        href="./"
+        data-language-link
+        data-i18n-aria-label="home"
+        aria-label="WispLab 首页"
+      >
         <svg
           class="brand-mark"
           viewBox="0 0 40 40"
@@ -38,32 +46,69 @@
         </svg>
         <span
           >WispLab<span class="brand-divider" aria-hidden="true"></span
-          ><small>实验分析工作台</small></span
+          ><small data-i18n="brand.tagline">实验分析工作台</small></span
         >
       </a>
-      <nav class="header-nav" aria-label="页面导航">
-        <a href="#tools">分析工具</a>
-        <a href="#about">关于工作台</a>
-        <a class="header-quick" href="https://wb.wisplab.top/?mode=single"
-          >单条带识别 <span aria-hidden="true">↗</span></a
+      <nav
+        class="header-nav"
+        data-i18n-aria-label="nav.label"
+        aria-label="页面导航"
+      >
+        <a href="#tools" data-i18n="nav.tools">分析工具</a>
+        <a href="#about" data-i18n="nav.about">关于工作台</a>
+        <a
+          class="header-quick"
+          href="https://wb.wisplab.top/?mode=single"
+          data-language-link
+          ><span data-i18n="nav.single">单条带识别</span>
+          <span aria-hidden="true">↗</span></a
         >
       </nav>
+      <div
+        class="language-switch"
+        role="group"
+        aria-label="选择界面语言"
+        data-i18n-aria-label="language.label"
+      >
+        <button
+          type="button"
+          data-language="zh"
+          lang="zh-CN"
+          aria-pressed="true"
+        >
+          中文
+        </button>
+        <button type="button" data-language="en" lang="en" aria-pressed="false">
+          EN
+        </button>
+      </div>
     </header>
 
     <main id="main">
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
           <p class="eyebrow">
-            <span aria-hidden="true"></span> A WORKSPACE FOR YOUR EXPERIMENTS
+            <span class="eyebrow-dot" aria-hidden="true"></span>
+            <span data-i18n="hero.eyebrow">实验分析，从这里开始</span>
           </p>
-          <h1 id="hero-title">从实验数据，<br />到<span>清晰结果。</span></h1>
+          <h1 id="hero-title">
+            <span data-i18n="hero.start">从实验数据，</span><br /><span
+              data-i18n="hero.bridge"
+              >到</span
+            ><span class="hero-highlight" data-i18n="hero.result"
+              >清晰结果。</span
+            >
+          </h1>
           <p class="hero-description">
-            把条带、切片与 PCR 数据带进来。<br
-              class="desktop-break"
-            />选择合适的工具，专注于分析本身。
+            <span data-i18n="hero.description.first"
+              >把条带、切片与 PCR 数据带进来。</span
+            ><br class="desktop-break" /><span
+              data-i18n="hero.description.second"
+              >选择合适的工具，专注于分析本身。</span
+            >
           </p>
           <a class="primary-link" href="#tools"
-            >选择分析工具
+            ><span data-i18n="hero.choose">选择分析工具</span>
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path
                 d="M4 10h12m-5-5 5 5-5 5"
@@ -77,14 +122,19 @@
         <div
           class="hero-flow"
           aria-label="工作流程：导入数据、核对分析、导出结果"
+          data-i18n-aria-label="flow.label"
         >
           <div class="flow-topline">
-            <span class="flow-kicker">YOUR ANALYSIS, IN ONE PLACE</span
+            <span class="flow-kicker" data-i18n="flow.kicker"
+              >所有分析，集中一处</span
             ><span class="flow-dots" aria-hidden="true">···</span>
           </div>
           <div class="flow-step">
             <span class="step-number">01</span>
-            <div><strong>导入数据</strong><span>从图像或表格开始</span></div>
+            <div>
+              <strong data-i18n="flow.import">导入数据</strong
+              ><span data-i18n="flow.import.help">从图像或表格开始</span>
+            </div>
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
                 d="M12 15V4m-4 4 4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"
@@ -98,7 +148,8 @@
           <div class="flow-step">
             <span class="step-number">02</span>
             <div>
-              <strong>核对分析</strong><span>看清取样、参数与数值</span>
+              <strong data-i18n="flow.review">核对分析</strong
+              ><span data-i18n="flow.review.help">看清取样、参数与数值</span>
             </div>
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
@@ -127,7 +178,10 @@
           </div>
           <div class="flow-step">
             <span class="step-number">03</span>
-            <div><strong>导出结果</strong><span>带走图表，继续研究</span></div>
+            <div>
+              <strong data-i18n="flow.export">导出结果</strong
+              ><span data-i18n="flow.export.help">带走图表，继续研究</span>
+            </div>
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
                 d="M12 4v11m-4-4 4 4 4-4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"
@@ -139,7 +193,8 @@
             </svg>
           </div>
           <div class="flow-foot">
-            <span aria-hidden="true"></span>轻量入口 · 清楚的分析过程
+            <span aria-hidden="true"></span
+            ><span data-i18n="flow.footer">轻量入口 · 清楚的分析过程</span>
           </div>
         </div>
       </section>
@@ -147,28 +202,37 @@
       <section class="tools-section" id="tools" aria-labelledby="tools-title">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">THE WORKBENCHES</p>
-            <h2 id="tools-title">为你的实验，选一张工作台</h2>
+            <p class="eyebrow" data-i18n="tools.eyebrow">分析工作台</p>
+            <h2 id="tools-title" data-i18n="tools.title">
+              为你的实验，选一张工作台
+            </h2>
           </div>
-          <span class="section-note">各有专长，使用一样简单。</span>
+          <span class="section-note" data-i18n="tools.note"
+            >各有专长，使用一样简单。</span
+          >
         </div>
         <div class="tool-grid">
           <article class="tool-card wb-card">
             <a
               class="tool-main-link"
               href="https://wb.wisplab.top/"
+              data-language-link
               aria-labelledby="wb-title"
               aria-describedby="wb-description"
             >
               <div class="tool-preview wb-preview" aria-hidden="true">
-                <span class="preview-label">WESTERN BLOT</span>
+                <span class="preview-label" data-i18n="wb.preview"
+                  >WESTERN BLOT</span
+                >
                 <div class="strip-illustration">
                   <i></i><i></i><i></i><i></i><i></i><i></i>
                 </div>
                 <div class="strip-chart">
                   <i></i><i></i><i></i><i></i><i></i><i></i>
                 </div>
-                <span class="preview-caption">分析示意 · 非实验数据</span>
+                <span class="preview-caption" data-i18n="preview.caption"
+                  >分析示意 · 非实验数据</span
+                >
               </div>
               <div class="tool-body">
                 <div class="tool-title-row">
@@ -181,19 +245,21 @@
                         stroke-linecap="round"
                       /></svg
                   ></span>
-                  <h3 id="wb-title">WB 条带分析</h3>
+                  <h3 id="wb-title" data-i18n="wb.title">WB 条带分析</h3>
                   <span class="tool-index">01</span>
                 </div>
-                <p id="wb-description">
+                <p id="wb-description" data-i18n="wb.description">
                   从单排条带快速识别，到多排内参归一化。图像、取样与结果，清楚地放在一起。
                 </p>
                 <span class="tool-cta"
-                  >进入 WB 工作台 <span aria-hidden="true">↗</span></span
+                  ><span data-i18n="wb.open">进入 WB 工作台</span>
+                  <span aria-hidden="true">↗</span></span
                 >
               </div>
             </a>
             <div class="tool-footer">
-              <span>wb.wisplab.top</span><span>图像分析</span>
+              <span>wb.wisplab.top</span
+              ><span data-i18n="wb.category">图像分析</span>
             </div>
           </article>
 
@@ -201,11 +267,14 @@
             <a
               class="tool-main-link"
               href="https://pathology.wisplab.top/"
+              data-language-link
               aria-labelledby="pathology-title"
               aria-describedby="pathology-description"
             >
               <div class="tool-preview pathology-preview" aria-hidden="true">
-                <span class="preview-label">PATHOLOGY</span>
+                <span class="preview-label" data-i18n="pathology.preview"
+                  >IHC · 染色 · IF</span
+                >
                 <svg
                   class="tissue-illustration"
                   viewBox="0 0 280 124"
@@ -290,7 +359,9 @@
                     stroke-linecap="round"
                   />
                 </svg>
-                <span class="preview-caption">分析示意 · 非实验数据</span>
+                <span class="preview-caption" data-i18n="preview.caption"
+                  >分析示意 · 非实验数据</span
+                >
               </div>
               <div class="tool-body">
                 <div class="tool-title-row">
@@ -304,19 +375,24 @@
                         stroke-linejoin="round"
                       /></svg
                   ></span>
-                  <h3 id="pathology-title">病理图像分析</h3>
+                  <h3 id="pathology-title" data-i18n="pathology.title">
+                    IHC、染色与 IF 分析
+                  </h3>
                   <span class="tool-index">02</span>
                 </div>
-                <p id="pathology-description">
-                  导入病理图像，查看与核对分析区域。把图像观察、参数调整和结果整理连起来。
+                <p id="pathology-description" data-i18n="pathology.description">
+                  支持 IHC 免疫组化、H&amp;E／Masson 染色和 IF
+                  双通道共定位。导入图像、圈选区域，查看定量结果。
                 </p>
                 <span class="tool-cta"
-                  >进入病理工作台 <span aria-hidden="true">↗</span></span
+                  ><span data-i18n="pathology.open">进入图像分析工作台</span>
+                  <span aria-hidden="true">↗</span></span
                 >
               </div>
             </a>
             <div class="tool-footer">
-              <span>pathology.wisplab.top</span><span>图像分析</span>
+              <span>pathology.wisplab.top</span
+              ><span data-i18n="pathology.category">多场景图像分析</span>
             </div>
           </article>
 
@@ -324,11 +400,14 @@
             <a
               class="tool-main-link"
               href="https://pcr.wisplab.top/"
+              data-language-link
               aria-labelledby="pcr-title"
               aria-describedby="pcr-description"
             >
               <div class="tool-preview pcr-preview" aria-hidden="true">
-                <span class="preview-label">PCR ANALYSIS</span>
+                <span class="preview-label" data-i18n="pcr.preview"
+                  >PCR 分析</span
+                >
                 <svg class="pcr-illustration" viewBox="0 0 280 124" fill="none">
                   <path d="M36 17v87h214" stroke="#d4d7e8" stroke-width="1.2" />
                   <path
@@ -355,7 +434,9 @@
                     stroke-linecap="round"
                   />
                 </svg>
-                <span class="preview-caption">分析示意 · 非实验数据</span>
+                <span class="preview-caption" data-i18n="preview.caption"
+                  >分析示意 · 非实验数据</span
+                >
               </div>
               <div class="tool-body">
                 <div class="tool-title-row">
@@ -376,20 +457,22 @@
                         stroke-linejoin="round"
                       /></svg
                   ></span>
-                  <h3 id="pcr-title">PCR 数据分析</h3>
+                  <h3 id="pcr-title" data-i18n="pcr.title">PCR 数据分析</h3>
                   <span class="tool-index">03</span>
                 </div>
-                <p id="pcr-description">
+                <p id="pcr-description" data-i18n="pcr.description">
                   导入 PCR
                   数据表，整理样本与分组。从数据核对、相对表达到图表导出。
                 </p>
                 <span class="tool-cta"
-                  >进入 PCR 工作台 <span aria-hidden="true">↗</span></span
+                  ><span data-i18n="pcr.open">进入 PCR 工作台</span>
+                  <span aria-hidden="true">↗</span></span
                 >
               </div>
             </a>
             <div class="tool-footer">
-              <span>pcr.wisplab.top</span><span>表格分析</span>
+              <span>pcr.wisplab.top</span
+              ><span data-i18n="pcr.category">表格分析</span>
             </div>
           </article>
         </div>
@@ -407,40 +490,62 @@
             /></svg
         ></span>
         <div class="quick-copy">
-          <h2 id="quick-title">只想看一排条带的结果？</h2>
-          <p>导入裁好的 8-bit PNG / JPG，自动取样、扣背景，再核对结果。</p>
+          <h2 id="quick-title" data-i18n="quick.title">
+            只想看一排条带的结果？
+          </h2>
+          <p data-i18n="quick.description">
+            导入裁好的 8-bit PNG / JPG，自动取样、扣背景，再核对结果。
+          </p>
         </div>
-        <a href="https://wb.wisplab.top/?mode=single"
-          >打开单条带识别 <span aria-hidden="true">→</span></a
+        <a href="https://wb.wisplab.top/?mode=single" data-language-link
+          ><span data-i18n="quick.open">打开单条带识别</span>
+          <span aria-hidden="true">→</span></a
         >
       </aside>
 
       <section class="about-section" id="about" aria-labelledby="about-title">
         <div class="about-intro">
-          <p class="eyebrow">A LITTLE LESS FRICTION</p>
-          <h2 id="about-title">工具更轻，<br />分析更专注。</h2>
+          <p class="eyebrow" data-i18n="about.eyebrow">少些操作，多些专注</p>
+          <h2 id="about-title">
+            <span data-i18n="about.title.first">工具更轻，</span><br /><span
+              data-i18n="about.title.second"
+              >分析更专注。</span
+            >
+          </h2>
         </div>
         <div class="principle">
-          <span class="principle-number">01 / 本机计算</span>
-          <h3>数据就在你的工作区</h3>
+          <span class="principle-number" data-i18n="about.local.kicker"
+            >01 / 本机计算</span
+          >
+          <h3 data-i18n="about.local.title">数据就在你的工作区</h3>
           <p>
-            默认的图像与表格分析在浏览器内完成。可选 AI
-            服务按所选工具的设置和提示发送数据，使用前请核对。
+            <span data-i18n="about.local.description"
+              >默认的图像与表格分析在浏览器内完成。可选 AI
+              服务按所选工具的设置和提示发送数据，使用前请核对。</span
+            >
           </p>
         </div>
         <div class="principle">
-          <span class="principle-number">02 / 结果可核对</span>
-          <h3>看得到过程，也带得走结果</h3>
+          <span class="principle-number" data-i18n="about.review.kicker"
+            >02 / 结果可核对</span
+          >
+          <h3 data-i18n="about.review.title">看得到过程，也带得走结果</h3>
           <p>
-            自动识别与取样是分析的起点。核对区域、参数和实验对应关系，再导出所需图表与数据。
+            <span data-i18n="about.review.description"
+              >自动识别与取样是分析的起点。核对区域、参数和实验对应关系，再导出所需图表与数据。</span
+            >
           </p>
         </div>
       </section>
     </main>
     <footer class="site-footer">
-      <a href="./" class="footer-brand">WispLab<span>实验分析工作台</span></a
-      ><span>让每一步分析，都更清楚。</span
-      ><a href="#main">回到顶部 <span aria-hidden="true">↑</span></a>
+      <a href="./" class="footer-brand" data-language-link
+        >WispLab<span data-i18n="brand.tagline">实验分析工作台</span></a
+      ><span data-i18n="footer.tagline">让每一步分析，都更清楚。</span
+      ><a href="#main"
+        ><span data-i18n="footer.top">回到顶部</span>
+        <span aria-hidden="true">↑</span></a
+      >
     </footer>
   </body>
 </html>

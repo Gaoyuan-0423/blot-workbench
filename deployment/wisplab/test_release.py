@@ -1,4 +1,5 @@
 import argparse
+import base64
 import copy
 import hashlib
 import importlib.util
@@ -53,6 +54,38 @@ class ReleaseTests(unittest.TestCase):
             doc['sources']['wb'][field] = bad
             with self.assertRaises(r.ReleaseError):
                 r.validate_deployment(doc)
+
+    def test_portal_language_module_uses_frozen_sha_and_old_versions_still_work(self):
+        release = self.release()
+        release.state['sources']['wb'] = source('wb', 1)
+        core = {'type': 'file', 'encoding': 'base64', 'content': base64.b64encode(b'core file').decode()}
+        module = {**core, 'content': base64.b64encode(b'export const language = "en";').decode()}
+        with patch.object(r, 'api', return_value=core) as required, patch.object(r, 'optional_api', return_value=module) as optional:
+            folder, identity = release.portal()
+        self.assertEqual((folder / 'locale.js').read_bytes(), b'export const language = "en";')
+        self.assertEqual(identity['gitSha'], '1' * 40)
+        self.assertTrue(all(call.args[0].endswith('?ref=' + '1' * 40) for call in required.call_args_list))
+        self.assertTrue(optional.call_args.args[0].endswith('locale.js?ref=' + '1' * 40))
+        # A retry of a historical source must not include a stale new module.
+        with patch.object(r, 'api', return_value=core), patch.object(r, 'optional_api', return_value=None):
+            release.portal()
+        self.assertFalse((folder / 'locale.js').exists())
+
+    def test_portal_package_accepts_language_module_but_rejects_missing_or_unapproved_assets(self):
+        packager = r.load_module('portal_package_test', 'package-release.py')
+        portal = (self.root / 'portal').resolve()
+        portal.mkdir()
+        for name, data in [('index.html', '<html><script type="module" src="./locale.js"></script></html>'),
+                           ('styles.css', 'body{}'), ('favicon.svg', '<svg/>'), ('locale.js', 'export const locale = "en";')]:
+            (portal / name).write_text(data)
+        files = packager.collect_files(portal, portal=True)
+        packager.check_index('portal', files)
+        self.assertIn('locale.js', files)
+        with self.assertRaisesRegex(packager.PackageError, 'missing built asset'):
+            packager.check_index('portal', {k: v for k, v in files.items() if k != 'locale.js'})
+        (portal / 'unexpected.js').write_text('export const unexpected = true;')
+        with self.assertRaisesRegex(packager.PackageError, 'only locale.js'):
+            packager.collect_files(portal, portal=True)
 
     def test_draft_lookup_falls_back_to_authorized_list(self):
         draft = {'id': 123, 'tag_name': 'wisplab-deploy-test', 'draft': True}

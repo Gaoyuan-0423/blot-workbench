@@ -35,6 +35,7 @@ REPOSITORIES = {
     "pcr": "Gaoyuan-0423/pcr-workbench",
 }
 PORTAL_FILES = {"index.html", "styles.css", "favicon.svg"}
+PORTAL_OPTIONAL_FILES = {"locale.js"}
 ORT_FILES = {"ort-wasm-simd-threaded.wasm", "ort-wasm-simd-threaded.mjs"}
 FORBIDDEN_COMPONENTS = {
     "node_modules", "src", "tests", "test", "fixtures", "test-results",
@@ -194,8 +195,9 @@ def collect_files(root: Path, *, portal: bool = False) -> dict[str, bytes]:
     walk(root)
     if "index.html" not in collected:
         raise PackageError(f"Built index.html is missing: {root}")
-    if portal and set(collected) != PORTAL_FILES:
-        raise PackageError("Portal must contain exactly index.html, styles.css, favicon.svg (plus excluded .qa/).")
+    if portal and (not PORTAL_FILES.issubset(collected)
+                   or set(collected) - PORTAL_FILES - PORTAL_OPTIONAL_FILES):
+        raise PackageError("Portal requires index.html, styles.css, favicon.svg; only locale.js and excluded .qa/ are additionally allowed.")
     return collected
 
 

@@ -345,8 +345,13 @@ class Release:
         folder = self.folder / "portal"
         folder.mkdir(exist_ok=True)
         sha = self.state["sources"]["wb"]["gitSha"]
-        for name in ("index.html", "styles.css", "favicon.svg"):
-            data = api(f"repos/{RELEASE_REPO}/contents/{PORTAL_SOURCE}/{name}?ref={sha}")
+        for name in ("index.html", "styles.css", "favicon.svg", "locale.js"):
+            path = f"repos/{RELEASE_REPO}/contents/{PORTAL_SOURCE}/{name}?ref={sha}"
+            data = optional_api(path) if name == "locale.js" else api(path)
+            if data is None:
+                # Historical releases had no language module; keep them releasable.
+                (folder / name).unlink(missing_ok=True)
+                continue
             if data.get("type") != "file" or data.get("encoding") != "base64":
                 raise ReleaseError("WB 提交中缺少可发布的 portal 文件。")
             (folder / name).write_bytes(base64.b64decode(data["content"], validate=False))
