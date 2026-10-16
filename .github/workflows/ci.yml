@@ -26,6 +26,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Verify WispLab release and rollback tooling
+        run: python3 -m unittest discover -s deployment/wisplab -p 'test_*.py' -q
       - run: npm ci
       - run: node --test scripts/*.check.mjs
       - run: npm run check

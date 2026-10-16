@@ -1,0 +1,24 @@
+[Unit]
+Description=Update WispLab from verified public GitHub release artifacts
+Wants=network-online.target
+After=network-online.target caddy.service
+ConditionPathExists=/srv/wisplab/bin/deploy.py
+ConditionPathExists=/srv/wisplab/.managed-by-wisplab-deploy.json
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0077
+Environment=PATH=/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/usr/bin/python3 -I /srv/wisplab/bin/update.py
+WorkingDirectory=/srv/wisplab
+TimeoutStartSec=10min
+TimeoutStopSec=60s
+KillMode=control-group
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/etc/caddy /srv/wisplab
+

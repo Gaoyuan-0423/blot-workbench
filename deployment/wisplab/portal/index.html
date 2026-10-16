@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta
+      name="description"
+      content="WispLab 实验分析工具：Western blot 条带识别、病理图像分析与 PCR 数据分析。选择工具，从图像与表格开始。"
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'"
+    />
+    <title>WispLab · 实验分析工作台</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="WispLab 首页">
+        <svg
+          class="brand-mark"
+          viewBox="0 0 40 40"
+          fill="none"
+          aria-hidden="true"
+        >
+          <rect width="40" height="40" rx="12" fill="#4f46e5" />
+          <path
+            d="M9 14.5 14.2 27 20 13l5.8 14L31 14.5"
+            stroke="white"
+            stroke-width="2.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <circle cx="30.5" cy="9.5" r="2" fill="#c7c3ff" />
+        </svg>
+        <span
+          >WispLab<span class="brand-divider" aria-hidden="true"></span
+          ><small>实验分析工作台</small></span
+        >
+      </a>
+      <nav class="header-nav" aria-label="页面导航">
+        <a href="#tools">分析工具</a>
+        <a href="#about">关于工作台</a>
+        <a class="header-quick" href="https://wb.wisplab.top/?mode=single"
+          >单条带识别 <span aria-hidden="true">↗</span></a
+        >
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span aria-hidden="true"></span> A WORKSPACE FOR YOUR EXPERIMENTS
+          </p>
+          <h1 id="hero-title">从实验数据，<br />到<span>清晰结果。</span></h1>
+          <p class="hero-description">
+            把条带、切片与 PCR 数据带进来。<br
+              class="desktop-break"
+            />选择合适的工具，专注于分析本身。
+          </p>
+          <a class="primary-link" href="#tools"
+            >选择分析工具
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path
+                d="M4 10h12m-5-5 5 5-5 5"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              /></svg
+          ></a>
+        </div>
+        <div
+          class="hero-flow"
+          aria-label="工作流程：导入数据、核对分析、导出结果"
+        >
+          <div class="flow-topline">
+            <span class="flow-kicker">YOUR ANALYSIS, IN ONE PLACE</span
+            ><span class="flow-dots" aria-hidden="true">···</span>
+          </div>
+          <div class="flow-step">
+            <span class="step-number">01</span>
+            <div><strong>导入数据</strong><span>从图像或表格开始</span></div>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M12 15V4m-4 4 4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="flow-step">
+            <span class="step-number">02</span>
+            <div>
+              <strong>核对分析</strong><span>看清取样、参数与数值</span>
+            </div>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M4 7h16M4 17h16M8 4v6m8 4v6"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+              <circle
+                cx="8"
+                cy="7"
+                r="2"
+                fill="#fafaff"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+              <circle
+                cx="16"
+                cy="17"
+                r="2"
+                fill="#fafaff"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+            </svg>
+          </div>
+          <div class="flow-step">
+            <span class="step-number">03</span>
+            <div><strong>导出结果</strong><span>带走图表，继续研究</span></div>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M12 4v11m-4-4 4 4 4-4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="flow-foot">
+            <span aria-hidden="true"></span>轻量入口 · 清楚的分析过程
+          </div>
+        </div>
+      </section>
+
+      <section class="tools-section" id="tools" aria-labelledby="tools-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">THE WORKBENCHES</p>
+            <h2 id="tools-title">为你的实验，选一张工作台</h2>
+          </div>
+          <span class="section-note">各有专长，使用一样简单。</span>
+        </div>
+        <div class="tool-grid">
+          <article class="tool-card wb-card">
+            <a
+              class="tool-main-link"
+              href="https://wb.wisplab.top/"
+              aria-labelledby="wb-title"
+              aria-describedby="wb-description"
+            >
+              <div class="tool-preview wb-preview" aria-hidden="true">
+                <span class="preview-label">WESTERN BLOT</span>
+                <div class="strip-illustration">
+                  <i></i><i></i><i></i><i></i><i></i><i></i>
+                </div>
+                <div class="strip-chart">
+                  <i></i><i></i><i></i><i></i><i></i><i></i>
+                </div>
+                <span class="preview-caption">分析示意 · 非实验数据</span>
+              </div>
+              <div class="tool-body">
+                <div class="tool-title-row">
+                  <span class="tool-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m8 0h3a2 2 0 0 0 2-2v-3M7 9h10M7 15h10"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                      /></svg
+                  ></span>
+                  <h3 id="wb-title">WB 条带分析</h3>
+                  <span class="tool-index">01</span>
+                </div>
+                <p id="wb-description">
+                  从单排条带快速识别，到多排内参归一化。图像、取样与结果，清楚地放在一起。
+                </p>
+                <span class="tool-cta"
+                  >进入 WB 工作台 <span aria-hidden="true">↗</span></span
+                >
+              </div>
+            </a>
+            <div class="tool-footer">
+              <span>wb.wisplab.top</span><span>图像分析</span>
+            </div>
+          </article>
+
+          <article class="tool-card pathology-card">
+            <a
+              class="tool-main-link"
+              href="https://pathology.wisplab.top/"
+              aria-labelledby="pathology-title"
+              aria-describedby="pathology-description"
+            >
+              <div class="tool-preview pathology-preview" aria-hidden="true">
+                <span class="preview-label">PATHOLOGY</span>
+                <svg
+                  class="tissue-illustration"
+                  viewBox="0 0 280 124"
+                  fill="none"
+                >
+                  <path
+                    d="M43 34c13-23 36-12 48-16 28-11 48-1 65 2 17 2 28-15 47-3 16 10 35 20 27 42-9 24 4 34-19 40-18 5-29 16-51 5-16-9-29 9-48 1-19-9-32-4-46-17C44 67 26 60 43 34Z"
+                    fill="#edeafa"
+                  />
+                  <g fill="#b8a9dc" stroke="#a394cf" stroke-width="1.5">
+                    <ellipse
+                      cx="67"
+                      cy="47"
+                      rx="12"
+                      ry="10"
+                      transform="rotate(-26 67 47)"
+                    />
+                    <ellipse
+                      cx="102"
+                      cy="37"
+                      rx="10"
+                      ry="14"
+                      transform="rotate(32 102 37)"
+                    />
+                    <ellipse
+                      cx="138"
+                      cy="47"
+                      rx="15"
+                      ry="11"
+                      transform="rotate(-22 138 47)"
+                    />
+                    <ellipse
+                      cx="182"
+                      cy="35"
+                      rx="11"
+                      ry="13"
+                      transform="rotate(-25 182 35)"
+                    />
+                    <ellipse
+                      cx="210"
+                      cy="58"
+                      rx="9"
+                      ry="12"
+                      transform="rotate(32 210 58)"
+                    />
+                    <ellipse
+                      cx="172"
+                      cy="78"
+                      rx="15"
+                      ry="11"
+                      transform="rotate(-20 172 78)"
+                    />
+                    <ellipse
+                      cx="122"
+                      cy="83"
+                      rx="12"
+                      ry="10"
+                      transform="rotate(28 122 83)"
+                    />
+                    <ellipse
+                      cx="83"
+                      cy="77"
+                      rx="11"
+                      ry="13"
+                      transform="rotate(-30 83 77)"
+                    />
+                  </g>
+                  <g fill="#8473b6">
+                    <ellipse cx="66" cy="47" rx="4" ry="3" />
+                    <ellipse cx="103" cy="37" rx="3" ry="5" />
+                    <ellipse cx="139" cy="46" rx="5" ry="3" />
+                    <ellipse cx="182" cy="35" rx="3" ry="4" />
+                    <ellipse cx="210" cy="58" rx="3" ry="4" />
+                    <ellipse cx="173" cy="78" rx="5" ry="3" />
+                    <ellipse cx="122" cy="83" rx="4" ry="3" />
+                    <ellipse cx="83" cy="77" rx="3" ry="4" />
+                  </g>
+                  <path
+                    d="M50 24h14M50 24v14m165-14h14v14M50 88v14h14m151 0h14V88"
+                    stroke="#9a8be0"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <span class="preview-caption">分析示意 · 非实验数据</span>
+              </div>
+              <div class="tool-body">
+                <div class="tool-title-row">
+                  <span class="tool-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="m9 3 7 7-3 3-7-7 3-3Zm-3 9a6 6 0 0 0 6 9h7M4 21h17M14 17h6M17 11a6 6 0 0 1-5 10M7 4l2-2"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      /></svg
+                  ></span>
+                  <h3 id="pathology-title">病理图像分析</h3>
+                  <span class="tool-index">02</span>
+                </div>
+                <p id="pathology-description">
+                  导入病理图像，查看与核对分析区域。把图像观察、参数调整和结果整理连起来。
+                </p>
+                <span class="tool-cta"
+                  >进入病理工作台 <span aria-hidden="true">↗</span></span
+                >
+              </div>
+            </a>
+            <div class="tool-footer">
+              <span>pathology.wisplab.top</span><span>图像分析</span>
+            </div>
+          </article>
+
+          <article class="tool-card pcr-card">
+            <a
+              class="tool-main-link"
+              href="https://pcr.wisplab.top/"
+              aria-labelledby="pcr-title"
+              aria-describedby="pcr-description"
+            >
+              <div class="tool-preview pcr-preview" aria-hidden="true">
+                <span class="preview-label">PCR ANALYSIS</span>
+                <svg class="pcr-illustration" viewBox="0 0 280 124" fill="none">
+                  <path d="M36 17v87h214" stroke="#d4d7e8" stroke-width="1.2" />
+                  <path
+                    d="M37 37h213M37 59h213M37 81h213"
+                    stroke="#e6e7f1"
+                    stroke-dasharray="3 4"
+                  />
+                  <path
+                    d="M46 96c43 0 55 0 70-3 15-3 19-16 24-36 5-21 10-30 27-32 15-2 42-2 74-2"
+                    stroke="#6b63d9"
+                    stroke-width="2.7"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M46 97c65 0 73 0 87-3 15-3 19-14 24-32 5-20 11-29 27-32 15-2 30-2 57-2"
+                    stroke="#a39ce9"
+                    stroke-width="2.7"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M46 98c90 0 97 0 109-4 13-5 16-15 21-29 6-19 12-26 27-28 10-1 19-1 38-1"
+                    stroke="#c9c4f4"
+                    stroke-width="2.7"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                <span class="preview-caption">分析示意 · 非实验数据</span>
+              </div>
+              <div class="tool-body">
+                <div class="tool-title-row">
+                  <span class="tool-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M4 4v16h17M7 15l4-5 4 3 5-7"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M16 6h4v4"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      /></svg
+                  ></span>
+                  <h3 id="pcr-title">PCR 数据分析</h3>
+                  <span class="tool-index">03</span>
+                </div>
+                <p id="pcr-description">
+                  导入 PCR
+                  数据表，整理样本与分组。从数据核对、相对表达到图表导出。
+                </p>
+                <span class="tool-cta"
+                  >进入 PCR 工作台 <span aria-hidden="true">↗</span></span
+                >
+              </div>
+            </a>
+            <div class="tool-footer">
+              <span>pcr.wisplab.top</span><span>表格分析</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <aside class="quick-entry" aria-labelledby="quick-title">
+        <span class="quick-icon" aria-hidden="true"
+          ><svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="m13 3-9 11h7l-1 7 10-12h-8l1-6Z"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            /></svg
+        ></span>
+        <div class="quick-copy">
+          <h2 id="quick-title">只想看一排条带的结果？</h2>
+          <p>导入裁好的 8-bit PNG / JPG，自动取样、扣背景，再核对结果。</p>
+        </div>
+        <a href="https://wb.wisplab.top/?mode=single"
+          >打开单条带识别 <span aria-hidden="true">→</span></a
+        >
+      </aside>
+
+      <section class="about-section" id="about" aria-labelledby="about-title">
+        <div class="about-intro">
+          <p class="eyebrow">A LITTLE LESS FRICTION</p>
+          <h2 id="about-title">工具更轻，<br />分析更专注。</h2>
+        </div>
+        <div class="principle">
+          <span class="principle-number">01 / 本机计算</span>
+          <h3>数据就在你的工作区</h3>
+          <p>
+            默认的图像与表格分析在浏览器内完成。可选 AI
+            服务按所选工具的设置和提示发送数据，使用前请核对。
+          </p>
+        </div>
+        <div class="principle">
+          <span class="principle-number">02 / 结果可核对</span>
+          <h3>看得到过程，也带得走结果</h3>
+          <p>
+            自动识别与取样是分析的起点。核对区域、参数和实验对应关系，再导出所需图表与数据。
+          </p>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <a href="./" class="footer-brand">WispLab<span>实验分析工作台</span></a
+      ><span>让每一步分析，都更清楚。</span
+      ><a href="#main">回到顶部 <span aria-hidden="true">↑</span></a>
+    </footer>
+  </body>
+</html>
