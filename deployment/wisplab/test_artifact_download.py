@@ -182,5 +182,49 @@ class ArtifactTests(unittest.TestCase):
         self.assertEqual(result['digest'],artifact['digest'])
         self.assertFalse(any(p.name.startswith('.artifact-') for p in self.root.iterdir()))
 
+    def test_release_asset_api_is_fixed_and_requests_octet_stream(self):
+        seen=[]
+        class API:
+            def open(self,request,**kwargs):
+                seen.append(request)
+                raise urllib.error.HTTPError(request.full_url,302,'Found',{'Location':'https://release-assets.githubusercontent.com/a?sig=private'},io.BytesIO())
+        class Token:
+            returncode=0
+            stdout='fake-test-token\n'
+        with patch.object(a.subprocess,'run',return_value=Token()),patch.object(a.urllib.request,'build_opener',return_value=API()):
+            a.signed_release_url(123)
+        self.assertEqual(seen[0].full_url,'https://api.github.com/repos/Gaoyuan-0423/blot-workbench/releases/assets/123')
+        self.assertEqual(seen[0].get_header('Accept'),'application/octet-stream')
+
+    def test_release_asset_digest_must_match_original_deployment(self):
+        asset={'id':1,'name':'wisplab-old.tar.gz','state':'uploaded','size':3,'digest':'sha256:'+'a'*64}
+        with patch.object(a,'signed_release_url') as signed,self.assertRaisesRegex(a.ArtifactError,'deployment.json'):
+            a.download_release_asset(asset,self.root/asset['name'],expected_sha256='b'*64)
+        signed.assert_not_called()
+
+    def test_release_asset_replaces_partial_only_after_verified_download(self):
+        content=b'verified archive'
+        digest=hashlib.sha256(content).hexdigest()
+        asset={'id':1,'name':'wisplab-old.tar.gz','state':'uploaded','size':len(content),'digest':'sha256:'+digest}
+        destination=self.root/asset['name'];destination.write_bytes(b'partial')
+        def download(url,size,expected,archive,progress):
+            self.assertEqual(destination.read_bytes(),b'partial')
+            archive.write_bytes(content)
+        with patch.object(a,'signed_release_url',return_value=URL),patch.object(a,'download_ranges',side_effect=download):
+            a.download_release_asset(asset,destination,expected_sha256=digest)
+        self.assertEqual(destination.read_bytes(),content)
+        with patch.object(a,'signed_release_url') as signed:
+            a.download_release_asset(asset,destination,expected_sha256=digest)
+        signed.assert_not_called()
+
+    def test_failed_release_asset_does_not_replace_partial_cache(self):
+        asset={'id':1,'name':'wisplab-old.tar.gz','state':'uploaded','size':3,'digest':'sha256:'+'a'*64}
+        destination=self.root/asset['name'];destination.write_bytes(b'partial')
+        with patch.object(a,'signed_release_url',return_value=URL),patch.object(a,'download_ranges',side_effect=a.ArtifactError('bad digest')):
+            with self.assertRaises(a.ArtifactError):
+                a.download_release_asset(asset,destination,expected_sha256='a'*64)
+        self.assertEqual(destination.read_bytes(),b'partial')
+        self.assertFalse(any(p.name.startswith('.release-asset-') for p in self.root.iterdir()))
+
 
 if __name__=='__main__':unittest.main()

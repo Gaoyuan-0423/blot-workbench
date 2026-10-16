@@ -6,7 +6,7 @@
 
 统一发布程序先向 GitHub 验证三个仓库的完整提交 SHA、成功的主线 CI 及 `web-dist` 工件，再下载、校验并安全解压。打包器接受以下输入，不依赖本机仓库、`dist/` 或 `node_modules`：
 
-CI 与 Pages 工件采用最多 12 路的有限并行下载，使用正常 HTTPS/TLS，并在解压前强制核对 GitHub 提供的完整 SHA-256。下载失败或摘要不一致会停止发布并保留恢复状态；仍仅需 Python 标准库和已认证的 `gh`，操作命令不变。
+CI、Pages 工件及回滚归档采用最多 12 路的有限并行下载，使用正常 HTTPS/TLS，并在使用前强制核对 GitHub 提供的完整 SHA-256；回滚归档还须与原 `deployment.json` 摘要一致。下载失败或摘要不一致会停止发布并保留恢复状态；仍仅需 Python 标准库和已认证的 `gh`，操作命令不变。
 
 ```sh
 python3 package-release.py --version 20261016-domain-ci \

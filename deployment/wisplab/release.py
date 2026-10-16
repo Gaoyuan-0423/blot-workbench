@@ -71,6 +71,29 @@ def optional_api(path):
     return json.loads(result.stdout)
 
 
+def find_release(tag, release_id=None):
+    # GitHub 的按 tag 查询只返回已发布版本；草稿必须按 ID 或在授权列表中查找。
+    if release_id is not None:
+        if type(release_id) is not int or release_id <= 0:
+            raise ReleaseError("保存的 Release ID 无效。")
+        release = api(f"repos/{RELEASE_REPO}/releases/{release_id}")
+        if release.get("tag_name") != tag:
+            raise ReleaseError("保存的 Release ID 与本次 tag 不一致。")
+        return release
+    release = optional_api(f"repos/{RELEASE_REPO}/releases/tags/{tag}")
+    if release:
+        return release
+    matches = []
+    for page in range(1, 21):
+        rows = api(f"repos/{RELEASE_REPO}/releases?per_page=100&page={page}")
+        matches.extend(row for row in rows if row.get("tag_name") == tag)
+        if len(matches) > 1:
+            raise ReleaseError("存在多个同名 Release 草稿，停止以免操作错误版本。")
+        if len(rows) < 100:
+            return matches[0] if matches else None
+    raise ReleaseError("Release 列表超出查询上限，无法确认是否已有同名草稿。")
+
+
 def write_json(path, data):
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -95,6 +118,11 @@ def load_module(name, filename):
 def download_artifact(repository, artifact, destination, *, required_file):
     return load_module("wisplab_artifact_download", "artifact_download.py").download_artifact(
         repository, artifact, destination, required_file=required_file, progress=log)
+
+
+def download_release_asset(asset, destination, expected_sha256):
+    return load_module("wisplab_artifact_download", "artifact_download.py").download_release_asset(
+        asset, destination, expected_sha256=expected_sha256, progress=log)
 
 
 def validate_version(version):
@@ -268,8 +296,11 @@ class Release:
             destination.mkdir(exist_ok=True)
             command("gh", "release", "download", tag, "--repo", RELEASE_REPO, "--pattern", "deployment.json", "--dir", str(destination), "--clobber", timeout=900)
             document = validate_deployment(json.loads((destination / "deployment.json").read_text()))
-            command("gh", "release", "download", tag, "--repo", RELEASE_REPO, "--pattern", document["archive"]["fileName"], "--dir", str(destination), "--clobber", timeout=900)
             archive = destination / document["archive"]["fileName"]
+            assets = [asset for asset in release["assets"] if asset["name"] == archive.name]
+            if len(assets) != 1:
+                raise ReleaseError("旧发布必须包含唯一的指定归档附件。")
+            download_release_asset(assets[0], archive, document["archive"]["sha256"])
             if sha256(archive) != document["archive"]["sha256"]:
                 raise ReleaseError("旧发布归档的 SHA256 不一致。")
             manifest, _ = load_module("wisplab_deploy", "deploy.py").read_archive(archive, document["archive"]["sha256"], document["version"])
@@ -447,7 +478,7 @@ class Release:
         notes = self.folder / "release-notes.md"
         notes.write_text("WispLab 统一发布。三站使用完整成功 CI 的同一份静态产物，Pages 已成功。服务器自动拉取后逐站验证。\n\n" +
                          "\n".join(f"- {site}: `{source['gitSha']}`，CI {source['ci']['runId']}，Pages {self.state['pages'][site]['runId']}" for site, source in self.state["sources"].items()) + "\n", encoding="utf-8")
-        release = optional_api(f"repos/{RELEASE_REPO}/releases/tags/{self.tag}")
+        release = find_release(self.tag, self.state.get("releaseId"))
         if release and not self.state.get("releaseCreateStarted"):
             raise ReleaseError(f"{self.tag} 已存在，但不属于本地恢复状态；不会覆盖。")
         if not release:
@@ -458,7 +489,13 @@ class Release:
             self.save()
             command("gh", "release", "create", self.tag, str(path), self.state["archive"]["path"], "--repo", RELEASE_REPO,
                     "--target", self.state["sources"]["wb"]["gitSha"], "--title", f"WispLab {self.version}", "--notes-file", str(notes), "--draft", "--latest=false", timeout=900)
-            release = api(f"repos/{RELEASE_REPO}/releases/tags/{self.tag}")
+            release = find_release(self.tag)
+            if not release:
+                raise ReleaseError("创建结果尚不可见；保留当前状态后用同一命令恢复，不重复创建版本。")
+        if release.get("target_commitish") != self.state["sources"]["wb"]["gitSha"]:
+            raise ReleaseError("Release 的目标提交与锁定的 WB 提交不同，停止发布。")
+        self.state["releaseId"] = release["id"]
+        self.save()
         if release.get("prerelease"):
             raise ReleaseError("该 release 意外成为预发布，停止发布。")
         assets = {asset["name"]: asset for asset in release["assets"]}
@@ -466,12 +503,15 @@ class Release:
             asset = assets.get(file.name)
             if not asset and release["draft"]:
                 command("gh", "release", "upload", self.tag, str(file), "--repo", RELEASE_REPO, timeout=900)
-                fresh = api(f"repos/{RELEASE_REPO}/releases/tags/{self.tag}")
+                fresh = find_release(self.tag, release["id"])
                 asset = next((item for item in fresh["assets"] if item["name"] == file.name), None)
             require_asset_digest(asset, file)
         if release["draft"]:
-            command("gh", "release", "edit", self.tag, "--repo", RELEASE_REPO, "--draft=false", "--latest=false")
-            release = api(f"repos/{RELEASE_REPO}/releases/tags/{self.tag}")
+            command("gh", "api", "--method", "PATCH", f"repos/{RELEASE_REPO}/releases/{release['id']}",
+                    "-F", "draft=false", "-f", "make_latest=false")
+            release = find_release(self.tag, release["id"])
+        if release["draft"]:
+            raise ReleaseError("Release 仍是草稿，尚未报告发布成功；用同一命令恢复。")
         self.state["releasePublished"] = True
         self.state["releaseUrl"] = release["html_url"]
         self.save()

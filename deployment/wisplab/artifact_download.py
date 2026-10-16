@@ -56,9 +56,7 @@ def download_host(url):
     return url
 
 
-def signed_url(repository, artifact_id):
-    if repository not in REPOSITORIES or type(artifact_id) is not int or artifact_id <= 0:
-        raise ArtifactError("工件仓库或 ID 无效。")
+def signed_api_url(endpoint, accept):
     try:
         token_result = subprocess.run(["gh", "auth", "token", "--hostname", "github.com"],
                                       capture_output=True, text=True, timeout=30)
@@ -66,16 +64,16 @@ def signed_url(repository, artifact_id):
             raise ArtifactError("无法读取 GitHub CLI 的已登录凭据。")
         # token 只发往固定 API；禁止自动跟随携带 Authorization 的重定向。
         request = urllib.request.Request(
-            f"https://api.github.com/repos/{repository}/actions/artifacts/{artifact_id}/zip",
+            "https://api.github.com/" + endpoint,
             headers={"Authorization": "Bearer " + token_result.stdout.strip(),
-                     "Accept": "application/vnd.github+json", "User-Agent": "WispLab-release/1"})
+                     "Accept": accept, "User-Agent": "WispLab-release/1"})
         opener = urllib.request.build_opener(NoRedirect())
         try:
             with opener.open(request, timeout=SOCKET_TIMEOUT):
-                raise ArtifactError("GitHub 工件 API 未返回预期的 302 下载跳转。")
+                raise ArtifactError("GitHub 下载 API 未返回预期的 302 跳转。")
         except urllib.error.HTTPError as error:
             if error.code != 302:
-                raise ArtifactError(f"GitHub 工件 API 返回 HTTP {error.code}。") from None
+                raise ArtifactError(f"GitHub 下载 API 返回 HTTP {error.code}。") from None
             location = error.headers.get("Location", "")
             error.close()
             return download_host(location)
@@ -83,6 +81,18 @@ def signed_url(repository, artifact_id):
         raise
     except (OSError, ValueError, subprocess.SubprocessError):
         raise ArtifactError("获取工件下载地址失败；请检查 gh 认证与网络。") from None
+
+
+def signed_url(repository, artifact_id):
+    if repository not in REPOSITORIES or type(artifact_id) is not int or artifact_id <= 0:
+        raise ArtifactError("工件仓库或 ID 无效。")
+    return signed_api_url(f"repos/{repository}/actions/artifacts/{artifact_id}/zip", "application/vnd.github+json")
+
+
+def signed_release_url(asset_id):
+    if type(asset_id) is not int or asset_id <= 0:
+        raise ArtifactError("发布附件 ID 无效。")
+    return signed_api_url(f"repos/Gaoyuan-0423/blot-workbench/releases/assets/{asset_id}", "application/octet-stream")
 
 
 def check_range(response, start, end, total):
@@ -261,3 +271,38 @@ def download_artifact(repository, artifact, destination, *, required_file, progr
     if progress:
         progress(f"工件 SHA256 与安全解压通过：{size:,} bytes，{time.monotonic() - started:.1f} 秒")
     return {"artifactId": artifact_id, "digest": digest, "sizeBytes": size}
+
+
+def download_release_asset(asset, destination, *, expected_sha256, progress=None):
+    """只下载固定 WB 发布仓库的归档；原下载缓存仅在新文件完整核验后替换。"""
+    destination = Path(destination)
+    size, digest = asset.get("size"), asset.get("digest")
+    name = asset.get("name", "")
+    if (type(asset.get("id")) is not int or asset["id"] <= 0 or asset.get("state") != "uploaded"
+            or not re.fullmatch(r"wisplab-[A-Za-z0-9][A-Za-z0-9._-]{0,79}\.tar\.gz", name)
+            or destination.name != name or type(size) is not int or not 0 < size <= MAX_BYTES):
+        raise ArtifactError("旧发布归档的附件名称、状态或大小无效。")
+    if (not isinstance(expected_sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_sha256)
+            or digest != "sha256:" + expected_sha256):
+        raise ArtifactError("GitHub 发布附件摘要缺失或与 deployment.json 不一致，拒绝下载。")
+    if destination.is_symlink() or (destination.exists() and not destination.is_file()):
+        raise ArtifactError("发布归档缓存不是普通文件，拒绝覆盖。")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.exists() and destination.stat().st_size == size:
+        old = hashlib.sha256()
+        with destination.open("rb") as source:
+            for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                old.update(chunk)
+        if old.hexdigest() == expected_sha256:
+            if progress:
+                progress("复用已通过 GitHub 与 deployment.json 摘要校验的旧发布归档。")
+            return {"assetId": asset["id"], "digest": digest, "sizeBytes": size}
+    started = time.monotonic()
+    with tempfile.TemporaryDirectory(prefix=".release-asset-", dir=destination.parent) as temporary:
+        archive = Path(temporary) / "archive.tar.gz"
+        download_ranges(signed_release_url(asset.get("id")), size, digest, archive, progress)
+        # download_ranges 已强制核对完整 GitHub 摘要，且其值必须与 deployment.json 相等。
+        archive.replace(destination)
+    if progress:
+        progress(f"旧发布归档双重摘要校验通过：{size:,} bytes，{time.monotonic() - started:.1f} 秒")
+    return {"assetId": asset["id"], "digest": digest, "sizeBytes": size}

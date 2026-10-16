@@ -8,6 +8,7 @@ from pathlib import Path
 import tempfile
 import tarfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 SPEC = importlib.util.spec_from_file_location('release_tool', Path(__file__).with_name('release.py'))
@@ -52,6 +53,53 @@ class ReleaseTests(unittest.TestCase):
             doc['sources']['wb'][field] = bad
             with self.assertRaises(r.ReleaseError):
                 r.validate_deployment(doc)
+
+    def test_draft_lookup_falls_back_to_authorized_list(self):
+        draft = {'id': 123, 'tag_name': 'wisplab-deploy-test', 'draft': True}
+        with patch.object(r, 'optional_api', return_value=None), patch.object(r, 'api', return_value=[draft]) as api:
+            self.assertEqual(r.find_release('wisplab-deploy-test'), draft)
+        self.assertIn('releases?per_page=100&page=1', api.call_args.args[0])
+        with patch.object(r, 'api', return_value={**draft, 'tag_name': 'another-tag'}):
+            with self.assertRaisesRegex(r.ReleaseError, 'tag 不一致'):
+                r.find_release('wisplab-deploy-test', 123)
+
+    def test_duplicate_drafts_stop_instead_of_creating_or_publishing(self):
+        draft = {'id': 123, 'tag_name': 'wisplab-deploy-test', 'draft': True}
+        with patch.object(r, 'optional_api', return_value=None), patch.object(r, 'api', return_value=[draft, {**draft, 'id': 124}]):
+            with self.assertRaisesRegex(r.ReleaseError, '多个同名'):
+                r.find_release('wisplab-deploy-test')
+
+    def test_draft_recovery_publishes_same_id_without_recreating(self):
+        release = self.release()
+        release.state['sources'] = {site: source(site, n) for n, site in enumerate(r.REPOS, 1)}
+        release.state['pages'] = {site: item['pages'] for site, item in release.state['sources'].items()}
+        release.state['bundleVersion'] = 'test'
+        release.state['releaseCreateStarted'] = True
+        archive = release.folder / 'wisplab-test.tar.gz'
+        archive.write_bytes(b'verified archive')
+        release.state['archive'] = {'path': str(archive), 'fileName': archive.name, 'sha256': r.sha256(archive)}
+        published = False
+        ids = []
+        def lookup(tag, release_id=None):
+            ids.append(release_id)
+            assets = [{'name': path.name, 'digest': 'sha256:' + r.sha256(path), 'size': path.stat().st_size}
+                      for path in (archive, release.folder / 'deployment.json')]
+            return {'id': 123, 'tag_name': tag, 'target_commitish': '1' * 40,
+                    'draft': not published, 'prerelease': False, 'assets': assets,
+                    'html_url': 'https://github.com/release/' + ('published' if published else 'draft')}
+        def command(*args, **kwargs):
+            nonlocal published
+            self.assertEqual(args[:4], ('gh', 'api', '--method', 'PATCH'))
+            self.assertEqual(args[4], f'repos/{r.RELEASE_REPO}/releases/123')
+            self.assertIn('draft=false', args)
+            published = True
+        with patch.object(r, 'find_release', side_effect=lookup), patch.object(r, 'command', side_effect=command) as cmd:
+            release.publish_release()
+        self.assertEqual(cmd.call_count, 1)
+        self.assertEqual(ids, [None, 123])
+        self.assertEqual(release.state['releaseId'], 123)
+        self.assertTrue(release.state['releasePublished'])
+        self.assertTrue(release.state['releaseUrl'].endswith('/published'))
 
     def test_manifest_accepts_rollback_with_different_workflow_sha(self):
         doc = deployment()
@@ -149,6 +197,30 @@ class ReleaseTests(unittest.TestCase):
             prepare.assert_not_called()
             pages.assert_not_called()
             server.assert_called_once()
+
+    def test_rollback_uses_parallel_verified_release_asset_download(self):
+        self.args.release_tag='wisplab-deploy-old'
+        self.args.action='rollback'
+        release=self.release()
+        content=b'old archive bytes'
+        document=deployment()
+        document['archive']['sha256']=hashlib.sha256(content).hexdigest()
+        asset={'id':100,'name':'wisplab-old.tar.gz','size':len(content),'digest':'sha256:'+document['archive']['sha256'],'state':'uploaded'}
+        def command(*args,**kwargs):
+            self.assertEqual(args[args.index('--pattern')+1],'deployment.json')
+            destination=Path(args[args.index('--dir')+1])
+            (destination/'deployment.json').write_text(json.dumps(document))
+        def download(item,destination,expected_sha256):
+            self.assertEqual(item,asset)
+            self.assertEqual(expected_sha256,document['archive']['sha256'])
+            destination.write_bytes(content)
+        module=SimpleNamespace(read_archive=lambda *unused:({'version':'old','sites':{}},{}))
+        with patch.object(r,'api',return_value={'draft':False,'prerelease':False,'assets':[asset]}),patch.object(r,'command',side_effect=command) as gh,patch.object(r,'download_release_asset',side_effect=download) as fetch,patch.object(r,'load_module',return_value=module):
+            release.sources()
+        self.assertEqual(gh.call_count,1)
+        fetch.assert_called_once()
+        self.assertEqual(release.state['bundleVersion'],'old')
+        self.assertEqual(release.state['pages'],{})
 
     def test_server_same_version_wrong_sources_is_failure(self):
         release = self.release()
