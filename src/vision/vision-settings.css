@@ -2,7 +2,7 @@
   max-width: 620px;
 }
 .vision-settings {
-  color: #2d453b;
+  color: #2b2c47;
   font-size: 12px;
   line-height: 1.65;
 }
@@ -19,25 +19,25 @@
   height: 47px;
   flex-shrink: 0;
   border-radius: 12px;
-  color: #275d4d;
-  background: #eaf2ed;
-  border: 1px solid #dce9e0;
+  color: #323352;
+  background: #e8e8f4;
+  border: 1px solid #dbdcea;
 }
 .vision-eyebrow {
   display: block;
-  color: #7b9185;
+  color: #5a5b81;
   font-size: 8px;
   letter-spacing: 1.3px;
   font-weight: 650;
   margin-bottom: 3px;
 }
 .vision-settings .vision-heading h2 {
-  color: #244f40;
+  color: #2c2c47;
   font-size: 21px;
   line-height: 1.5;
 }
 .vision-intro {
-  color: #687e72;
+  color: #5a5b81;
   font-size: 11px;
   line-height: 1.85;
   margin-bottom: 17px;
@@ -47,10 +47,10 @@
   align-items: flex-start;
   gap: 10px;
   padding: 12px 13px;
-  background: #f0f5f1;
-  border: 1px solid #e0eae2;
+  background: #eeeef7;
+  border: 1px solid #dedfeb;
   border-radius: 8px;
-  color: #587560;
+  color: #545579;
   font-size: 10px;
   line-height: 1.8;
 }
@@ -77,14 +77,14 @@
   font-weight: 650;
 }
 .vision-section-title h3 > span {
-  color: #92a699;
+  color: #5f6081;
   font-size: 9px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.5px;
 }
 .vision-protocol {
-  color: #7a8d80;
-  border: 1px solid #e4ebe4;
+  color: #5a5b81;
+  border: 1px solid #dfe0f0;
   border-radius: 4px;
   padding: 2px 6px;
   font-size: 8px;
@@ -101,7 +101,7 @@
   gap: 6px;
   font-size: 11px;
   font-weight: 550;
-  color: #496553;
+  color: #474867;
   margin: 14px 0 6px;
 }
 .vision-form label:first-child {
@@ -113,15 +113,15 @@
   min-height: 39px;
 }
 .vision-form input::placeholder {
-  color: #9aa79e;
+  color: #5f6081;
   font-size: 11px;
 }
 .vision-form input:disabled {
-  color: #859589;
-  background: #f6f8f6;
+  color: #5a5b81;
+  background: #f4f4fa;
 }
 .vision-help {
-  color: #829286;
+  color: #5a5b81;
   font-size: 10px;
   line-height: 1.8;
   margin-top: 6px;
@@ -150,15 +150,15 @@
   border-color: transparent;
 }
 .vision-test-section {
-  border-top: 1px solid #e5ece6;
+  border-top: 1px solid #e1e1f0;
   padding-top: 20px;
   margin-top: 22px;
 }
 .vision-destination {
   margin: 0;
   padding: 12px 13px;
-  background: #f7f9f7;
-  border: 1px solid #e9eeea;
+  background: #f6f6fa;
+  border: 1px solid #e5e5f2;
   border-radius: 7px;
   gap: 7px;
 }
@@ -170,7 +170,7 @@
 }
 .vision-destination dd {
   overflow-wrap: anywhere;
-  color: #4f6d5a;
+  color: #4d4e6f;
 }
 .vision-unsaved {
   color: #9b7849;
@@ -189,7 +189,7 @@
   font-size: 11px;
 }
 .vision-status {
-  color: #4f795e;
+  color: #525376;
 }
 .vision-status > svg,
 .vision-error > svg {
@@ -216,9 +216,9 @@
   margin-top: 19px;
   padding: 17px;
   border-radius: 9px;
-  background: #eff5f0;
-  border: 1px solid #dbe9dd;
-  color: #4d7658;
+  background: #edeef7;
+  border: 1px solid #dbdbe9;
+  color: #505173;
   font-size: 11px;
 }
 .vision-result.mismatched {
@@ -254,20 +254,20 @@
   gap: 10px;
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 1px solid #a9bfab40;
+  border-top: 1px solid #5f608140;
   font-size: 9px;
   overflow-wrap: anywhere;
 }
 .vision-local-only {
   padding: 21px;
   margin-top: 18px;
-  border: 1px solid #e0eae2;
-  background: #f4f8f4;
+  border: 1px solid #dedfeb;
+  background: #f3f3f9;
   border-radius: 9px;
-  color: #597362;
+  color: #545478;
 }
 .vision-local-only > svg {
-  color: #71977b;
+  color: #5a5b81;
   margin-bottom: 11px;
 }
 .vision-local-only h3 {
@@ -279,8 +279,8 @@
   line-height: 1.9;
 }
 .vision-local-only pre {
-  background: #234f41;
-  color: #e4eee5;
+  background: #2b2c47;
+  color: #e1e2f1;
   font-size: 12px;
   padding: 14px 16px;
   line-height: 2;

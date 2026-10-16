@@ -1,3 +1,4 @@
+import SuiteNav from "./SuiteNav";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ArrowRight,
@@ -404,6 +405,11 @@ function App() {
           <ChevronDown size={15} />
         </button>
         <nav>
+          <a className="nav-item single-nav-link" href="?mode=single">
+            <ScanLine size={18} />
+            <span>{t("单条带识别", "Single-strip recognition")}</span>
+            <ArrowRight size={14} />
+          </a>
           <a className="nav-item" href="#real">
             <FileImage size={18} />
             <span>{t("真实图像分析", "Analyze real images")}</span>
@@ -451,6 +457,7 @@ function App() {
           <span className="green-dot" />
         </button>
         <div className="sidebar-bottom">
+          <SuiteNav />
           <div className="local-note">
             <ShieldCheck size={18} />
             <strong>

@@ -6,20 +6,20 @@
 
 A Western blot project workbench for laboratories: organize images and sample relationships, review analyses, and return to unfinished work before moving on to validated experimental-image quantification.
 
-## 版本与边界 / Versions and boundaries
+## 网页入口 / Workspaces
 
-- **发布预览 / Released preview — [`v0.3.0-alpha.1`](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.3.0-alpha.1)**：真实 TIFF/PNG 本机定量、手动 ROI 与批量候选；新增明确的个体 N/T 配对、共同对照基准（新项目默认）、柱图叠加个体点与均值 ± SD、可选双侧配对 t 检验。公开网页仍为旧版；本版经 Release 附件分发。 / Local TIFF/PNG measurements, manual ROIs, and batch proposals; adds explicit individual N/T pairs, a common control baseline (default for new projects), bars with individual points and mean ± SD, and an opt-in two-sided paired t-test. The public site remains on the older release; this version ships via Release assets.
-- **已发布在线演示 / Published online demo — `0.1.0-alpha.1`**：2026-10-10 发布的纯合成数据流程演示。[直接体验 / Open demo](https://gaoyuan-0423.github.io/blot-workbench/)无需安装；固定版本与构建证据见 [Release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1)。 / A synthetic-data workflow demonstration dated 2026-10-10. The live demo needs no installation; the Release records the archived version and build evidence.
+- [单条带识别](https://gaoyuan-0423.github.io/blot-workbench/?mode=single)：导入一排 8-bit PNG/JPEG，自动生成取样与相对强度，图片和结果同屏。自动取样需核对；[说明](docs/single-strip.md)。
+- [多排与内参](https://gaoyuan-0423.github.io/blot-workbench/?mode=quick)：选择目标排或独立内参，查看归一化结果；[说明](docs/quick-mode.md)。
+- [完整 WB 分析](https://gaoyuan-0423.github.io/blot-workbench/#real)：支持原始 TIFF/PNG、精细 ROI、背景校正、实验配对统计与图版导出。
+- [合成项目演示](https://gaoyuan-0423.github.io/blot-workbench/#demo)：原工作流演示，数值为固定示例。
 
-开发功能已合入 `main`；在线站点仍部署 `0.1.0-alpha.1`，更新部署需手动执行 Pages workflow。 / Development features are merged into `main`; the online site still deploys `0.1.0-alpha.1`, and redeploying requires the manual Pages workflow.
+网页采用统一靛蓝界面，并提供 [病理](https://gaoyuan-0423.github.io/pathology-workbench/) 与 [PCR](https://gaoyuan-0423.github.io/pcr-workbench/) 工作台导航。更新说明见 [2026-10-16](docs/releases/ui-refresh-2026-10-16.md)。历史固定版本与附件保留在 [Releases](https://github.com/Gaoyuan-0423/blot-workbench/releases)。Pages 发布从成功主线 CI 复用精确提交的构建工件。
 
-**开发版的 `#real` 工作区读取实际像素重新计算，仍是有限格式支持的实验性预览，尚未完成科研有效性验证。旧合成演示的数值仍为固定示例。两种工作区使用独立存储和项目包。**
-
-**The development `#real` workspace recomputes from actual pixels. It remains an experimental preview with bounded format support and incomplete scientific validation. The legacy synthetic demonstration still uses preset values. The two workspaces have separate storage and archive formats.**
+**单条带、快速分析与 `#real` 从图像像素计算，仍为实验性功能，未完成真实实验图像的科研有效性验证。自动 ROI 需人工复核。合成演示继续使用固定示例值。单条带/快速分析刷新前需导出；完整工作区有独立的本机存储和项目包。**
 
 ![Blot Workbench 合成数据演示 / Synthetic-data demonstration](docs/screenshots/app-home.jpg)
 
-截图展示已发布演示的界面；环境与版本见[截图记录 / Screenshot record](docs/screenshots/README.md)，不构成算法或跨平台验证。 / The screenshot shows the released demonstration. Its recorded environment and version are not evidence of algorithm accuracy or cross-platform compatibility.
+以下历史截图展示合成项目演示界面；环境与版本见[截图记录 / Screenshot record](docs/screenshots/README.md)，不构成算法或跨平台验证。 / The historical screenshot shows the synthetic project demonstration. Its recorded environment and version are not evidence of algorithm accuracy or cross-platform compatibility.
 
 ## 真实图像开发预览 / Real-image development preview
 

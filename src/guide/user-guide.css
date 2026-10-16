@@ -1,7 +1,7 @@
 .user-guide {
-  --guide-ink: #29483c;
-  --guide-text: #50665b;
-  --guide-border: #dfe8e2;
+  --guide-ink: #2b2b46;
+  --guide-text: #4b4b6b;
+  --guide-border: #ddddea;
   width: 100%;
   max-width: 1180px;
   color: var(--guide-text);
@@ -27,15 +27,15 @@
 }
 .guide-welcome {
   padding: 28px 30px;
-  border: 1px solid #dce8df;
+  border: 1px solid #dbdbe9;
   border-radius: 13px;
-  background: linear-gradient(115deg, #eef5ef, #f7faf7);
+  background: linear-gradient(115deg, #ededf6, #f6f6fb);
 }
 .guide-stage {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #50715d;
+  color: #4f5072;
   font-size: 11px;
   font-weight: 650;
   letter-spacing: 0.55px;
@@ -68,26 +68,26 @@
   padding: 10px 15px;
   color: var(--guide-ink);
   background: #fff;
-  border: 1px solid #ceddd2;
+  border: 1px solid #cbcbe0;
   border-radius: 7px;
   font-size: 13px;
   font-weight: 600;
   text-align: center;
 }
 .guide-button:hover {
-  background: #e7f0e9;
+  background: #e5e5f2;
 }
 .guide-button-primary {
-  background: var(--green, #20584b);
-  border-color: var(--green, #20584b);
+  background: var(--green, #2e2e4a);
+  border-color: var(--green, #2e2e4a);
   color: #fff;
 }
 .guide-button-primary:hover {
-  background: var(--green-dark, #17483e);
+  background: var(--green-dark, #24243b);
 }
 .guide-welcome .guide-welcome-note {
   margin-top: 15px;
-  color: #687c6f;
+  color: #5a5b81;
   font-size: 12px;
 }
 .guide-walkthrough,
@@ -107,7 +107,7 @@
 .guide-section-heading p {
   margin-top: 5px;
   font-size: 13px;
-  color: #708173;
+  color: #5a5b81;
 }
 .guide-section-number {
   padding: 4px 7px;
@@ -115,7 +115,7 @@
   border: 1px solid var(--guide-border);
   border-radius: 5px;
   background: #fff;
-  color: #6a8874;
+  color: #5a5b81;
   font-size: 11px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
@@ -146,7 +146,7 @@
 }
 .guide-step-heading > svg {
   flex-shrink: 0;
-  color: #6a8b76;
+  color: #5a5b81;
 }
 .guide-step-number {
   display: grid;
@@ -154,8 +154,8 @@
   flex-shrink: 0;
   width: 31px;
   height: 31px;
-  background: #edf4ef;
-  color: #3a7354;
+  background: #ebecf6;
+  color: #474766;
   font-size: 11px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -173,8 +173,8 @@
   align-items: flex-start;
   margin-top: 17px;
   padding-top: 13px;
-  border-top: 1px solid #edf1ee;
-  color: #668070;
+  border-top: 1px solid #e9eaf5;
+  color: #5a5b81;
   font-size: 12px;
 }
 .guide-checkpoint svg {
@@ -188,7 +188,7 @@
   gap: 9px;
   min-height: 38px;
   padding: 7px 0 2px;
-  color: var(--green, #20584b);
+  color: var(--green, #2e2e4a);
   font-size: 13px;
   font-weight: 650;
   text-align: left;
@@ -206,7 +206,7 @@
 .guide-api-icon {
   margin: 4px 0 0 auto;
   flex-shrink: 0;
-  color: #6e8e78;
+  color: #5a5b81;
 }
 .guide-api-grid {
   display: grid;
@@ -216,7 +216,7 @@
 }
 .guide-local-start {
   padding: 18px 20px;
-  background: #f3f7f3;
+  background: #f2f2f8;
   border-radius: 8px;
   align-self: start;
 }
@@ -231,9 +231,9 @@
   overflow-x: auto;
   padding: 13px 15px;
   margin: 15px 0;
-  color: #30543f;
-  background: #e7efe8;
-  border: 1px solid #dce7de;
+  color: #323352;
+  background: #e4e4f2;
+  border: 1px solid #dadae9;
   border-radius: 6px;
   font-size: 13px;
   line-height: 1.9;
@@ -252,7 +252,7 @@
   margin-top: 15px;
 }
 .guide-api-steps li::marker {
-  color: #6b8a75;
+  color: #5a5b81;
   font-weight: 650;
 }
 .guide-api-steps strong {
@@ -287,15 +287,15 @@
   display: none;
 }
 .guide-faq-list summary:hover {
-  background: #f5f8f5;
+  background: #f4f4f9;
 }
 .guide-faq-list summary:focus-visible {
-  outline: 3px solid #97baaf;
+  outline: 3px solid #5f6081;
   outline-offset: 3px;
 }
 .guide-faq-list summary svg {
   flex-shrink: 0;
-  color: #7d9583;
+  color: #5a5b81;
 }
 .guide-faq-list details[open] summary svg {
   transform: rotate(45deg);

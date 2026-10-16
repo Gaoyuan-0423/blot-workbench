@@ -4,15 +4,16 @@
 
 A Western blot project workbench for laboratories. The first step is to make image organization, sample relationships, review, and returning to unfinished work easier, before validating experimental-image quantification.
 
-## Versions and boundaries
+## Workspaces and boundaries
 
-**Released preview: [`v0.3.0-alpha.1`](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.3.0-alpha.1).** Supports local TIFF/PNG measurements, shared lane mapping, batch proposals, manual regions, and original-image archives at `#real`. Adds explicit individual N/T pairs, a selected common control baseline (the default for new projects), bars with individual points and mean ± SD, an optional paired-line view, and an opt-in two-sided paired t-test. It has not replaced the public website; it ships via GitHub Release assets.
+- [Single-strip recognition](https://gaoyuan-0423.github.io/blot-workbench/?mode=single): import a cropped 8-bit PNG/JPEG strip, review automatic regions, and view relative intensities alongside the image.
+- [Multiple rows and reference](https://gaoyuan-0423.github.io/blot-workbench/?mode=quick): choose a target row and reference row or independent reference image.
+- [Full WB analysis](https://gaoyuan-0423.github.io/blot-workbench/#real): original TIFF/PNG, precise ROIs, background correction, paired statistics, and figure export.
+- [Synthetic project demo](https://gaoyuan-0423.github.io/blot-workbench/#demo): the legacy workflow with fixed example values.
 
-**Published online demo: `0.1.0-alpha.1`, dated 2026-10-10.** The [live demonstration](https://gaoyuan-0423.github.io/blot-workbench/) needs no installation. Its fixed archive and build evidence are in the [alpha Release](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.1.0-alpha.1).
+The indigo interface links to the pathology and PCR workbenches. See the [2026-10-16 update](docs/releases/ui-refresh-2026-10-16.md). Archived releases remain available in [Releases](https://github.com/Gaoyuan-0423/blot-workbench/releases). Pages deploys the exact build artifact from successful main-branch CI.
 
-Development features are merged into `main`; the online site still deploys `0.1.0-alpha.1`, and redeploying requires the manual Pages workflow.
-
-**The real-image workspace recomputes actual pixels but remains experimental, with bounded format support and incomplete scientific validation. The separate legacy demonstration continues to use preset synthetic values.**
+**Pixel-based workspaces remain experimental, with bounded format support and incomplete scientific validation on experimental images. Review automatic ROIs. Export single-strip and quick-analysis results before refreshing; the full workspace has separate local storage and archives.**
 
 Start real analysis at `http://127.0.0.1:4318/#real`: import → check file metadata → describe lanes once → batch proposals → manual review → plots, CSV, and archive. Read the [real-image guide](docs/real-images.en.md) ([中文](docs/real-images.md)) and [validation scope](docs/validation-real-images.md).
 
@@ -20,7 +21,7 @@ Public [synthetic pixel validation example](public/examples/real/README.md): ori
 
 ![Blot Workbench synthetic-data demonstration](docs/screenshots/app-home.jpg)
 
-The screenshot shows the released demonstration. See the [screenshot record](docs/screenshots/README.md) for version and environment evidence; a screenshot does not establish algorithm accuracy or cross-platform compatibility.
+The historical screenshot shows the synthetic project demonstration. See the [screenshot record](docs/screenshots/README.md) for version and environment evidence; a screenshot does not establish algorithm accuracy or cross-platform compatibility.
 
 Testing is off by default. When explicitly enabled for a confirmed two-condition paired design, it uses original target/reference ratios, so changing a valid plot baseline cannot change the P-value for the same eligible pairs. A common baseline preserves between-control variation but does not establish cross-membrane or cross-batch comparability. See [statistical methods and limits](docs/paired-statistics.md).
 

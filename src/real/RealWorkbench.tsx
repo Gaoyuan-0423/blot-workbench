@@ -1,3 +1,4 @@
+import SuiteNav from "../SuiteNav";
 import {
   useEffect,
   useMemo,
@@ -61,10 +62,7 @@ import {
 import { renderFigure } from "./figure-export";
 import { buildComposedFigureSvg } from "./figure-compose";
 import { ROLLING_BALL_ALGORITHM } from "./rolling-ball";
-import {
-  buildAnalysisReport,
-  type AnalysisReport,
-} from "./analysis-report";
+import { buildAnalysisReport, type AnalysisReport } from "./analysis-report";
 import { APP_VERSION } from "../core/types";
 import { analyzeBandsByok, KNOWN_PROVIDERS } from "../vision/byok";
 import {
@@ -902,9 +900,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
     null,
   );
   const [byokPanelOpen, setByokPanelOpen] = useState(false);
-  const [byokReady, setByokReady] = useState(
-    () => loadByokConfig() !== null,
-  );
+  const [byokReady, setByokReady] = useState(() => loadByokConfig() !== null);
   const [byokDraft, setByokDraft] = useState(() => {
     const saved = loadByokConfig();
     return {
@@ -1026,7 +1022,9 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
       let done = 0;
       for (const image of targets) {
         if (controller.signal.aborted)
-          throw new Error("已取消视觉候选请求 / Vision candidate requests cancelled.");
+          throw new Error(
+            "已取消视觉候选请求 / Vision candidate requests cancelled.",
+          );
         done += 1;
         setBusy(
           t(
@@ -1034,9 +1032,9 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
             `Requesting vision candidates ${done}/${targets.length}…`,
           ),
         );
-        const current = (
-          currentProject.current as RealProject
-        ).images.find((entry) => entry.id === image.id)!;
+        const current = (currentProject.current as RealProject).images.find(
+          (entry) => entry.id === image.id,
+        )!;
         const raster = imageRaster(current);
         const laneCount = requiredLaneCount(
           currentProject.current as RealProject,
@@ -1070,7 +1068,10 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
               controller.signal,
             );
           } catch (problem) {
-            if (problem instanceof DOMException && problem.name === "AbortError")
+            if (
+              problem instanceof DOMException &&
+              problem.name === "AbortError"
+            )
               throw new Error(
                 "已取消视觉候选请求 / Vision candidate requests cancelled.",
               );
@@ -1285,9 +1286,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
     ? selectedProtein
     : (proteins[0] ?? "");
   const normalizationUnits = project ? normalizationUnitIds(project) : [];
-  const normalizationPolicy = project
-    ? effectiveNormalization(project)
-    : null;
+  const normalizationPolicy = project ? effectiveNormalization(project) : null;
   const region =
     image?.regions.find((entry) => entry.lane === selectedRegion.lane) ??
     image?.regions[0];
@@ -1562,8 +1561,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
     const chart = figureRef.current;
     if (!chart)
       throw new Error("Quantification chart is not rendered / 定量图尚未渲染");
-    if (!image)
-      throw new Error("Select an image first / 请先选择图像");
+    if (!image) throw new Error("Select an image first / 请先选择图像");
     const current = currentProject.current;
     const raster = imageRaster(image);
     const bytes = rasterPreview(raster);
@@ -1586,9 +1584,9 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
             ? `rolling ball r=${correction.radius} (${ROLLING_BALL_ALGORITHM})`
             : t("局部背景取样框", "local background ROIs")),
         t("归一化：", "Normalization: ") +
-        (policy?.kind === "reference-unit"
-          ? `reference-unit ${policy.unitId}`
-          : "matched-control"),
+          (policy?.kind === "reference-unit"
+            ? `reference-unit ${policy.unitId}`
+            : "matched-control"),
         `blot-workbench ${APP_VERSION}`,
       ],
     });
@@ -1700,6 +1698,11 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
             {t("合成示例", "Synthetic demo")}
           </button>
         </div>
+      </div>
+      <div className="real-workspace-links">
+        <a href="./">← 工作台首页</a>
+        <a href="?mode=single">单条带识别 →</a>
+        <SuiteNav />
       </div>
       <header className="real-header">
         <div>
@@ -1911,7 +1914,10 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           {analysisReport.recommendations.length > 0 && (
             <div className="real-report-recs">
               <strong>
-                {t("优化方向（按优先级）", "Recommended next steps (by priority)")}
+                {t(
+                  "优化方向（按优先级）",
+                  "Recommended next steps (by priority)",
+                )}
               </strong>
               <ol>
                 {[...analysisReport.recommendations]
@@ -1921,9 +1927,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                       <strong>
                         {language === "zh" ? rec.title.zh : rec.title.en}
                       </strong>
-                      <p>
-                        {language === "zh" ? rec.detail.zh : rec.detail.en}
-                      </p>
+                      <p>{language === "zh" ? rec.detail.zh : rec.detail.en}</p>
                     </li>
                   ))}
               </ol>
@@ -1983,9 +1987,24 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           <details className="real-step-help">
             <summary>{t("本步怎么做", "How to do this step")}</summary>
             <ol>
-              <li>{t("把仪器导出的原始 TIFF/PNG 一次拖入或批量选择；原图字节原样保留，不上传。", "Drag in or batch-select the original TIFF/PNG exports; original bytes are kept and never uploaded.")}</li>
-              <li>{t("核对自动推断的蛋白名、目标/内参角色、实验与膜编号——文件名只是建议，错了直接改。", "Check the inferred protein, target/reference role, experiment and membrane IDs — filenames are suggestions; edit anything that is wrong.")}</li>
-              <li>{t("项目自动保存在本浏览器；「导出项目」生成的项目包（含原图）才是可靠备份。", "The project autosaves in this browser; the exported project package (with originals) is the only reliable backup.")}</li>
+              <li>
+                {t(
+                  "把仪器导出的原始 TIFF/PNG 一次拖入或批量选择；原图字节原样保留，不上传。",
+                  "Drag in or batch-select the original TIFF/PNG exports; original bytes are kept and never uploaded.",
+                )}
+              </li>
+              <li>
+                {t(
+                  "核对自动推断的蛋白名、目标/内参角色、实验与膜编号——文件名只是建议，错了直接改。",
+                  "Check the inferred protein, target/reference role, experiment and membrane IDs — filenames are suggestions; edit anything that is wrong.",
+                )}
+              </li>
+              <li>
+                {t(
+                  "项目自动保存在本浏览器；「导出项目」生成的项目包（含原图）才是可靠备份。",
+                  "The project autosaves in this browser; the exported project package (with originals) is the only reliable backup.",
+                )}
+              </li>
             </ol>
           </details>
           <span className="real-count">
@@ -2234,9 +2253,24 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           <details className="real-step-help">
             <summary>{t("本步怎么做", "How to do this step")}</summary>
             <ol>
-              <li>{t("用一句话从左到右描述泳道，如「1=NC; 2=Drug; 3=marker」；先「解析预览」核对，再「全部确认应用」。", "Describe the lanes left to right in one line, e.g. \"1=NC; 2=Drug; 3=marker\". Parse & preview first, then apply to all.")}</li>
-              <li>{t("marker/ladder 泳道自动排除，不计入 n；排除不可逆删除数据，只是不参与统计。", "Marker/ladder lanes are excluded from n; exclusion never deletes data, it only removes lanes from statistics.")}</li>
-              <li>{t("选比较设计：共享泳道的独立实验，或个体 N/T 配对表。确认独立性后才能启用配对 t 检验。", "Pick the design: independent experiments sharing lanes, or an individual N/T pair table. Paired t-tests unlock only after independence is confirmed.")}</li>
+              <li>
+                {t(
+                  "用一句话从左到右描述泳道，如「1=NC; 2=Drug; 3=marker」；先「解析预览」核对，再「全部确认应用」。",
+                  'Describe the lanes left to right in one line, e.g. "1=NC; 2=Drug; 3=marker". Parse & preview first, then apply to all.',
+                )}
+              </li>
+              <li>
+                {t(
+                  "marker/ladder 泳道自动排除，不计入 n；排除不可逆删除数据，只是不参与统计。",
+                  "Marker/ladder lanes are excluded from n; exclusion never deletes data, it only removes lanes from statistics.",
+                )}
+              </li>
+              <li>
+                {t(
+                  "选比较设计：共享泳道的独立实验，或个体 N/T 配对表。确认独立性后才能启用配对 t 检验。",
+                  "Pick the design: independent experiments sharing lanes, or an individual N/T pair table. Paired t-tests unlock only after independence is confirmed.",
+                )}
+              </li>
             </ol>
           </details>
         </div>
@@ -2641,10 +2675,30 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           <details className="real-step-help">
             <summary>{t("本步怎么做", "How to do this step")}</summary>
             <ol>
-              <li>{t("「全部建议并计算」用本机算法提出条带与背景候选，不需要任何 API Key。", "\"Propose & calculate all\" drafts band/background candidates with the local algorithm — no API key needed.")}</li>
-              <li>{t("「视觉 API 候选（可选）」把缩小预览发给你自己的视觉模型服务（先在「视觉服务（自带 API）」里填地址、模型与密钥）；返回的框全部标记待复核。", "\"Vision API candidates (optional)\" sends a downscaled preview to your own vision provider (configure it in the vision panel first); returned boxes are always flagged for review.")}</li>
-              <li>{t("逐图检查：拖动/缩放条带与背景框，双击背景区可增删；复核后旧候选警告会消失。", "Review per image: drag/scale the band and background boxes; mark reviewed once satisfied.")}</li>
-              <li>{t("背景方法二选一：局部背景取样框（默认），或 rolling ball（与 ImageJ 一致，半径可调，不需背景框）。切换会使复核失效。", "Pick a background method: local background ROIs (default) or the ImageJ-compatible rolling ball (adjustable radius, no ROIs needed). Switching invalidates review states.")}</li>
+              <li>
+                {t(
+                  "「全部建议并计算」用本机算法提出条带与背景候选，不需要任何 API Key。",
+                  '"Propose & calculate all" drafts band/background candidates with the local algorithm — no API key needed.',
+                )}
+              </li>
+              <li>
+                {t(
+                  "「视觉 API 候选（可选）」把缩小预览发给你自己的视觉模型服务（先在「视觉服务（自带 API）」里填地址、模型与密钥）；返回的框全部标记待复核。",
+                  '"Vision API candidates (optional)" sends a downscaled preview to your own vision provider (configure it in the vision panel first); returned boxes are always flagged for review.',
+                )}
+              </li>
+              <li>
+                {t(
+                  "逐图检查：拖动/缩放条带与背景框，双击背景区可增删；复核后旧候选警告会消失。",
+                  "Review per image: drag/scale the band and background boxes; mark reviewed once satisfied.",
+                )}
+              </li>
+              <li>
+                {t(
+                  "背景方法二选一：局部背景取样框（默认），或 rolling ball（与 ImageJ 一致，半径可调，不需背景框）。切换会使复核失效。",
+                  "Pick a background method: local background ROIs (default) or the ImageJ-compatible rolling ball (adjustable radius, no ROIs needed). Switching invalidates review states.",
+                )}
+              </li>
             </ol>
           </details>
           <button
@@ -2730,7 +2784,13 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           </button>
         </div>
         {byokPanelOpen && (
-          <div className="real-normalization-box" aria-label={t("视觉服务设置（自带 API）", "Vision service settings (BYOK)")}>
+          <div
+            className="real-normalization-box"
+            aria-label={t(
+              "视觉服务设置（自带 API）",
+              "Vision service settings (BYOK)",
+            )}
+          >
             <div className="real-actions">
               <label className="real-field">
                 {t("服务商", "Provider")}
@@ -2835,14 +2895,21 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                         byokDraft.remember,
                       );
                       setByokReady(true);
-                      setByokDraft((draft) => ({ ...draft, baseUrl: saved.baseUrl }));
+                      setByokDraft((draft) => ({
+                        ...draft,
+                        baseUrl: saved.baseUrl,
+                      }));
                       setByokNotice(
                         t(
                           "已保存" +
-                            (byokDraft.remember ? "并记住此设备" : "（仅本次页面）") +
+                            (byokDraft.remember
+                              ? "并记住此设备"
+                              : "（仅本次页面）") +
                             "。",
                           "Saved" +
-                            (byokDraft.remember ? " and remembered on this device" : " for this page only") +
+                            (byokDraft.remember
+                              ? " and remembered on this device"
+                              : " for this page only") +
                             ".",
                         ),
                       );
@@ -2858,10 +2925,18 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                 onClick={() =>
                   void run(t("正在清除…", "Clearing…"), () => {
                     clearByokConfig();
-                    setByokDraft({ baseUrl: "", model: "", apiKey: "", remember: false });
+                    setByokDraft({
+                      baseUrl: "",
+                      model: "",
+                      apiKey: "",
+                      remember: false,
+                    });
                     setByokReady(false);
                     setByokNotice(
-                      t("已清除本机保存的视觉服务配置。", "Cleared the locally saved vision config."),
+                      t(
+                        "已清除本机保存的视觉服务配置。",
+                        "Cleared the locally saved vision config.",
+                      ),
                     );
                   })
                 }
@@ -2870,10 +2945,18 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
               </button>
               <button
                 className="real-button"
-                disabled={!!busy || !byokDraft.baseUrl || !byokDraft.model || !byokDraft.apiKey}
+                disabled={
+                  !!busy ||
+                  !byokDraft.baseUrl ||
+                  !byokDraft.model ||
+                  !byokDraft.apiKey
+                }
                 onClick={() =>
                   void run(
-                    t("正在发送合成测试图…", "Sending the synthetic test image…"),
+                    t(
+                      "正在发送合成测试图…",
+                      "Sending the synthetic test image…",
+                    ),
                     async () => {
                       const result = await analyzeBandsByok(
                         {
@@ -2906,7 +2989,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
             <p className="real-muted">
               {t(
                 "密钥默认仅保存在当前页面内存，刷新即清；勾选「记住」才写入本设备。测试按钮只发送一张内置合成小图，不发送项目图像；正式候选请求只发往你填写的服务地址，且候选仍需人工复核，像素测量始终在本机完成。",
-                "The key stays in page memory by default and clears on refresh; it is written to this device only when \"remember\" is checked. The test sends one built-in synthetic image, never project data. Candidate requests go only to the address you entered, remain draft candidates for manual review, and pixel measurement always runs locally.",
+                'The key stays in page memory by default and clears on refresh; it is written to this device only when "remember" is checked. The test sends one built-in synthetic image, never project data. Candidate requests go only to the address you entered, remain draft candidates for manual review, and pixel measurement always runs locally.',
               )}
             </p>
           </div>
@@ -2918,22 +3001,22 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
               "先导入原图，再确认泳道映射；或先载入内置合成示例，走一遍完整流程。",
               "Import originals and confirm the lane mapping first — or load the built-in synthetic example and walk through the whole flow.",
             )}
-          <div>
-            <button
-              className="real-button"
-              disabled={!!busy}
-              onClick={() => void archive()}
-            >
-              <FlaskConical size={15} />
-              {t("载入内置示例", "Load the built-in example")}
-            </button>
-          </div>
-          <small className="real-muted">
-            {t(
-              "示例为脚本合成的三组目标/内参图对（NC 与 Treatment），用于走通流程；载入后点「一键分析并体检」即可看到报告。",
-              "The example is a script-generated set of three target/reference pairs (NC and Treatment) for walking through the flow. After loading, click \"Run all & report\" to see the report.",
-            )}
-          </small>
+            <div>
+              <button
+                className="real-button"
+                disabled={!!busy}
+                onClick={() => void archive()}
+              >
+                <FlaskConical size={15} />
+                {t("载入内置示例", "Load the built-in example")}
+              </button>
+            </div>
+            <small className="real-muted">
+              {t(
+                "示例为脚本合成的三组目标/内参图对（NC 与 Treatment），用于走通流程；载入后点「一键分析并体检」即可看到报告。",
+                'The example is a script-generated set of three target/reference pairs (NC and Treatment) for walking through the flow. After loading, click "Run all & report" to see the report.',
+              )}
+            </small>
           </div>
         ) : (
           <>
@@ -3415,10 +3498,30 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           <details className="real-step-help">
             <summary>{t("本步怎么做", "How to do this step")}</summary>
             <ol>
-              <li>{t("选归一化基准：共同基准（指定一个对照 = 1，其他对照保留真实变异）或各自配对对照。绘图基准不改变检验输入。", "Pick a normalization baseline: a common baseline (one control = 1, other controls keep their variation) or each matched control. Plot baselines never change test inputs.")}</li>
-              <li>{t("需要 P 值时勾选双侧配对 t 检验：确认独立性、恰好两个条件、至少两对有效配对。", "For P values, enable the two-sided paired t-test: confirm independence, exactly two conditions, at least two valid pairs.")}</li>
-              <li>{t("「一键分析并体检」汇总所有阻断项、警告与按优先级的优化建议，可下载报告 JSON。", "\"Run all & report\" aggregates blockers, warnings, and prioritized recommendations; download the report as JSON.")}</li>
-              <li>{t("导出：CSV（含全部审计列）、统计 CSV、SVG/PNG/TIFF 图形、组合图版与项目包。", "Export: CSV (full audit columns), statistics CSV, SVG/PNG/TIFF figures, composed figures, and the project package.")}</li>
+              <li>
+                {t(
+                  "选归一化基准：共同基准（指定一个对照 = 1，其他对照保留真实变异）或各自配对对照。绘图基准不改变检验输入。",
+                  "Pick a normalization baseline: a common baseline (one control = 1, other controls keep their variation) or each matched control. Plot baselines never change test inputs.",
+                )}
+              </li>
+              <li>
+                {t(
+                  "需要 P 值时勾选双侧配对 t 检验：确认独立性、恰好两个条件、至少两对有效配对。",
+                  "For P values, enable the two-sided paired t-test: confirm independence, exactly two conditions, at least two valid pairs.",
+                )}
+              </li>
+              <li>
+                {t(
+                  "「一键分析并体检」汇总所有阻断项、警告与按优先级的优化建议，可下载报告 JSON。",
+                  '"Run all & report" aggregates blockers, warnings, and prioritized recommendations; download the report as JSON.',
+                )}
+              </li>
+              <li>
+                {t(
+                  "导出：CSV（含全部审计列）、统计 CSV、SVG/PNG/TIFF 图形、组合图版与项目包。",
+                  "Export: CSV (full audit columns), statistics CSV, SVG/PNG/TIFF figures, composed figures, and the project package.",
+                )}
+              </li>
             </ol>
           </details>
         </div>
@@ -3543,7 +3646,10 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                 }
               >
                 <option value="local">
-                  {t("局部背景取样框（默认）", "Local background ROIs (default)")}
+                  {t(
+                    "局部背景取样框（默认）",
+                    "Local background ROIs (default)",
+                  )}
                 </option>
                 <option value="rolling-ball">
                   {t(
@@ -3565,7 +3671,11 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                   value={project.backgroundCorrection.radius}
                   onChange={(event) => {
                     const radius = Number(event.target.value);
-                    if (!Number.isInteger(radius) || radius < 10 || radius > 200)
+                    if (
+                      !Number.isInteger(radius) ||
+                      radius < 10 ||
+                      radius > 200
+                    )
                       return;
                     commit((previous) =>
                       updateRealProject(previous, {
@@ -3672,7 +3782,10 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                       `背景：Rolling ball r=${project.backgroundCorrection.radius}（ImageJ 一致）`,
                       `Background: rolling ball r=${project.backgroundCorrection.radius} (ImageJ-compatible)`,
                     )
-                  : t("背景：局部背景取样框", "Background: local background ROIs")}
+                  : t(
+                      "背景：局部背景取样框",
+                      "Background: local background ROIs",
+                    )}
               </span>
               <div className="real-actions">
                 <button
