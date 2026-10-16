@@ -92,6 +92,11 @@ def load_module(name, filename):
     return module
 
 
+def download_artifact(repository, artifact, destination, *, required_file):
+    return load_module("wisplab_artifact_download", "artifact_download.py").download_artifact(
+        repository, artifact, destination, required_file=required_file, progress=log)
+
+
 def validate_version(version):
     if not isinstance(version, str) or not VERSION_RE.fullmatch(version):
         raise ReleaseError("版本必须为 1–80 个英文字母/数字/点/短横线/下划线，首字母为字母或数字。")
@@ -287,21 +292,17 @@ class Release:
             run, artifact = get_ci(source["repository"], source["gitSha"], self.args.timeout)
             folder = self.folder / "artifacts" / site
             stored = source.get("ci", {})
-            if stored.get("artifactId") != artifact["id"] and folder.exists():
+            verified_cache = (stored.get("artifactId") == artifact["id"]
+                              and stored.get("artifactDigest") == artifact.get("digest")
+                              and stored.get("archiveDigestVerified") is True)
+            if not verified_cache and folder.exists():
                 shutil.rmtree(folder)
             if not folder.exists():
                 folder.parent.mkdir(exist_ok=True)
-                temporary = Path(tempfile.mkdtemp(prefix=f".{site}-", dir=folder.parent))
-                try:
-                    log(f"下载完整成功 CI：{site} {source['gitSha'][:7]} / run {run['id']}")
-                    command("gh", "run", "download", str(run["id"]), "--repo", source["repository"], "--name", "web-dist", "--dir", str(temporary), timeout=900)
-                    if not (temporary / "index.html").is_file():
-                        raise ReleaseError(f"{site} CI 产物缺少 index.html。")
-                    temporary.rename(folder)
-                finally:
-                    if temporary.exists():
-                        shutil.rmtree(temporary)
+                log(f"下载完整成功 CI：{site} {source['gitSha'][:7]} / run {run['id']}")
+                download_artifact(source["repository"], artifact, folder, required_file="index.html")
             source["ci"] = record_ci(run, artifact)
+            source["ci"]["archiveDigestVerified"] = True
             folders[site] = folder
             self.save()
         return folders
@@ -381,8 +382,9 @@ class Release:
             raise ReleaseError(f"{site} Pages 产物已过期或不可用；重跑该 Pages run 后重试。")
         with tempfile.TemporaryDirectory(prefix=f".pages-{site}-", dir=self.folder) as temporary:
             log(f"核对 Pages 实际部署字节：{site} / run {run['id']}")
-            command("gh", "run", "download", str(run["id"]), "--repo", repo, "--name", "github-pages", "--dir", temporary, timeout=900)
-            path = Path(temporary) / "artifact.tar"
+            destination = Path(temporary) / "pages"
+            download_artifact(repo, artifacts[0], destination, required_file="artifact.tar")
+            path = destination / "artifact.tar"
             if not path.is_file() or pages_tar_hashes(path) != self.state["manifest"]["sites"][site]["files"]:
                 raise ReleaseError(f"{site} Pages 实际产物与服务器包不同；可能在准备后重新执行过同 SHA CI。未公开新服务器版本，请核对并使用新版本重发。")
         record["verifiedRunAttempt"] = attempt

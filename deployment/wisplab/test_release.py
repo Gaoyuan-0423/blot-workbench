@@ -178,15 +178,15 @@ class ReleaseTests(unittest.TestCase):
         responses = [{'jobs': [{'name': 'verify', 'conclusion': 'success', 'id': 600}]},
                      {'artifacts': [{'name': 'github-pages', 'id': 700, 'expired': False}]}]
         def cmd(*args, **kwargs):
-            if '--log' in args:
-                return 'DEPLOY_COMMIT: ' + '1' * 40
-            folder = Path(args[args.index('--dir') + 1])
+            return 'DEPLOY_COMMIT: ' + '1' * 40
+        def download(repo, artifact, folder, **kwargs):
+            folder.mkdir()
             with tarfile.open(folder / 'artifact.tar', 'w') as tar:
                 item = tarfile.TarInfo('./index.html')
                 item.size = 3
                 tar.addfile(item, io.BytesIO(b'new'))
             return ''
-        with patch.object(r, 'api', side_effect=responses), patch.object(r, 'command', side_effect=cmd):
+        with patch.object(r, 'api', side_effect=responses), patch.object(r, 'command', side_effect=cmd), patch.object(r, 'download_artifact', side_effect=download):
             with self.assertRaisesRegex(r.ReleaseError, '实际产物与服务器包不同'):
                 release.verify_pages_build('wb', source('wb', 1), {'id': 500, 'run_attempt': 1})
         self.assertNotIn('verifiedRunAttempt', release.state['pages']['wb'])
@@ -221,11 +221,11 @@ class ReleaseTests(unittest.TestCase):
         release.save()
         def ci(repo, sha, timeout):
             return ({'id': 100, 'head_sha': sha, 'html_url': f'https://github.com/{repo}/actions/runs/100'}, {'id': 200})
-        def cmd(*args, **kwargs):
-            destination = Path(args[args.index('--dir') + 1])
+        def download(repo, artifact, destination, **kwargs):
+            destination.mkdir()
             (destination / 'index.html').write_text('<html><body>CI build</body></html>')
             return ''
-        with patch.object(r, 'get_ci', side_effect=ci), patch.object(r, 'command', side_effect=cmd):
+        with patch.object(r, 'get_ci', side_effect=ci), patch.object(r, 'download_artifact', side_effect=download):
             release.prepare()
         archive = Path(release.state['archive']['path'])
         self.assertTrue(archive.exists())
@@ -238,7 +238,7 @@ class ReleaseTests(unittest.TestCase):
         del release.state['archive']
         del release.state['manifest']
         release.save()
-        with patch.object(r, 'get_ci', side_effect=ci), patch.object(r, 'command', side_effect=cmd):
+        with patch.object(r, 'get_ci', side_effect=ci), patch.object(r, 'download_artifact', side_effect=download):
             release.prepare()
         self.assertEqual(release.state['archive']['sha256'], original_digest)
 
