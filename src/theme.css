@@ -297,3 +297,20 @@ body .quick-main {
     display: none;
   }
 }
+
+/* A persistent language control shared by the simple workspaces. */
+.suite-language-switch {
+  flex-shrink: 0;
+  border: 1px solid #e3e6ee;
+  border-radius: 8px;
+  background: white;
+  color: #4f46e5;
+  padding: 9px 12px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+.strip-suite {
+  gap: 10px;
+  flex-wrap: wrap;
+}

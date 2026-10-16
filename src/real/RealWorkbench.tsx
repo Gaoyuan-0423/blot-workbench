@@ -1,3 +1,4 @@
+import { useLanguage, languageUrl, translateMessage } from "../i18n";
 import SuiteNav from "../SuiteNav";
 import {
   useEffect,
@@ -97,6 +98,14 @@ type Drag = {
 };
 
 const warningLabels: Record<string, [string, string]> = {
+  VISION_CANDIDATES_REQUIRE_REVIEW: [
+    "视觉候选必须逐条检查取样位置，再确认复核。",
+    "Review every vision-proposed band region before confirming it.",
+  ],
+  ROLLING_BALL_SATURATED: [
+    "像素接近饱和，滚动球扣背景不能恢复原始信号；请检查曝光。",
+    "Near-saturated pixels cannot be recovered by rolling-ball correction; check the exposure.",
+  ],
   METADATA_SUBDIRECTORIES_IGNORED: [
     "未读取 EXIF / GPS 子目录；原始文件保留不变。",
     "EXIF / GPS subdirectories were not read; the original file is unchanged.",
@@ -294,6 +303,11 @@ function localizeMessage(message: string, language: Language): string {
       ? "项目包不是有效的 ZIP 文件。"
       : "The project archive is not a valid ZIP file.";
   const prefixes: [string, string, string][] = [
+    [
+      "LOCAL_SAVE_FAILED: ",
+      "本机保存失败，请导出项目包备份。 ",
+      "Local saving failed. Export a project archive for backup. ",
+    ],
     ["Control target: ", "对照目标：", "Control target: "],
     ["Control reference: ", "对照内参：", "Control reference: "],
     ["Reference: ", "内参：", "Reference: "],
@@ -307,9 +321,7 @@ function localizeMessage(message: string, language: Language): string {
   if (warningLabels[message])
     return warningLabels[message][language === "zh" ? 0 : 1];
   if (language === "zh" && pixelErrorZh[message]) return pixelErrorZh[message];
-  const parts = message.split(" / ");
-  if (parts.length === 2) return parts[language === "zh" ? 1 : 0];
-  return message;
+  return translateMessage(message, language);
 }
 
 function saveBlob(blob: Blob, name: string) {
@@ -943,8 +955,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
   const figureRef = useRef<SVGSVGElement>(null);
   const sections = useRef<(HTMLElement | null)[]>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
-  const language = project?.language ?? "zh";
-  const t: Translate = (zh, en) => (language === "zh" ? zh : en);
+  const { language, setLanguage, t } = useLanguage();
 
   const accept = (next: RealProject) => {
     currentProject.current = next;
@@ -971,12 +982,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
       accept(change(currentProject.current));
       setError("");
     } catch (problem) {
-      setError(
-        localizeMessage(
-          problem instanceof Error ? problem.message : String(problem),
-          language,
-        ),
-      );
+      setError(problem instanceof Error ? problem.message : String(problem));
     }
   };
   const patchImage = (id: string, patch: RealImagePatch) =>
@@ -990,12 +996,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
     try {
       await task();
     } catch (problem) {
-      setError(
-        localizeMessage(
-          problem instanceof Error ? problem.message : String(problem),
-          language,
-        ),
-      );
+      setError(problem instanceof Error ? problem.message : String(problem));
     } finally {
       working.current = false;
       setBusy(null);
@@ -1119,10 +1120,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
         if (!cancelled) {
           setLoadFailed(true);
           setError(
-            localizeMessage(
-              problem instanceof Error ? problem.message : String(problem),
-              "zh",
-            ),
+            problem instanceof Error ? problem.message : String(problem),
           );
         }
       });
@@ -1156,7 +1154,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           if (saveVersion.current === version) {
             setSaveState("error");
             setError(
-              `${t("本机保存失败，请导出项目包备份。", "Local saving failed. Export a project archive for backup.")} ${localizeMessage(problem instanceof Error ? problem.message : String(problem), language)}`,
+              `LOCAL_SAVE_FAILED: ${problem instanceof Error ? problem.message : String(problem)}`,
             );
           }
         });
@@ -1229,12 +1227,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
       setPreviewUrl(url);
       return () => URL.revokeObjectURL(url);
     } catch (problem) {
-      setError(
-        localizeMessage(
-          problem instanceof Error ? problem.message : String(problem),
-          language,
-        ),
-      );
+      setError(problem instanceof Error ? problem.message : String(problem));
     }
   }, [raster]);
 
@@ -1611,7 +1604,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
         {loadFailed ? (
           <>
             <div className="real-error" role="alert">
-              {error}
+              {localizeMessage(error, language)}
             </div>
             <p>
               {t(
@@ -1668,13 +1661,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
             type="button"
             className="real-button subtle"
             disabled={!!busy}
-            onClick={() =>
-              commit((previous) =>
-                updateRealProject(previous, {
-                  language: language === "zh" ? "en" : "zh",
-                }),
-              )
-            }
+            onClick={() => setLanguage(language === "zh" ? "en" : "zh")}
             aria-label={t("切换到英文", "Switch to Chinese")}
           >
             {language === "zh" ? "EN" : "中文"}
@@ -1682,7 +1669,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           <a
             type="button"
             className="real-button subtle"
-            href="#guide"
+            href={languageUrl("#guide")}
             target="_blank"
             rel="noreferrer"
           >
@@ -1700,8 +1687,10 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
         </div>
       </div>
       <div className="real-workspace-links">
-        <a href="./">← 工作台首页</a>
-        <a href="?mode=single">单条带识别 →</a>
+        <a href={languageUrl("./")}>{t("← 工作台首页", "← Workbench home")}</a>
+        <a href={languageUrl("?mode=single")}>
+          {t("单条带识别 →", "Single-strip analysis →")}
+        </a>
         <SuiteNav />
       </div>
       <header className="real-header">
@@ -1814,7 +1803,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
       {error && (
         <div className="real-error" role="alert">
           <ShieldCheck size={17} />
-          <span>{error}</span>
+          <span>{localizeMessage(error, language)}</span>
           <button
             aria-label={t("关闭错误提示", "Dismiss error")}
             onClick={() => setError("")}
@@ -1826,7 +1815,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
       {notice && (
         <div className="real-notice" role="status">
           <Check size={17} />
-          <span>{notice}</span>
+          <span>{localizeMessage(notice, language)}</span>
           <button
             aria-label={t("关闭通知", "Dismiss notice")}
             onClick={() => setNotice("")}
@@ -1838,7 +1827,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
       {busy && (
         <div className="real-notice" role="status">
           <LoaderCircle size={17} />
-          <span>{busy}</span>
+          <span>{localizeMessage(busy, language)}</span>
           {visionAbort.current && (
             <button
               className="real-button"
@@ -1894,7 +1883,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                   className={`real-report-issue ${issue.severity}`}
                 >
                   <span className="real-report-code">{issue.code}</span>
-                  <span>{issue.message}</span>
+                  <span>{localizeMessage(issue.message, language)}</span>
                   {issue.imageName && (
                     <small>
                       {issue.imageName}
@@ -2348,12 +2337,9 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                       setError("");
                     } catch (problem) {
                       setError(
-                        localizeMessage(
-                          problem instanceof Error
-                            ? problem.message
-                            : String(problem),
-                          language,
-                        ),
+                        problem instanceof Error
+                          ? problem.message
+                          : String(problem),
                       );
                     }
                   }}
@@ -2384,12 +2370,9 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                       );
                     } catch (problem) {
                       setError(
-                        localizeMessage(
-                          problem instanceof Error
-                            ? problem.message
-                            : String(problem),
-                          language,
-                        ),
+                        problem instanceof Error
+                          ? problem.message
+                          : String(problem),
                       );
                     }
                   }}
@@ -2468,12 +2451,9 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                       setError("");
                     } catch (problem) {
                       setError(
-                        localizeMessage(
-                          problem instanceof Error
-                            ? problem.message
-                            : String(problem),
-                          language,
-                        ),
+                        problem instanceof Error
+                          ? problem.message
+                          : String(problem),
                       );
                     }
                   }}
@@ -2505,12 +2485,9 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                       );
                     } catch (problem) {
                       setError(
-                        localizeMessage(
-                          problem instanceof Error
-                            ? problem.message
-                            : String(problem),
-                          language,
-                        ),
+                        problem instanceof Error
+                          ? problem.message
+                          : String(problem),
                       );
                     }
                   }}
@@ -2813,7 +2790,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                   <option value="">{t("自定义…", "Custom…")}</option>
                   {KNOWN_PROVIDERS.map((provider) => (
                     <option key={provider.baseUrl} value={provider.baseUrl}>
-                      {provider.label}
+                      {translateMessage(provider.label, language)}
                     </option>
                   ))}
                 </select>
@@ -2985,7 +2962,11 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                 {t("发送合成图测试", "Send synthetic test")}
               </button>
             </div>
-            {byokNotice && <p className="real-muted">{byokNotice}</p>}
+            {byokNotice && (
+              <p className="real-muted">
+                {localizeMessage(byokNotice, language)}
+              </p>
+            )}
             <p className="real-muted">
               {t(
                 "密钥默认仅保存在当前页面内存，刷新即清；勾选「记住」才写入本设备。测试按钮只发送一张内置合成小图，不发送项目图像；正式候选请求只发往你填写的服务地址，且候选仍需人工复核，像素测量始终在本机完成。",

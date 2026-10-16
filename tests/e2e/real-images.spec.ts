@@ -49,7 +49,7 @@ async function saved(page: Page) {
   await expect(page.locator(".real-save-status")).toHaveText("Saved locally");
 }
 async function openEnglish(page: Page, baseURL?: string) {
-  await page.goto(`${baseURL ?? ""}/#real`);
+  await page.goto(`${baseURL ?? ""}/?lang=zh#real`);
   await expect(
     page.getByRole("heading", {
       name: "真实 Western blot 工作区",
@@ -408,8 +408,8 @@ test("public pixel example loads after confirmation and pending edits survive br
   await page
     .getByRole("button", { name: "Confirm import", exact: true })
     .click();
-  // The archive records Chinese as its language; changing it does not alter measurements.
-  await page.getByRole("button", { name: "切换到英文", exact: true }).click();
+  // Importing an archive must preserve the globally selected interface language.
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.locator(".real-mapping-table tbody tr")).toHaveCount(6);
   await expect(page.locator(".real-workspace-banner")).toContainText(
     "Synthetic example workspace",

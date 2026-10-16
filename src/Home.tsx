@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { type CSSProperties } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -10,11 +10,9 @@ import {
   ShieldCheck,
   Upload,
 } from "lucide-react";
+import { useLanguage } from "./i18n";
 import SuiteNav from "./SuiteNav";
 import "./home.css";
-
-type Language = "zh" | "en";
-const LANGUAGE_KEY = "blot-workbench-home-language";
 
 const cards = [
   {
@@ -56,18 +54,12 @@ const cards = [
 ] as const;
 
 export default function Home() {
-  const [language, setLanguage] = useState<Language>(() =>
-    window.localStorage.getItem(LANGUAGE_KEY) === "en" ? "en" : "zh",
-  );
-  useEffect(() => {
-    window.localStorage.setItem(LANGUAGE_KEY, language);
-  }, [language]);
-  const t = (zh: string, en: string) => (language === "zh" ? zh : en);
+  const { language, setLanguage, t, href } = useLanguage();
 
   return (
     <div className="home" lang={language === "zh" ? "zh-CN" : "en"}>
       <header className="home-topbar">
-        <a className="home-brand" href="./" aria-label="Blot Workbench">
+        <a className="home-brand" href={href("./")} aria-label="Blot Workbench">
           <span className="home-brand-mark">
             <ScanLine size={21} aria-hidden="true" />
           </span>
@@ -81,7 +73,7 @@ export default function Home() {
           <button
             type="button"
             className="home-lang"
-            aria-label={t("Switch to English", "切换为中文")}
+            aria-label={t("切换到英文", "Switch to Chinese")}
             onClick={() => setLanguage(language === "zh" ? "en" : "zh")}
           >
             {language === "zh" ? "EN" : "中文"}
@@ -90,7 +82,9 @@ export default function Home() {
       </header>
       <main className="home-main">
         <div className="home-intro">
-          <p className="home-eyebrow">WESTERN BLOT · WORKBENCH</p>
+          <p className="home-eyebrow">
+            {t("WESTERN BLOT · 分析工作台", "WESTERN BLOT · WORKBENCH")}
+          </p>
           <p className="home-tagline">
             {t("从一张条带图开始。", "Start with one strip.")}
             <span>
@@ -100,7 +94,7 @@ export default function Home() {
         </div>
         <a
           className="home-single"
-          href="?mode=single"
+          href={href("?mode=single")}
           aria-label={t("单条带识别", "Single-strip analysis")}
         >
           <div className="home-single-copy">
@@ -211,7 +205,7 @@ export default function Home() {
             {cards.map((card) => {
               const Icon = card.icon;
               return (
-                <a key={card.href} className="home-card" href={card.href}>
+                <a key={card.href} className="home-card" href={href(card.href)}>
                   <span className="home-card-icon">
                     <Icon size={20} aria-hidden="true" />
                   </span>
@@ -226,7 +220,7 @@ export default function Home() {
             })}
           </div>
         </section>
-        <a className="home-guide" href="#guide">
+        <a className="home-guide" href={href("#guide")}>
           <span className="home-guide-icon">
             <BookOpen size={19} aria-hidden="true" />
           </span>

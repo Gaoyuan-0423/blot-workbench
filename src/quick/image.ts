@@ -1,3 +1,4 @@
+import { translateMessage } from "../i18n";
 import { zlibSync } from "fflate";
 
 export interface QuickImage {
@@ -315,8 +316,8 @@ function makeExample(reference: boolean): QuickImage {
     binary += String.fromCharCode(...png.subarray(offset, offset + 0x8000));
   return {
     name: reference
-      ? "合成示例内参（非实验数据）.png"
-      : "合成示例目标条带（非实验数据）.png",
+      ? translateMessage("合成示例内参（非实验数据）.png")
+      : translateMessage("合成示例目标条带（非实验数据）.png"),
     dataUrl: `data:image/png;base64,${btoa(binary)}`,
     width,
     height,

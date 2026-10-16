@@ -1,3 +1,10 @@
+import {
+  useLanguage,
+  translateMessage as tr,
+  formatMessage as f,
+  languageUrl,
+} from "../i18n";
+import LanguageSwitch from "../LanguageSwitch";
 import SuiteNav from "../SuiteNav";
 import {
   useCallback,
@@ -41,6 +48,7 @@ type Row = {
   bands: QuickBand[];
   warnings: string[];
   label: string;
+  automaticLabel?: number;
 };
 type Loaded = {
   image: QuickImage;
@@ -78,13 +86,15 @@ function analyze(image: QuickImage, polarity: Polarity): Loaded {
       gray,
       ...detectBands(gray, bounds.width, bounds.height, polarity),
       label:
-        detected.rows.length === 1
-          ? image.name.replace(/\.[^.]+$/, "")
-          : `蛋白 ${i + 1}`,
+        detected.rows.length === 1 ? image.name.replace(/\.[^.]+$/, "") : "",
+      automaticLabel: detected.rows.length > 1 ? i + 1 : undefined,
     };
   });
   return { image, rows, warnings: detected.warnings, polarity };
 }
+
+const rowLabel = (row: Row) =>
+  row.automaticLabel == null ? row.label : f("蛋白 {0}", row.automaticLabel);
 
 function save(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
@@ -119,7 +129,7 @@ function Plot({
       className="quick-chart"
       viewBox="0 0 520 330"
       role="img"
-      aria-label="条带相对强度柱状图"
+      aria-label={tr("条带相对强度柱状图")}
       xmlns="http://www.w3.org/2000/svg"
     >
       <rect width="520" height="330" fill="white" />
@@ -127,7 +137,8 @@ function Plot({
         {protein.slice(0, 38)}
       </text>
       <text x="52" y="46" fill="#667085" fontSize="11">
-        {reference ? "内参归一化后相对强度" : "扣背景后的相对强度"} · 对照 = 1
+        {reference ? tr("内参归一化后相对强度") : tr("扣背景后的相对强度")}{" "}
+        {tr("· 对照 = 1")}{" "}
       </text>
       {[0, 1, 2, 3, 4].map((i) => (
         <g key={i}>
@@ -171,7 +182,7 @@ function Plot({
               fontSize="12"
               fontWeight="600"
             >
-              {v == null ? "待调整" : `${pretty(v)}×`}
+              {v == null ? tr("待调整") : `${pretty(v)}×`}
             </text>
             <text
               x={x}
@@ -180,7 +191,7 @@ function Plot({
               fill="#667085"
               fontSize={values.length > 10 ? "8" : "11"}
             >
-              {(labels[i] || `泳道 ${i + 1}`).slice(0, 10)}
+              {(labels[i] || f("泳道 {0}", i + 1)).slice(0, 10)}
             </text>
             {i === control && (
               <text
@@ -190,20 +201,21 @@ function Plot({
                 fill="#667085"
                 fontSize="9"
               >
-                对照
+                {tr("对照")}{" "}
               </text>
             )}
           </g>
         );
       })}
       <text x="52" y="317" fill="#667085" fontSize="10">
-        Blot Workbench · 8-bit 像素估计 · 自动草稿，取样框待核对
+        {tr("Blot Workbench · 8-bit 像素估计 · 自动草稿，取样框待核对")}{" "}
       </text>
     </svg>
   );
 }
 
 export default function QuickApp() {
+  const { language } = useLanguage();
   const [data, setData] = useState<Loaded | null>(null),
     [external, setExternal] = useState<Loaded | null>(null);
   const [inspectReference, setInspectReference] = useState(false);
@@ -267,7 +279,7 @@ export default function QuickApp() {
   );
   const values = relativeSignals(signals, refSignals, control);
   const hasValues = values.some((v) => v != null);
-  const laneLabels = signals.map((_, i) => labels[i] || `泳道 ${i + 1}`);
+  const laneLabels = signals.map((_, i) => labels[i] || f("泳道 {0}", i + 1));
   const displayData = inspectReference && external ? external : data;
   const displayIndex = inspectReference && external ? externalActive : active;
   const displayRow = displayData?.rows[displayIndex];
@@ -470,7 +482,7 @@ export default function QuickApp() {
       { type: "image/svg+xml;charset=utf-8" },
     );
     try {
-      if (!png) save(blob, `${row.label}-相对强度.svg`);
+      if (!png) save(blob, f("{0}-相对强度.svg", rowLabel(row)));
       else {
         const url = URL.createObjectURL(blob);
         try {
@@ -481,13 +493,13 @@ export default function QuickApp() {
           canvas.width = 1560;
           canvas.height = 990;
           const ctx = canvas.getContext("2d");
-          if (!ctx) throw new Error("浏览器无法导出图表。");
+          if (!ctx) throw new Error(tr("浏览器无法导出图表。"));
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           const out = await new Promise<Blob | null>((resolve) =>
             canvas.toBlob(resolve, "image/png"),
           );
-          if (!out) throw new Error("PNG 导出失败，请导出 SVG。");
-          save(out, `${row.label}-相对强度.png`);
+          if (!out) throw new Error(tr("PNG 导出失败，请导出 SVG。"));
+          save(out, f("{0}-相对强度.png", rowLabel(row)));
         } finally {
           URL.revokeObjectURL(url);
         }
@@ -505,7 +517,7 @@ export default function QuickApp() {
         [
           resultCsv({
             file: data.image.name,
-            protein: row.label,
+            protein: rowLabel(row),
             polarity: data.polarity,
             labels: laneLabels,
             control,
@@ -514,7 +526,7 @@ export default function QuickApp() {
             reference: refSignals,
             referenceFile:
               reference === "none" ? "" : refSource?.image.name || "",
-            referenceProtein: refRow?.label || "",
+            referenceProtein: refRow ? rowLabel(refRow) : "",
             values,
             rowY: row.bounds.y,
             referenceBands: refRow?.bands,
@@ -525,7 +537,7 @@ export default function QuickApp() {
         ],
         { type: "text/csv;charset=utf-8" },
       ),
-      `${row.label}-结果.csv`,
+      f("{0}-结果.csv", rowLabel(row)),
     );
   };
   const warnings = [
@@ -534,63 +546,76 @@ export default function QuickApp() {
       ...(row?.warnings ?? []),
       ...(reference !== "none"
         ? [...(refSource?.warnings ?? []), ...(refRow?.warnings ?? [])].map(
-            (w) => `内参：${w}`,
+            (w) => f("内参：{0}", tr(w)),
           )
         : []),
       ...signals.flatMap((s, i) =>
-        s.warning ? [`泳道 ${i + 1}：${s.warning}`] : [],
+        s.warning ? [f("泳道 {0}：{1}", i + 1, tr(s.warning))] : [],
       ),
       ...(refSignals && refSignals.length !== signals.length
         ? [
-            "内参与目标的泳道数量不同。请调整取样框，数量一致后才计算归一化结果。",
+            tr(
+              "内参与目标的泳道数量不同。请调整取样框，数量一致后才计算归一化结果。",
+            ),
           ]
         : []),
       ...(refSignals?.flatMap((s, i) =>
-        s.warning ? [`内参泳道 ${i + 1}：${s.warning}`] : [],
+        s.warning ? [f("内参泳道 {0}：{1}", i + 1, tr(s.warning))] : [],
       ) ?? []),
     ]),
   ];
 
   return (
-    <div className="quick-app">
+    <div className="quick-app" lang={language === "zh" ? "zh-CN" : "en"}>
       <header className="quick-header">
-        <a className="quick-brand" href="./">
+        <a className="quick-brand" href={languageUrl("./")}>
           <span className="quick-brand-icon">
             <ScanLine size={23} />
           </span>
           <span>
-            Blot Workbench<small>印迹工作台</small>
+            Blot Workbench<small>{tr("印迹工作台")}</small>
           </span>
-          <span className="quick-version">简易版</span>
+          <span className="quick-version">{tr("简易版")}</span>
         </a>
-        <nav aria-label="模式">
-          <span className="quick-active-mode">快速定量</span>
-          <a href="?mode=single">单条带识别</a>
-          <a href="?mode=project">
-            项目演示 <ArrowRight size={14} />
+        <nav aria-label={tr("模式")}>
+          <span className="quick-active-mode">{tr("快速定量")}</span>
+          <a href={languageUrl("?mode=single")}>{tr("单条带识别")}</a>
+          <a href={languageUrl("?mode=project")}>
+            {tr("项目演示")} <ArrowRight size={14} />
           </a>
         </nav>
       </header>
       <div className="strip-suite">
         <SuiteNav />
+        <LanguageSwitch />
       </div>
       <main className="quick-main">
         <section className={`quick-intro ${data ? "has-data" : ""}`}>
           <div>
             <p className="quick-eyebrow">
-              <span /> LESS CLICKING, MORE CLARITY
+              <span />{" "}
+              {language === "zh"
+                ? "少些点击，清楚看结果"
+                : "LESS CLICKING, MORE CLARITY"}
             </p>
-            <h1>{data ? "条带与结果，一眼对上。" : "导入条带，直接看结果"}</h1>
+            <h1>
+              {data ? tr("条带与结果，一眼对上。") : tr("导入条带，直接看结果")}
+            </h1>
             <p>
               {data
-                ? "自动取样、扣除背景、生成图表。检查框的位置，修改后结果随即更新。"
-                : "放入一张 WB 图片，自动取样、扣背景、出图。单排条带和多排膜图都可以。"}
+                ? tr(
+                    "自动取样、扣除背景、生成图表。检查框的位置，修改后结果随即更新。",
+                  )
+                : tr(
+                    "放入一张 WB 图片，自动取样、扣背景、出图。单排条带和多排膜图都可以。",
+                  )}
             </p>
           </div>
           <div className="quick-local">
             <ShieldCheck size={19} />
             <span>
-              图片留在你的浏览器<small>无需账号 · 无需配置 API</small>
+              {tr("图片留在你的浏览器")}
+              <small>{tr("无需账号 · 无需配置 API")}</small>
             </span>
           </div>
         </section>
@@ -599,7 +624,7 @@ export default function QuickApp() {
           className="quick-file"
           type="file"
           accept="image/png,image/jpeg,.png,.jpg,.jpeg"
-          aria-label="导入条带图片"
+          aria-label={tr("导入条带图片")}
           onChange={(e) => {
             const f = e.target.files?.[0];
             e.target.value = "";
@@ -611,7 +636,7 @@ export default function QuickApp() {
           className="quick-file"
           type="file"
           accept="image/png,image/jpeg,.png,.jpg,.jpeg"
-          aria-label="添加内参图片"
+          aria-label={tr("添加内参图片")}
           onChange={(e) => {
             const f = e.target.files?.[0];
             e.target.value = "";
@@ -620,8 +645,8 @@ export default function QuickApp() {
         />
         {error && (
           <div className="quick-error" role="alert">
-            {error}
-            <button aria-label="关闭提示" onClick={() => setError("")}>
+            {tr(error)}
+            <button aria-label={tr("关闭提示")} onClick={() => setError("")}>
               <X size={16} />
             </button>
           </div>
@@ -629,7 +654,7 @@ export default function QuickApp() {
         {busy && (
           <div role="status" className="quick-loading">
             <LoaderCircle size={17} className="quick-spin" />
-            正在读取图片并生成结果…
+            {tr("正在读取图片并生成结果…")}{" "}
           </div>
         )}
         <div className="quick-workspace">
@@ -653,10 +678,11 @@ export default function QuickApp() {
             <div className="quick-panel-heading">
               <div>
                 <span className="quick-step">01</span>
-                <h2>{inspectReference ? "内参取样" : "条带图片"}</h2>
+                <h2>{inspectReference ? tr("内参取样") : tr("条带图片")}</h2>
                 {data && (
                   <span className="quick-pill">
-                    {data.rows.length} 排 · {signals.length} 条
+                    {data.rows.length} {tr("排 ·")} {signals.length}{" "}
+                    {tr("条")}{" "}
                   </span>
                 )}
               </div>
@@ -667,7 +693,7 @@ export default function QuickApp() {
                   onClick={() => input.current?.click()}
                 >
                   <ImagePlus size={15} />
-                  换一张
+                  {tr("换一张")}{" "}
                 </button>
               )}
             </div>
@@ -679,9 +705,9 @@ export default function QuickApp() {
                   <ImagePlus size={32} />
                   <span>+</span>
                 </div>
-                <h3>把条带拖到这里</h3>
+                <h3>{tr("把条带拖到这里")}</h3>
                 <p>
-                  或直接粘贴截图 <kbd>⌘ / Ctrl + V</kbd>
+                  {tr("或直接粘贴截图")} <kbd>⌘ / Ctrl + V</kbd>
                 </p>
                 <button
                   className="quick-primary"
@@ -689,13 +715,12 @@ export default function QuickApp() {
                   onClick={() => input.current?.click()}
                 >
                   <Plus size={17} />
-                  选择条带图片
+                  {tr("选择条带图片")}{" "}
                 </button>
-                <small>8-bit PNG / JPG · 最大 15 MB</small>
+                <small>{tr("8-bit PNG / JPG · 最大 15 MB")}</small>
                 <div className="quick-drop-divider">
                   <span />
-                  还没有准备好图片？
-                  <span />
+                  {tr("还没有准备好图片？")} <span />
                 </div>
                 <button
                   className="quick-example"
@@ -703,10 +728,9 @@ export default function QuickApp() {
                   onClick={() => void example()}
                 >
                   <FlaskConical size={16} />
-                  试用示例
-                  <ArrowRight size={14} />
+                  {tr("试用示例")} <ArrowRight size={14} />
                 </button>
-                <small>合成条带，仅用于体验</small>
+                <small>{tr("合成条带，仅用于体验")}</small>
               </div>
             ) : (
               <>
@@ -719,14 +743,20 @@ export default function QuickApp() {
                   </small>
                 </div>
                 {displayData.rows.length > 1 && (
-                  <div className="quick-row-picker" aria-label="选择蛋白行">
+                  <div
+                    className="quick-row-picker"
+                    aria-label={tr("选择蛋白行")}
+                  >
                     {displayData.rows.map((r, i) => (
                       <button
                         key={i}
                         aria-pressed={displayIndex === i}
                         onClick={() => changeRow(i)}
                       >
-                        第 {i + 1} 排<span>{r.bands.length} 条</span>
+                        {f("第 {0} 排", i + 1)}
+                        <span>
+                          {r.bands.length} {tr("条")}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -739,7 +769,7 @@ export default function QuickApp() {
                       className="quick-image"
                       viewBox={`${displayRow.bounds.x} ${displayRow.bounds.y} ${displayRow.bounds.width} ${displayRow.bounds.height}`}
                       role="img"
-                      aria-label="原图与取样框"
+                      aria-label={tr("原图与取样框")}
                       onPointerMove={(e) => {
                         if (!drag.current) return;
                         const p = pointerPosition(e);
@@ -797,7 +827,7 @@ export default function QuickApp() {
                             <rect
                               className="quick-roi"
                               role="button"
-                              aria-label={`泳道 ${i + 1} 取样框`}
+                              aria-label={f("泳道 {0} 取样框", i + 1)}
                               tabIndex={0}
                               x={b.rect.x + displayRow.bounds.x}
                               y={b.rect.y + displayRow.bounds.y}
@@ -886,11 +916,11 @@ export default function QuickApp() {
                 <div className="quick-image-legend">
                   <span>
                     <i />
-                    条带取样
+                    {tr("条带取样")}{" "}
                   </span>
                   <span>
                     <i />
-                    背景取样
+                    {tr("背景取样")}{" "}
                   </span>
                   <label>
                     <input
@@ -898,22 +928,22 @@ export default function QuickApp() {
                       checked={showBoxes}
                       onChange={(e) => setShowBoxes(e.target.checked)}
                     />
-                    显示取样框
+                    {tr("显示取样框")}{" "}
                   </label>
                 </div>
                 <div className="quick-settings-line">
                   <label>
-                    图像类型
+                    {tr("图像类型")}{" "}
                     <select
-                      aria-label="图像类型"
+                      aria-label={tr("图像类型")}
                       disabled={busy}
                       value={displayData.polarity}
                       onChange={(e) =>
                         changePolarity(e.target.value as Polarity)
                       }
                     >
-                      <option value="dark">浅底 · 深色条带</option>
-                      <option value="light">深底 · 浅色条带</option>
+                      <option value="dark">{tr("浅底 · 深色条带")}</option>
+                      <option value="light">{tr("深底 · 浅色条带")}</option>
                     </select>
                   </label>
                   <button
@@ -922,17 +952,16 @@ export default function QuickApp() {
                     onClick={() => setEditing(!editing)}
                   >
                     <SlidersHorizontal size={15} />
-                    调整取样框
-                    <ChevronDown size={13} />
+                    {tr("调整取样框")} <ChevronDown size={13} />
                   </button>
                 </div>
                 {editing && displayRow && (
                   <div className="quick-editor">
                     <div className="quick-editor-count">
                       <label>
-                        泳道数量
+                        {tr("泳道数量")}{" "}
                         <input
-                          aria-label="泳道数量"
+                          aria-label={tr("泳道数量")}
                           type="number"
                           min="1"
                           max="32"
@@ -944,25 +973,26 @@ export default function QuickApp() {
                         className="quick-secondary"
                         onClick={() => resample(true)}
                       >
-                        按数量重新取样
+                        {tr("按数量重新取样")}{" "}
                       </button>
                       <button
                         className="quick-text-button"
-                        aria-label="恢复自动取样"
+                        aria-label={tr("恢复自动取样")}
                         onClick={() => resample(false)}
                       >
                         <RotateCcw size={14} />
                       </button>
                     </div>
                     <p>
-                      数量不对时重新取样；拖动绿色框可微调位置，方向键移动 1
-                      像素。
+                      {tr(
+                        "数量不对时重新取样；拖动绿色框可微调位置，方向键移动 1 像素。",
+                      )}{" "}
                     </p>
                     {!!displayRow.bands.length && (
                       <>
                         <div className="quick-editor-choice">
                           <select
-                            aria-label="编辑泳道"
+                            aria-label={tr("编辑泳道")}
                             value={selected}
                             onChange={(e) =>
                               setSelected(Number(e.target.value))
@@ -970,19 +1000,19 @@ export default function QuickApp() {
                           >
                             {displayRow.bands.map((_, i) => (
                               <option key={i} value={i}>
-                                泳道 {i + 1}
+                                {tr("泳道")} {i + 1}
                               </option>
                             ))}
                           </select>
                           <select
-                            aria-label="编辑取样类型"
+                            aria-label={tr("编辑取样类型")}
                             value={editBackground ? "background" : "band"}
                             onChange={(e) =>
                               setEditBackground(e.target.value === "background")
                             }
                           >
-                            <option value="band">条带框</option>
-                            <option value="background">背景框</option>
+                            <option value="band">{tr("条带框")}</option>
+                            <option value="background">{tr("背景框")}</option>
                           </select>
                         </div>
                         {selectedRect ? (
@@ -990,9 +1020,9 @@ export default function QuickApp() {
                             {(["x", "y", "width", "height"] as const).map(
                               (key, i) => (
                                 <label key={key}>
-                                  {["X", "Y", "宽", "高"][i]}
+                                  {["X", "Y", tr("宽"), tr("高")][i]}
                                   <input
-                                    aria-label={`取样框 ${key}`}
+                                    aria-label={f("取样框 {0}", key)}
                                     type="number"
                                     value={selectedRect[key]}
                                     onChange={(e) => {
@@ -1023,7 +1053,7 @@ export default function QuickApp() {
                               })
                             }
                           >
-                            添加背景框，再调整位置
+                            {tr("添加背景框，再调整位置")}{" "}
                           </button>
                         )}
                       </>
@@ -1033,12 +1063,12 @@ export default function QuickApp() {
                 {!!warnings.length && (
                   <details className="quick-checks" open={!hasValues}>
                     <summary>
-                      有 {warnings.length} 项取样提示
+                      {f("有 {0} 项取样提示", warnings.length)}{" "}
                       <ChevronDown size={14} />
                     </summary>
                     <ul>
                       {warnings.map((w) => (
-                        <li key={w}>{w}</li>
+                        <li key={w}>{tr(w)}</li>
                       ))}
                     </ul>
                   </details>
@@ -1047,8 +1077,8 @@ export default function QuickApp() {
                   <div>
                     <Layers size={17} />
                     <span>
-                      需要内参归一化？
-                      <small>添加同一膜、相同泳道顺序的内参图片</small>
+                      {tr("需要内参归一化？")}{" "}
+                      <small>{tr("添加同一膜、相同泳道顺序的内参图片")}</small>
                     </span>
                   </div>
                   <button
@@ -1057,12 +1087,15 @@ export default function QuickApp() {
                     onClick={() => referenceInput.current?.click()}
                   >
                     <Plus size={15} />
-                    添加内参
+                    {tr("添加内参")}{" "}
                   </button>
                 </div>
                 {external && (
                   <div className="quick-reference-preview">
-                    <span>内参文件：{external.image.name}</span>
+                    <span>
+                      {tr("内参文件：")}
+                      {external.image.name}
+                    </span>
                     <button
                       className="quick-secondary"
                       onClick={() => {
@@ -1078,9 +1111,14 @@ export default function QuickApp() {
                         );
                       }}
                     >
-                      {inspectReference ? "返回目标条带" : "调整内参取样"}
+                      {inspectReference
+                        ? tr("返回目标条带")
+                        : tr("调整内参取样")}
                     </button>
-                    <img src={external.image.dataUrl} alt="已导入的内参图片" />
+                    <img
+                      src={external.image.dataUrl}
+                      alt={tr("已导入的内参图片")}
+                    />
                     <button
                       className="quick-text-button"
                       onClick={() => {
@@ -1090,7 +1128,7 @@ export default function QuickApp() {
                         setReference("none");
                       }}
                     >
-                      移除内参图片
+                      {tr("移除内参图片")}{" "}
                     </button>
                   </div>
                 )}
@@ -1101,7 +1139,7 @@ export default function QuickApp() {
             <div className="quick-panel-heading">
               <div>
                 <span className="quick-step">02</span>
-                <h2>定量结果</h2>
+                <h2>{tr("定量结果")}</h2>
               </div>
               <span
                 className={`quick-result-state ${hasValues ? "ready" : ""}`}
@@ -1110,13 +1148,13 @@ export default function QuickApp() {
                   hasValues ? (
                     <>
                       <Check size={13} />
-                      已生成 · 待核对
+                      {tr("已生成 · 待核对")}{" "}
                     </>
                   ) : (
-                    "等待调整取样"
+                    tr("等待调整取样")
                   )
                 ) : (
-                  "导入后自动生成"
+                  tr("导入后自动生成")
                 )}
               </span>
             </div>
@@ -1127,24 +1165,23 @@ export default function QuickApp() {
                     <span key={i} style={{ height: h }} />
                   ))}
                 </div>
-                <h3>你的结果，就在这里</h3>
+                <h3>{tr("你的结果，就在这里")}</h3>
                 <p>
-                  图片与图表并排，变化一眼可见。
-                  <br />
-                  无需翻页，也不用逐步点击分析。
+                  {tr("图片与图表并排，变化一眼可见。")} <br />
+                  {tr("无需翻页，也不用逐步点击分析。")}{" "}
                 </p>
                 <div className="quick-result-features">
                   <span>
                     <Check size={14} />
-                    自动扣背景
+                    {tr("自动扣背景")}{" "}
                   </span>
                   <span>
                     <Check size={14} />
-                    对照倍数
+                    {tr("对照倍数")}{" "}
                   </span>
                   <span>
                     <Check size={14} />
-                    图表与 CSV
+                    {tr("图表与 CSV")}{" "}
                   </span>
                 </div>
               </div>
@@ -1152,52 +1189,53 @@ export default function QuickApp() {
               <>
                 <div className="quick-result-controls">
                   <label>
-                    蛋白名称
+                    {tr("蛋白名称")}{" "}
                     <input
-                      aria-label="蛋白名称"
-                      value={row?.label || ""}
+                      aria-label={tr("蛋白名称")}
+                      value={row ? rowLabel(row) : ""}
                       onChange={(e) =>
                         updateRow((r) => ({
                           ...r,
                           label: e.target.value.slice(0, 80),
+                          automaticLabel: undefined,
                         }))
                       }
                     />
                   </label>
                   <label>
-                    对照 = 1
+                    {tr("对照 = 1")}{" "}
                     <select
-                      aria-label="对照泳道"
+                      aria-label={tr("对照泳道")}
                       value={control}
                       onChange={(e) => setControl(Number(e.target.value))}
                     >
                       {signals.map((_, i) => (
                         <option key={i} value={i}>
                           {laneLabels[i]}
-                          {i === 0 ? "（默认）" : ""}
+                          {i === 0 ? tr("（默认）") : ""}
                         </option>
                       ))}
                     </select>
                   </label>
                   <label>
-                    内参
+                    {tr("内参")}{" "}
                     <select
-                      aria-label="内参条带"
+                      aria-label={tr("内参条带")}
                       value={reference}
                       onChange={(e) => setReference(e.target.value)}
                     >
-                      <option value="none">不使用内参</option>
+                      <option value="none">{tr("不使用内参")}</option>
                       {data.rows.map(
                         (r, i) =>
                           i !== active && (
                             <option key={`row:${i}`} value={`row:${i}`}>
-                              第 {i + 1} 排 · {r.label}
+                              {f("第 {0} 排", i + 1)} · {rowLabel(r)}
                             </option>
                           ),
                       )}
                       {external?.rows.map((r, i) => (
                         <option key={`external:${i}`} value={`external:${i}`}>
-                          内参文件 · {r.label}
+                          {tr("内参文件 ·")} {rowLabel(r)}
                         </option>
                       ))}
                     </select>
@@ -1205,14 +1243,16 @@ export default function QuickApp() {
                 </div>
                 <p className="quick-method-note">
                   {reference === "none"
-                    ? "当前为扣背景后的相对灰度，未做内参归一化。"
-                    : "目标 / 内参，按从左到右配对后相对对照。请核对样本对应关系。"}
+                    ? tr("当前为扣背景后的相对灰度，未做内参归一化。")
+                    : tr(
+                        "目标 / 内参，按从左到右配对后相对对照。请核对样本对应关系。",
+                      )}
                 </p>
                 {signals.length ? (
                   <Plot
                     values={values}
                     labels={laneLabels}
-                    protein={row?.label || "条带"}
+                    protein={row ? rowLabel(row) : tr("条带")}
                     control={control}
                     reference={reference !== "none"}
                     chartRef={chartRef}
@@ -1220,16 +1260,19 @@ export default function QuickApp() {
                 ) : (
                   <div className="quick-no-result">
                     <ScanLine size={30} />
-                    <h3>还没有找到清晰条带</h3>
+                    <h3>{tr("还没有找到清晰条带")}</h3>
                     <p>
-                      检查图像类型，或在左侧“调整取样框”中指定泳道数量。尽量使用裁去标签和边框的
-                      WB 图片。
+                      {tr(
+                        "检查图像类型，或在左侧“调整取样框”中指定泳道数量。尽量使用裁去标签和边框的 WB 图片。",
+                      )}{" "}
                     </p>
                   </div>
                 )}
                 {!!signals.length && !hasValues && (
                   <p role="status" className="quick-invalid-note">
-                    暂时无法计算相对值，请检查取样背景、对照和内参。无效值显示为“—”。
+                    {tr(
+                      "暂时无法计算相对值，请检查取样背景、对照和内参。无效值显示为“—”。",
+                    )}{" "}
                   </p>
                 )}
                 <div className="quick-export-row">
@@ -1239,32 +1282,35 @@ export default function QuickApp() {
                     onClick={() => void exportChart(true)}
                   >
                     <ArrowDownToLine size={15} />
-                    导出 PNG
+                    {tr("导出 PNG")}{" "}
                   </button>
                   <button
                     className="quick-secondary"
                     disabled={!hasValues || exporting}
                     onClick={() => void exportChart()}
                   >
-                    导出 SVG
+                    {tr("导出 SVG")}{" "}
                   </button>
                   <button
                     className="quick-secondary"
                     disabled={!signals.length}
                     onClick={exportCsv}
                   >
-                    导出 CSV
+                    {tr("导出 CSV")}{" "}
                   </button>
                 </div>
                 {!!signals.length && (
                   <div className="quick-table-wrap">
-                    <table className="quick-table" aria-label="条带定量结果">
+                    <table
+                      className="quick-table"
+                      aria-label={tr("条带定量结果")}
+                    >
                       <thead>
                         <tr>
-                          <th>泳道 / 样本</th>
-                          <th>净信号</th>
-                          {refSignals && <th>内参净信号</th>}
-                          <th>相对值</th>
+                          <th>{tr("泳道 / 样本")}</th>
+                          <th>{tr("净信号")}</th>
+                          {refSignals && <th>{tr("内参净信号")}</th>}
+                          <th>{tr("相对值")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1280,7 +1326,7 @@ export default function QuickApp() {
                                 }}
                               />
                               <input
-                                aria-label={`泳道 ${i + 1} 名称`}
+                                aria-label={f("泳道 {0} 名称", i + 1)}
                                 value={laneLabels[i]}
                                 onFocus={() => setSelected(i)}
                                 onChange={(e) =>
@@ -1291,7 +1337,7 @@ export default function QuickApp() {
                                   })
                                 }
                               />
-                              {i === control && <small>对照</small>}
+                              {i === control && <small>{tr("对照")}</small>}
                             </td>
                             <td>{pretty(s.net, 0)}</td>
                             {refSignals && (
@@ -1309,8 +1355,9 @@ export default function QuickApp() {
                   </div>
                 )}
                 <p className="quick-result-footnote">
-                  净信号 = 条带积分 − 背景均值 ×
-                  取样面积。每根柱代表一条泳道，不自动推断生物学重复或显著性。
+                  {tr(
+                    "净信号 = 条带积分 − 背景均值 × 取样面积。每根柱代表一条泳道，不自动推断生物学重复或显著性。",
+                  )}{" "}
                 </p>
               </>
             )}
@@ -1319,14 +1366,15 @@ export default function QuickApp() {
         <footer className="quick-footer">
           <span>
             <ShieldCheck size={14} />
-            本地计算，图片不上传。刷新前请导出结果。
+            {tr("本地计算，图片不上传。刷新前请导出结果。")}{" "}
           </span>
           <span>
-            8-bit 像素估计 · 自动取样需核对 · 原始 TIFF / 16-bit
-            请保留原始定量流程
+            {tr(
+              "8-bit 像素估计 · 自动取样需核对 · 原始 TIFF / 16-bit 请保留原始定量流程",
+            )}{" "}
           </span>
-          <a href="?mode=project">
-            多批次项目演示 <ArrowRight size={12} />
+          <a href={languageUrl("?mode=project")}>
+            {tr("多批次项目演示")} <ArrowRight size={12} />
           </a>
         </footer>
       </main>

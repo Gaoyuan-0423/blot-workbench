@@ -29,7 +29,7 @@ test("example opens bilingually and sample units do not increase with exposures"
   await page.getByRole("button", { name: "样本与分组", exact: true }).click();
   await expect(page.locator("tbody tr")).toHaveCount(6);
   await expect(page.getByText("6 个独立单位", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Switch language" }).click();
+  await page.getByRole("button", { name: "切换语言" }).click();
   await expect(
     page.getByRole("heading", { name: "Samples", exact: true }),
   ).toBeVisible();
@@ -47,7 +47,7 @@ test("display changes preserve values, ROI edits invalidate results and survive 
   await ready(page);
   await analysis(page);
   const values = await page.locator(".measurement-panel tbody").innerText();
-  await page.getByRole("slider", { name: "Display contrast" }).fill("160");
+  await page.getByRole("slider", { name: "显示对比度" }).fill("160");
   await expect(page.locator(".measurement-panel tbody")).toHaveText(values, {
     useInnerText: true,
   });
@@ -80,7 +80,7 @@ test("display changes preserve values, ROI edits invalidate results and survive 
     useInnerText: true,
   });
   await page
-    .getByRole("button", { name: "band lane-1", exact: true })
+    .getByRole("button", { name: "条带 lane-1", exact: true })
     .press("ArrowRight");
   await expect(
     page.getByRole("spinbutton", { name: "ROI x", exact: true }),
@@ -164,7 +164,7 @@ test("review notes, confirmation, CSV and project migration work across isolated
   const destination = await other.newPage();
   await ready(destination);
   await destination
-    .getByLabel("Import project archive", { exact: true })
+    .getByLabel("导入项目包", { exact: true })
     .setInputFiles(path);
   await destination
     .getByRole("button", { name: "确认导入", exact: true })
@@ -196,13 +196,11 @@ test("invalid archives preserve current project and empty projects round-trip", 
   page,
 }, testInfo) => {
   await ready(page);
-  await page
-    .getByLabel("Import project archive", { exact: true })
-    .setInputFiles({
-      name: "broken.zip",
-      mimeType: "application/zip",
-      buffer: Buffer.from("not a zip"),
-    });
+  await page.getByLabel("导入项目包", { exact: true }).setInputFiles({
+    name: "broken.zip",
+    mimeType: "application/zip",
+    buffer: Buffer.from("not a zip"),
+  });
   await expect(page.getByRole("alert")).toBeVisible();
   await expect(page.locator(".image-card")).toHaveCount(8);
   await page.getByRole("button", { name: "新建项目", exact: true }).click();
@@ -220,9 +218,7 @@ test("invalid archives preserve current project and empty projects round-trip", 
   const download = await exported;
   const path = testInfo.outputPath("empty.wbproj.zip");
   await download.saveAs(path);
-  await page
-    .getByLabel("Import project archive", { exact: true })
-    .setInputFiles(path);
+  await page.getByLabel("导入项目包", { exact: true }).setInputFiles(path);
   await page.getByRole("button", { name: "确认导入", exact: true }).click();
   await expect(
     page.getByRole("textbox", { name: "项目名称", exact: true }),
@@ -230,7 +226,8 @@ test("invalid archives preserve current project and empty projects round-trip", 
 });
 
 test("project actions make no network requests and emit no application errors", async ({
-  page, baseURL,
+  page,
+  baseURL,
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

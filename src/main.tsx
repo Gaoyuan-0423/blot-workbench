@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
+import { useLanguage } from "./i18n";
 import App from "./App";
 import Home from "./Home";
 import "./styles.css";
@@ -21,13 +22,18 @@ function routeFor(hash: string): Route {
 }
 
 function WorkspaceRouter() {
+  const { t } = useLanguage();
   const [route, setRoute] = useState<Route>(() =>
     routeFor(window.location.hash),
   );
   useEffect(() => {
     const update = () => setRoute(routeFor(window.location.hash));
     window.addEventListener("hashchange", update);
-    return () => window.removeEventListener("hashchange", update);
+    window.addEventListener("popstate", update);
+    return () => {
+      window.removeEventListener("hashchange", update);
+      window.removeEventListener("popstate", update);
+    };
   }, []);
 
   if (route === "single" || route === "quick")
@@ -35,7 +41,7 @@ function WorkspaceRouter() {
       <Suspense
         fallback={
           <div className="workspace-loading" role="status">
-            正在打开条带工作区…
+            {t("正在打开条带工作区…", "Opening strip workspace…")}
           </div>
         }
       >
@@ -48,7 +54,7 @@ function WorkspaceRouter() {
       <Suspense
         fallback={
           <div role="status">
-            正在打开真实图像工作区 / Opening image workspace…
+            {t("正在打开真实图像工作区…", "Opening image workspace…")}
           </div>
         }
       >

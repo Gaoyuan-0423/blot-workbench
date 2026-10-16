@@ -550,6 +550,9 @@
   .single-options {
     gap: 6px;
   }
+  .single-options > label:first-child {
+    grid-column: 1 / -1;
+  }
   .single-card-title {
     padding: 15px 16px;
   }

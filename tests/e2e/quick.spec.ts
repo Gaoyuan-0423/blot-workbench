@@ -135,7 +135,7 @@ test("demo generates six lanes and a chart beside the image without an analysis 
   ).toBeInViewport();
   await expect(
     page.getByRole("link", { name: "项目演示", exact: true }),
-  ).toHaveAttribute("href", "?mode=project");
+  ).toHaveAttribute("href", /\?mode=project&lang=zh$/);
   await page.screenshot({
     path: testInfo.outputPath("quick-home.png"),
     fullPage: true,

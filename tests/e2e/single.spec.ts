@@ -128,9 +128,9 @@ test("original workbench links to a separate simple single-strip page with immed
     name: "单条带识别",
     exact: true,
   });
-  await expect(singleLink).toHaveAttribute("href", "?mode=single");
+  await expect(singleLink).toHaveAttribute("href", /\?mode=single&lang=zh$/);
   await singleLink.click();
-  await expect(page).toHaveURL(/\?mode=single$/);
+  await expect(page).toHaveURL(/\?mode=single&lang=zh$/);
   await expect(
     page.getByRole("heading", { name: "单条带识别", exact: true }),
   ).toBeVisible();

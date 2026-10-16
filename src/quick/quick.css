@@ -163,6 +163,7 @@
   min-height: 65px;
   padding: 18px 22px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -173,11 +174,13 @@
   align-items: center;
   gap: 11px;
   min-width: 0;
+  flex-shrink: 0;
+  max-width: 100%;
 }
 .quick-panel-heading h2 {
   font-size: 14px;
   font-weight: 600;
-  white-space: nowrap;
+  white-space: normal;
 }
 .quick-step {
   color: #5a5b81;
@@ -201,6 +204,8 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
+  max-width: 100%;
 }
 .quick-result-state.ready {
   color: #5a5b81;

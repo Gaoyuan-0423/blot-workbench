@@ -1,3 +1,4 @@
+import { translateMessage } from "../i18n";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ArrowUpRight,
@@ -163,7 +164,7 @@ export default function VisionSettings({
   const errorMessage = !error
     ? ""
     : error.kind === "service"
-      ? error.message
+      ? translateMessage(error.message, language)
       : error.kind === "invalid-response"
         ? t(
             "本机服务未返回有效响应。请确认使用 npm run local 启动，并重试。",
@@ -182,7 +183,8 @@ export default function VisionSettings({
         </span>
         <div>
           <span className="vision-eyebrow">
-            VISION API · {t("可选连接", "OPTIONAL CONNECTION")}
+            {t("视觉服务", "VISION API")} ·{" "}
+            {t("可选连接", "OPTIONAL CONNECTION")}
           </span>
           <h2 id="modal-title">{t("视觉 API 设置", "Vision API settings")}</h2>
         </div>
@@ -240,7 +242,9 @@ export default function VisionSettings({
               <span className="vision-protocol">Chat Completions</span>
             </div>
             <fieldset disabled={busy || !saved}>
-              <label htmlFor="vision-base-url">Base URL</label>
+              <label htmlFor="vision-base-url">
+                {t("服务地址", "Base URL")}
+              </label>
               <input
                 id="vision-base-url"
                 type="url"

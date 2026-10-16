@@ -1,3 +1,4 @@
+import { useLanguage, languageUrl, translateMessage } from "./i18n";
 import SuiteNav from "./SuiteNav";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -78,7 +79,11 @@ function App() {
   useEffect(() => {
     const syncGuide = () => setGuideOpen(window.location.hash === "#guide");
     window.addEventListener("hashchange", syncGuide);
-    return () => window.removeEventListener("hashchange", syncGuide);
+    window.addEventListener("popstate", syncGuide);
+    return () => {
+      window.removeEventListener("hashchange", syncGuide);
+      window.removeEventListener("popstate", syncGuide);
+    };
   }, []);
   const [project, setProject] = useState<Project | null>(null);
   const [error, setError] = useState("");
@@ -126,9 +131,7 @@ function App() {
   const currentProject = useRef<Project | null>(null);
   currentProject.current = project;
   const dialog = useRef<HTMLElement>(null);
-  const text = (zh: string, en: string) =>
-    project?.ui.language === "en" ? en : zh;
-  const t = text;
+  const { language, setLanguage, t } = useLanguage();
   useEffect(() => {
     let active = true;
     (async () => {
@@ -177,10 +180,6 @@ function App() {
     const id = setTimeout(() => setNotice(""), 3500);
     return () => clearTimeout(id);
   }, [notice]);
-  useEffect(() => {
-    document.documentElement.lang =
-      project?.ui.language === "en" ? "en" : "zh-CN";
-  }, [project?.ui.language]);
   const mutate = (f: (p: Project) => Project) => {
     if (!currentProject.current) return;
     try {
@@ -296,8 +295,8 @@ function App() {
           <ScanLine size={30} />
         </div>
         <LoaderCircle className="spin" />
-        <p>正在打开工作台 · Opening your workbench</p>
-        {error && <p>{error}</p>}
+        <p>{t("正在打开工作台…", "Opening your workbench…")}</p>
+        {error && <p>{translateMessage(error, language)}</p>}
       </div>
     );
   const image =
@@ -377,7 +376,7 @@ function App() {
       <aside className="sidebar">
         <a
           className="brand"
-          href="#"
+          href={languageUrl("#")}
           onClick={(e) => {
             e.preventDefault();
             changeView("overview");
@@ -405,12 +404,15 @@ function App() {
           <ChevronDown size={15} />
         </button>
         <nav>
-          <a className="nav-item single-nav-link" href="?mode=single">
+          <a
+            className="nav-item single-nav-link"
+            href={languageUrl("?mode=single")}
+          >
             <ScanLine size={18} />
             <span>{t("单条带识别", "Single-strip recognition")}</span>
             <ArrowRight size={14} />
           </a>
-          <a className="nav-item" href="#real">
+          <a className="nav-item" href={languageUrl("#real")}>
             <FileImage size={18} />
             <span>{t("真实图像分析", "Analyze real images")}</span>
           </a>
@@ -512,12 +514,10 @@ function App() {
             </span>
             <button
               className="language-button"
-              onClick={() =>
-                ui({ language: project.ui.language === "zh" ? "en" : "zh" })
-              }
-              aria-label="Switch language"
+              onClick={() => setLanguage(language === "zh" ? "en" : "zh")}
+              aria-label={t("切换语言", "Switch language")}
             >
-              {project.ui.language === "zh" ? "EN" : "中文"}
+              {language === "zh" ? "EN" : "中文"}
             </button>
             <button
               className="icon-button"
@@ -529,7 +529,7 @@ function App() {
           </div>
         </header>
         <div className="demo-banner">
-          <span className="demo-pill">DEMO</span>
+          <span className="demo-pill">{t("演示", "DEMO")}</span>
           <span>
             {t(
               "交互演示 · 所有图片与结果均为合成示例，尚未完成科研定量验证。",
@@ -544,10 +544,10 @@ function App() {
         {error && (
           <div className="error-banner" role="alert">
             <TriangleAlert size={17} />
-            <span>{error}</span>
+            <span>{translateMessage(error, language)}</span>
             <button
               className="icon-button"
-              aria-label="Dismiss error"
+              aria-label={t("关闭错误提示", "Dismiss error")}
               onClick={() => setError("")}
             >
               <X size={16} />
@@ -628,7 +628,7 @@ function App() {
             type="file"
             accept=".zip"
             ref={fileInput}
-            aria-label="Import project archive"
+            aria-label={t("导入项目包", "Import project archive")}
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f)
@@ -642,7 +642,7 @@ function App() {
           />
           {guideOpen && (
             <UserGuide
-              language={project.ui.language}
+              language={language}
               onNavigate={changeView}
               onExample={() => setModal("example")}
               onVision={() => setModal("vision")}
@@ -689,7 +689,7 @@ function App() {
                   <div className="welcome-art" aria-hidden="true">
                     <div className="art-grid" />
                     <div className="art-sheet sheet-back">
-                      <span>EXPERIMENT 02</span>
+                      <span>{t("实验 02", "EXPERIMENT 02")}</span>
                       {[0, 1, 2, 3].map((i) => (
                         <div className="art-lane" key={i} />
                       ))}
@@ -760,7 +760,7 @@ function App() {
                       <dt>{t("最新修改", "Last edited")}</dt>
                       <dd>
                         {new Date(project.updatedAt).toLocaleDateString(
-                          project.ui.language === "zh" ? "zh-CN" : "en-US",
+                          language === "zh" ? "zh-CN" : "en-US",
                         )}
                       </dd>
                     </div>
@@ -887,7 +887,9 @@ function App() {
                               src={img.dataUrl}
                               alt={`${img.protein} synthetic blot`}
                             />
-                            <span className="image-source">SYNTHETIC</span>
+                            <span className="image-source">
+                              {t("合成示例", "SYNTHETIC")}
+                            </span>
                             {img.qc !== "normal" && (
                               <span className="image-alert">
                                 <TriangleAlert size={13} />
@@ -1068,7 +1070,7 @@ function App() {
                         {t("显示对比度", "Display contrast")}
                       </span>
                       <input
-                        aria-label="Display contrast"
+                        aria-label={t("显示对比度", "Display contrast")}
                         type="range"
                         min="60"
                         max="180"
@@ -1359,7 +1361,7 @@ function App() {
                       <label className="field-label">
                         {t("参考图像", "Reference image")}
                         <select
-                          aria-label="Reference image"
+                          aria-label={t("内参图像", "Reference image")}
                           value={analysis.referenceImageId ?? ""}
                           onChange={(e) =>
                             setAnalysis({
@@ -1583,7 +1585,9 @@ function App() {
                       )}
                     </p>
                   </div>
-                  <span className="demo-pill">SYNTHETIC / DEMO</span>
+                  <span className="demo-pill">
+                    {t("合成示例 / 演示", "SYNTHETIC / DEMO")}
+                  </span>
                 </div>
                 <div className="table-scroll">
                   <table>
@@ -1746,7 +1750,7 @@ function App() {
       {notice && (
         <div className="toast" role="status">
           <Check size={17} />
-          {notice}
+          {translateMessage(notice, language)}
         </div>
       )}
       {busy && (
@@ -1771,14 +1775,12 @@ function App() {
           >
             <button
               className="icon-button modal-close"
-              aria-label="Close dialog"
+              aria-label={t("关闭对话框", "Close dialog")}
               onClick={() => setModal(null)}
             >
               <X size={20} />
             </button>
-            {modal === "vision" && (
-              <VisionSettings language={project.ui.language} />
-            )}
+            {modal === "vision" && <VisionSettings language={language} />}
             {modal === "import" && pendingImport && (
               <>
                 <div className="modal-icon">
@@ -2213,6 +2215,7 @@ function BlotCanvas({
   onSelect: (id: string) => void;
   onMove: (id: string, rect: Rect) => void;
 }) {
+  const { t } = useLanguage();
   const svg = useRef<SVGSVGElement>(null);
   const drag = useRef<{
     id: string;
@@ -2234,12 +2237,17 @@ function BlotCanvas({
   return (
     <div className="blot-stage">
       <div className="stage-label">
-        {image.role === "reference" ? "REFERENCE" : "TARGET"}{" "}
-        <span>· SYNTHETIC</span>
+        {image.role === "reference"
+          ? t("内参", "REFERENCE")
+          : t("目标", "TARGET")}{" "}
+        <span>· {t("合成示例", "SYNTHETIC")}</span>
       </div>
       <svg
         role="img"
-        aria-label="Interactive synthetic blot with editable regions"
+        aria-label={t(
+          "可编辑取样区域的合成条带演示",
+          "Interactive synthetic blot with editable regions",
+        )}
         ref={svg}
         viewBox={`0 0 ${image.width} ${image.height}`}
         className="blot-svg"
@@ -2294,7 +2302,7 @@ function BlotCanvas({
                     {...rect}
                     tabIndex={0}
                     role="button"
-                    aria-label={`${r.kind} ${r.laneId}`}
+                    aria-label={`${r.kind === "band" ? t("条带", "band") : t("背景", "background")} ${r.laneId}`}
                     onFocus={() => onSelect(r.id)}
                     onPointerDown={(e) => {
                       e.preventDefault();

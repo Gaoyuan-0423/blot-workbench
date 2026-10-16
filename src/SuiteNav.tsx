@@ -1,3 +1,4 @@
+import { useLanguage } from "./i18n";
 const suiteHost = window.location.hostname.toLowerCase();
 const isWispLab =
   suiteHost === "wisplab.top" || suiteHost.endsWith(".wisplab.top");
@@ -14,17 +15,20 @@ const suiteLinks = {
 };
 
 export default function SuiteNav() {
+  const { t, href } = useLanguage();
   return (
     <nav
       className={`suite-nav${isWispLab ? " suite-with-home" : ""}`}
-      aria-label="实验工作台导航"
+      aria-label={t("实验工作台导航", "Laboratory workbench navigation")}
     >
-      {isWispLab && <a href="https://wisplab.top/">总首页</a>}
-      <a href={suiteLinks.wb} aria-current="page">
+      {isWispLab && (
+        <a href={href("https://wisplab.top/")}>{t("总首页", "Home")}</a>
+      )}
+      <a href={href(suiteLinks.wb)} aria-current="page">
         WB
       </a>
-      <a href={suiteLinks.pathology}>病理</a>
-      <a href={suiteLinks.pcr}>PCR</a>
+      <a href={href(suiteLinks.pathology)}>{t("病理", "Pathology")}</a>
+      <a href={href(suiteLinks.pcr)}>PCR</a>
     </nav>
   );
 }

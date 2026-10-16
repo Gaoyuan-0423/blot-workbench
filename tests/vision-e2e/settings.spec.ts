@@ -149,7 +149,9 @@ async function openSettings(page: Page, english = false) {
       exact: true,
     })
     .click();
-  await expect(page.getByLabel("Base URL", { exact: true })).toBeEnabled();
+  await expect(
+    page.getByLabel(/^(Base URL|服务地址)$/, { exact: true }),
+  ).toBeEnabled();
 }
 
 async function saveSettings(
@@ -158,12 +160,12 @@ async function saveSettings(
   key?: string,
   english = false,
 ) {
-  await page.getByLabel("Base URL", { exact: true }).fill(baseUrl);
+  await page.getByLabel(/^(Base URL|服务地址)$/, { exact: true }).fill(baseUrl);
   await page
     .getByLabel(english ? "Model ID" : "模型 ID", { exact: true })
     .fill(MODEL);
   if (key !== undefined)
-    await page.getByLabel("API Key", { exact: true }).fill(key);
+    await page.getByLabel(/^(API Key|API 密钥)$/, { exact: true }).fill(key);
   await page
     .getByRole("button", {
       name: english ? "Save to local service" : "保存到本机服务",
@@ -200,7 +202,9 @@ test("saving sends nothing; explicit testing sends only the built-in PNG and exp
   await openSettings(page);
   await saveSettings(page, first.baseUrl, TEST_ONLY_KEY);
   expect(first.calls).toHaveLength(0);
-  await expect(page.getByLabel("API Key", { exact: true })).toHaveValue("");
+  await expect(
+    page.getByLabel(/^(API Key|API 密钥)$/, { exact: true }),
+  ).toHaveValue("");
 
   const config = await publicConfig(page);
   expect(config.status).toBe(200);
@@ -256,13 +260,15 @@ test("saving sends nothing; explicit testing sends only the built-in PNG and exp
   );
   expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([720, 280]);
 
-  await page.getByRole("button", { name: "Close dialog", exact: true }).click();
+  await page.getByRole("button", { name: "关闭对话框", exact: true }).click();
   await openSettings(page);
-  await expect(page.getByLabel("API Key", { exact: true })).toHaveValue("");
+  await expect(
+    page.getByLabel(/^(API Key|API 密钥)$/, { exact: true }),
+  ).toHaveValue("");
   await expect(
     page.getByText("已保存在服务内存中", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Close dialog", exact: true }).click();
+  await page.getByRole("button", { name: "关闭对话框", exact: true }).click();
   await expect(page.locator(".save-status")).toContainText("已保存到本机");
   const downloading = page.waitForEvent("download");
   await page.getByRole("button", { name: "导出项目", exact: true }).click();
@@ -294,7 +300,9 @@ test("unsaved edits block testing and changing provider origin cannot forward th
   await ready(page);
   await openSettings(page);
   await saveSettings(page, first.baseUrl, TEST_ONLY_KEY);
-  await page.getByLabel("Base URL", { exact: true }).fill(second.baseUrl);
+  await page
+    .getByLabel(/^(Base URL|服务地址)$/, { exact: true })
+    .fill(second.baseUrl);
   await expect(
     page.getByRole("button", { name: "发送合成图并测试", exact: true }),
   ).toBeDisabled();
@@ -303,7 +311,9 @@ test("unsaved edits block testing and changing provider origin cannot forward th
       exact: true,
     }),
   ).toBeVisible();
-  await expect(page.getByLabel("API Key", { exact: true })).toHaveValue("");
+  await expect(
+    page.getByLabel(/^(API Key|API 密钥)$/, { exact: true }),
+  ).toHaveValue("");
   expect(first.calls).toHaveLength(0);
   expect(second.calls).toHaveLength(0);
   await saveSettings(page, second.baseUrl);
@@ -324,9 +334,7 @@ test("English settings recover after cancellation and clearing removes the in-me
   page,
 }) => {
   await ready(page);
-  await page
-    .getByRole("button", { name: "Switch language", exact: true })
-    .click();
+  await page.getByRole("button", { name: "切换语言", exact: true }).click();
   await openSettings(page, true);
   await saveSettings(page, first.baseUrl, TEST_ONLY_KEY, true);
   first.setHold(true);
@@ -364,9 +372,13 @@ test("English settings recover after cancellation and clearing removes the in-me
       .getByRole("status")
       .filter({ hasText: "Local configuration and key cleared." }),
   ).toBeVisible();
-  await expect(page.getByLabel("Base URL", { exact: true })).toHaveValue("");
+  await expect(
+    page.getByLabel(/^(Base URL|服务地址)$/, { exact: true }),
+  ).toHaveValue("");
   await expect(page.getByLabel("Model ID", { exact: true })).toHaveValue("");
-  await expect(page.getByLabel("API Key", { exact: true })).toHaveValue("");
+  await expect(
+    page.getByLabel(/^(API Key|API 密钥)$/, { exact: true }),
+  ).toHaveValue("");
   await expect(
     page.getByRole("button", {
       name: "Send synthetic image & test",
@@ -409,7 +421,9 @@ test("a hosted page shows local startup guidance and never reads or submits API 
   await expect(
     page.getByRole("heading", { name: "在本机运行后配置", exact: true }),
   ).toBeVisible();
-  await expect(page.getByLabel("Base URL", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByLabel(/^(Base URL|服务地址)$/, { exact: true }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "保存到本机服务", exact: true }),
   ).toHaveCount(0);

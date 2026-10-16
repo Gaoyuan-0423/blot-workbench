@@ -1,3 +1,10 @@
+import {
+  useLanguage,
+  translateMessage as tr,
+  formatMessage as f,
+  languageUrl,
+} from "../i18n";
+import LanguageSwitch from "../LanguageSwitch";
 import SuiteNav from "../SuiteNav";
 import {
   useCallback,
@@ -48,6 +55,7 @@ function download(blob: Blob, filename: string) {
 }
 
 export default function SingleStripApp() {
+  const { language } = useLanguage();
   const [strip, setStrip] = useState<Strip | null>(null);
   const [mode, setMode] = useState<SinglePolarity>("auto");
   const [busy, setBusy] = useState(false),
@@ -87,7 +95,7 @@ export default function SingleStripApp() {
     ...new Set([
       ...(strip?.warnings ?? []),
       ...signals.flatMap((s, i) =>
-        s.warning ? [`泳道 ${i + 1}：${s.warning}`] : [],
+        s.warning ? [f("泳道 {0}：{1}", i + 1, tr(s.warning))] : [],
       ),
     ]),
   ];
@@ -112,7 +120,11 @@ export default function SingleStripApp() {
       } catch (e) {
         if (id === epoch.current)
           setError(
-            `导入失败：${(e as Error).message}${strip ? " 仍显示上一张图片。" : ""}`,
+            f(
+              "导入失败：{0}{1}",
+              (e as Error).message,
+              strip ? " " + tr("仍显示上一张图片。") : "",
+            ),
           );
       } finally {
         if (id === epoch.current) setBusy(false);
@@ -244,7 +256,7 @@ export default function SingleStripApp() {
             file: strip.image.name,
             protein: strip.image.name.replace(/\.[^.]+$/, ""),
             polarity: strip.polarity,
-            labels: signals.map((_, i) => `泳道 ${i + 1}`),
+            labels: signals.map((_, i) => f("泳道 {0}", i + 1)),
             control,
             bands: strip.bands,
             signals,
@@ -258,7 +270,7 @@ export default function SingleStripApp() {
         ],
         { type: "text/csv;charset=utf-8" },
       ),
-      "单条带识别-结果.csv",
+      tr("单条带识别-结果.csv"),
     );
   };
   const exportImage = async () => {
@@ -278,13 +290,13 @@ export default function SingleStripApp() {
       canvas.width = 1040;
       canvas.height = (signals.length * 40 + 100) * 2;
       const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("浏览器无法导出图片，请导出 CSV。");
+      if (!ctx) throw new Error(tr("浏览器无法导出图片，请导出 CSV。"));
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       const png = await new Promise<Blob | null>((resolve) =>
         canvas.toBlob(resolve, "image/png"),
       );
-      if (!png) throw new Error("图片导出失败，请导出 CSV。");
-      download(png, "单条带识别-结果.png");
+      if (!png) throw new Error(tr("图片导出失败，请导出 CSV。"));
+      download(png, tr("单条带识别-结果.png"));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -295,36 +307,37 @@ export default function SingleStripApp() {
   const max = Math.max(1, ...values.filter((v): v is number => v != null));
 
   return (
-    <div className="single-app">
+    <div className="single-app" lang={language === "zh" ? "zh-CN" : "en"}>
       <header className="single-header">
-        <a href="./" className="single-back">
+        <a href={languageUrl("./")} className="single-back">
           <ArrowLeft size={16} />
-          返回工作台
+          {tr("返回工作台")}{" "}
         </a>
-        <a href="?mode=single" className="single-brand">
+        <a href={languageUrl("?mode=single")} className="single-brand">
           <ScanLine size={19} />
-          Blot <span>单条带识别</span>
+          Blot <span>{tr("单条带识别")}</span>
         </a>
         <span className="single-local">
           <ShieldCheck size={14} />
-          图片不上传
+          {tr("图片不上传")}{" "}
         </span>
       </header>
       <div className="strip-suite">
         <SuiteNav />
+        <LanguageSwitch />
       </div>
       <main className="single-main">
         <div className="single-heading">
-          <span className="single-kicker">一个栏目，一张条带图</span>
-          <h1>单条带识别</h1>
-          <p>导入一张裁好的条带图，自动识别，直接看结果。</p>
+          <span className="single-kicker">{tr("一个栏目，一张条带图")}</span>
+          <h1>{tr("单条带识别")}</h1>
+          <p>{tr("导入一张裁好的条带图，自动识别，直接看结果。")}</p>
         </div>
         <input
           ref={input}
           hidden
           type="file"
           accept="image/png,image/jpeg,.png,.jpg,.jpeg"
-          aria-label="导入单排条带图片"
+          aria-label={tr("导入单排条带图片")}
           onChange={(e) => {
             const file = e.target.files?.[0];
             e.target.value = "";
@@ -333,8 +346,8 @@ export default function SingleStripApp() {
         />
         {error && (
           <div className="single-error" role="alert">
-            {error}
-            <button onClick={() => setError("")} aria-label="关闭提示">
+            {tr(error)}
+            <button onClick={() => setError("")} aria-label={tr("关闭提示")}>
               <X size={16} />
             </button>
           </div>
@@ -342,7 +355,7 @@ export default function SingleStripApp() {
         {busy && (
           <p className="single-loading" role="status">
             <LoaderCircle size={16} />
-            正在识别条带…
+            {tr("正在识别条带…")}{" "}
           </p>
         )}
         <div
@@ -367,22 +380,21 @@ export default function SingleStripApp() {
               <div className="single-upload-icon">
                 <ImagePlus size={32} />
               </div>
-              <h2>拖入你的条带图片</h2>
-              <p>也可以粘贴截图，或从电脑中选择</p>
+              <h2>{tr("拖入你的条带图片")}</h2>
+              <p>{tr("也可以粘贴截图，或从电脑中选择")}</p>
               <button
                 disabled={busy}
                 className="single-primary"
                 onClick={() => input.current?.click()}
               >
                 <Upload size={16} />
-                导入图片
+                {tr("导入图片")}{" "}
               </button>
-              <small>8-bit PNG / JPG · 单排条带 · 最大 15 MB</small>
+              <small>{tr("8-bit PNG / JPG · 单排条带 · 最大 15 MB")}</small>
               <div className="single-example-line">
-                <span>先看看效果</span>
+                <span>{tr("先看看效果")}</span>
                 <button disabled={busy} onClick={sample}>
-                  试用示例
-                  <ArrowRight size={14} />
+                  {tr("试用示例")} <ArrowRight size={14} />
                 </button>
               </div>
             </section>
@@ -394,24 +406,24 @@ export default function SingleStripApp() {
                   {strip.image.name}
                 </span>
                 <button disabled={busy} onClick={() => input.current?.click()}>
-                  更换图片
+                  {tr("更换图片")}{" "}
                 </button>
               </div>
               <div className="single-columns">
                 <section className="single-card single-source">
                   <div className="single-card-title">
-                    <h2>条带图片</h2>
+                    <h2>{tr("条带图片")}</h2>
                     <span>
                       {strip.bands.length
-                        ? `识别到 ${strip.bands.length} 条`
-                        : "等待调整"}
+                        ? f("识别到 {0} 条", strip.bands.length)
+                        : tr("等待调整")}
                     </span>
                   </div>
                   <div className="single-image-surface">
                     <svg
                       viewBox={`0 0 ${strip.image.width} ${strip.image.height}`}
                       role="img"
-                      aria-label="单排条带取样预览"
+                      aria-label={tr("单排条带取样预览")}
                       onPointerMove={move}
                       onPointerUp={() => {
                         drag.current = null;
@@ -441,7 +453,7 @@ export default function SingleStripApp() {
                             {...b.rect}
                             className="single-roi"
                             role="button"
-                            aria-label={`泳道 ${i + 1} 取样框`}
+                            aria-label={f("泳道 {0} 取样框", i + 1)}
                             tabIndex={0}
                             fill={selected === i ? "#4f46e515" : "#4f46e503"}
                             stroke={selected === i ? "#4338ca" : "#818cf8"}
@@ -523,13 +535,13 @@ export default function SingleStripApp() {
                   <div className="single-image-caption">
                     <span>
                       <i />
-                      条带框
+                      {tr("条带框")}{" "}
                     </span>
                     <span>
                       <i />
-                      背景框
+                      {tr("背景框")}{" "}
                     </span>
-                    <span>拖动框可微调</span>
+                    <span>{tr("拖动框可微调")}</span>
                   </div>
                   {!!warnings.length && (
                     <div
@@ -538,7 +550,7 @@ export default function SingleStripApp() {
                     >
                       <ul>
                         {warnings.map((w) => (
-                          <li key={w}>{w}</li>
+                          <li key={w}>{tr(w)}</li>
                         ))}
                       </ul>
                     </div>
@@ -550,14 +562,13 @@ export default function SingleStripApp() {
                   >
                     <summary>
                       <SlidersHorizontal size={15} />
-                      识别不准？调整取样
-                      <ChevronDown size={14} />
+                      {tr("识别不准？调整取样")} <ChevronDown size={14} />
                     </summary>
                     <div className="single-options">
                       <label>
-                        图像类型
+                        {tr("图像类型")}{" "}
                         <select
-                          aria-label="图像类型"
+                          aria-label={tr("图像类型")}
                           disabled={busy}
                           value={mode}
                           onChange={(e) =>
@@ -565,20 +576,20 @@ export default function SingleStripApp() {
                           }
                         >
                           <option value="auto">
-                            自动判断（
+                            {tr("自动判断（")}{" "}
                             {strip.polarity === "dark"
-                              ? "浅底深带"
-                              : "深底浅带"}
+                              ? tr("浅底深带")
+                              : tr("深底浅带")}
                             ）
                           </option>
-                          <option value="dark">浅底深色条带</option>
-                          <option value="light">深底浅色条带</option>
+                          <option value="dark">{tr("浅底深色条带")}</option>
+                          <option value="light">{tr("深底浅色条带")}</option>
                         </select>
                       </label>
                       <label>
-                        泳道数量
+                        {tr("泳道数量")}{" "}
                         <input
-                          aria-label="泳道数量"
+                          aria-label={tr("泳道数量")}
                           type="number"
                           min="1"
                           max="32"
@@ -591,16 +602,16 @@ export default function SingleStripApp() {
                         disabled={busy}
                         onClick={() => reanalyze(mode, true)}
                       >
-                        重新识别
+                        {tr("重新识别")}{" "}
                       </button>
                     </div>
                     {!!strip.bands.length && (
                       <>
                         <div className="single-options">
                           <label>
-                            选择取样框
+                            {tr("选择取样框")}{" "}
                             <select
-                              aria-label="编辑泳道"
+                              aria-label={tr("编辑泳道")}
                               value={selected}
                               onChange={(e) =>
                                 setSelected(Number(e.target.value))
@@ -608,28 +619,28 @@ export default function SingleStripApp() {
                             >
                               {strip.bands.map((_, i) => (
                                 <option key={i} value={i}>
-                                  泳道 {i + 1}
+                                  {tr("泳道")} {i + 1}
                                 </option>
                               ))}
                             </select>
                           </label>
                           <label>
-                            取样区域
+                            {tr("取样区域")}{" "}
                             <select
-                              aria-label="编辑取样类型"
+                              aria-label={tr("编辑取样类型")}
                               value={kind}
                               onChange={(e) =>
                                 setKind(e.target.value as "rect" | "background")
                               }
                             >
-                              <option value="rect">条带框</option>
-                              <option value="background">背景框</option>
+                              <option value="rect">{tr("条带框")}</option>
+                              <option value="background">{tr("背景框")}</option>
                             </select>
                           </label>
                           <label>
-                            对照泳道
+                            {tr("对照泳道")}{" "}
                             <select
-                              aria-label="对照泳道"
+                              aria-label={tr("对照泳道")}
                               value={control}
                               onChange={(e) =>
                                 setControl(Number(e.target.value))
@@ -637,7 +648,7 @@ export default function SingleStripApp() {
                             >
                               {strip.bands.map((_, i) => (
                                 <option key={i} value={i}>
-                                  泳道 {i + 1}
+                                  {tr("泳道")} {i + 1}
                                 </option>
                               ))}
                             </select>
@@ -648,10 +659,10 @@ export default function SingleStripApp() {
                             {(["x", "y", "width", "height"] as const).map(
                               (key, i) => (
                                 <label key={key}>
-                                  {["X", "Y", "宽", "高"][i]}
+                                  {["X", "Y", tr("宽"), tr("高")][i]}
                                   <input
                                     type="number"
-                                    aria-label={`取样框 ${key}`}
+                                    aria-label={f("取样框 {0}", key)}
                                     value={rect[key]}
                                     onChange={(e) => {
                                       const n = Number(e.target.value);
@@ -682,7 +693,7 @@ export default function SingleStripApp() {
                               )
                             }
                           >
-                            添加背景框
+                            {tr("添加背景框")}{" "}
                           </button>
                         )}
                       </>
@@ -691,15 +702,15 @@ export default function SingleStripApp() {
                 </section>
                 <section className="single-card single-results">
                   <div className="single-card-title">
-                    <h2>识别结果</h2>
+                    <h2>{tr("识别结果")}</h2>
                     <span>
                       {valid ? (
                         <>
                           <Check size={13} />
-                          自动生成
+                          {tr("自动生成")}{" "}
                         </>
                       ) : (
-                        "尚无有效结果"
+                        tr("尚无有效结果")
                       )}
                     </span>
                   </div>
@@ -711,7 +722,7 @@ export default function SingleStripApp() {
                           viewBox={`0 0 520 ${signals.length * 40 + 100}`}
                           xmlns="http://www.w3.org/2000/svg"
                           role="img"
-                          aria-label="单条带相对强度"
+                          aria-label={tr("单条带相对强度")}
                         >
                           <rect
                             width="520"
@@ -719,7 +730,7 @@ export default function SingleStripApp() {
                             fill="white"
                           />
                           <text x="24" y="27" fill="#202337" fontSize="13">
-                            扣背景后的相对强度 · 泳道 {control + 1} = 1
+                            {tr("扣背景后的相对强度 · 泳道")} {control + 1} = 1
                           </text>
                           {values.map((v, i) => (
                             <g key={i}>
@@ -729,7 +740,7 @@ export default function SingleStripApp() {
                                 fill="#667085"
                                 fontSize="12"
                               >
-                                泳道 {i + 1}
+                                {tr("泳道")} {i + 1}
                               </text>
                               <rect
                                 x="88"
@@ -767,7 +778,9 @@ export default function SingleStripApp() {
                             fill="#667085"
                             fontSize="11"
                           >
-                            8-bit 像素估计 · 自动取样待核对 · 未做内参归一化
+                            {tr(
+                              "8-bit 像素估计 · 自动取样待核对 · 未做内参归一化",
+                            )}{" "}
                           </text>
                         </svg>
                       </div>
@@ -778,27 +791,26 @@ export default function SingleStripApp() {
                           onClick={() => void exportImage()}
                         >
                           <Download size={15} />
-                          导出结果图
+                          {tr("导出结果图")}{" "}
                         </button>
                         <button
                           className="single-secondary"
                           onClick={exportCsv}
                         >
-                          导出 CSV
+                          {tr("导出 CSV")}{" "}
                         </button>
                       </div>
                       <details className="single-numbers">
                         <summary>
-                          查看数值明细
-                          <ChevronDown size={13} />
+                          {tr("查看数值明细")} <ChevronDown size={13} />
                         </summary>
                         <div className="single-table-scroll">
-                          <table aria-label="单条带数值明细">
+                          <table aria-label={tr("单条带数值明细")}>
                             <thead>
                               <tr>
-                                <th>泳道</th>
-                                <th>净信号</th>
-                                <th>相对值</th>
+                                <th>{tr("泳道")}</th>
+                                <th>{tr("净信号")}</th>
+                                <th>{tr("相对值")}</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -817,8 +829,8 @@ export default function SingleStripApp() {
                   ) : (
                     <div className="single-empty-result">
                       <ScanLine size={28} />
-                      <p>识别到条带后，结果会直接显示在这里。</p>
-                      <span>请保留条带上下和两侧的空白背景。</span>
+                      <p>{tr("识别到条带后，结果会直接显示在这里。")}</p>
+                      <span>{tr("请保留条带上下和两侧的空白背景。")}</span>
                     </div>
                   )}
                 </section>
@@ -827,10 +839,9 @@ export default function SingleStripApp() {
           )}
         </div>
         <footer className="single-footer">
-          <span>本地处理 · 自动取样需核对 · 刷新前请导出</span>
-          <a href="?mode=quick">
-            多排 / 内参分析
-            <ArrowRight size={12} />
+          <span>{tr("本地处理 · 自动取样需核对 · 刷新前请导出")}</span>
+          <a href={languageUrl("?mode=quick")}>
+            {tr("多排 / 内参分析")} <ArrowRight size={12} />
           </a>
         </footer>
       </main>
