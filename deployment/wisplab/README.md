@@ -63,7 +63,7 @@ result = package_ci_release(
 
 上表是兼容本机 `dist/` 模式的默认路径，便于本地排查；不应用它代替正式 CI 工件发布。此模式要求工作树干净，并核对 `origin` 是对应的公开 GitHub 仓库。两种模式都不复制仓库源码、`.git` 或 `node_modules`。
 
-首页只有 `index.html`、`styles.css`、`favicon.svg` 三个发布文件。`portal/.qa/` 存放桌面/手机截图和检查记录，明确排除在发布包外。页面不依赖 JavaScript、CDN 或外部字体。已复查截图，三张工具卡、单条带快捷入口和手机单列布局显示正常。
+首页发布文件为 `index.html`、`styles.css`、`favicon.svg` 与双语模块 `locale.js`。`portal/.qa/` 存放桌面/手机截图和检查记录，明确排除在发布包外。页面不依赖 CDN 或外部字体；`locale.js` 仅用于界面语言切换，不发起网络请求。已复查截图，三张工具卡、单条带快捷入口和手机单列布局显示正常。
 
 ## 兼容本机 dist 模式
 

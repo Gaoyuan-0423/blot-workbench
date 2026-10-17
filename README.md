@@ -23,9 +23,9 @@ A Western blot project workbench for laboratories: organize images and sample re
 
 ## 真实图像开发预览 / Real-image development preview
 
-本机打开 `http://127.0.0.1:4318/#real`：批量导入 → 核对蛋白/实验/膜 → 一次设置泳道 → 批量建议 → 手动复核 → CSV、SVG/PNG/TIFF 与项目包。支持的 8/16 位像素直接参与测量；图像不发送到 API。请先阅读[中英指南](docs/real-images.md)与[验证范围](docs/validation-real-images.md)。
+本机打开 `http://127.0.0.1:4318/#real`：批量导入 → 核对蛋白/实验/膜 → 一次设置泳道 → 批量建议 → 手动复核 → CSV、SVG/PNG/TIFF 与项目包。支持的 8/16 位像素直接参与测量；图像不发送到 API。工作区提供滚动球背景校正、泳道投影的自动取样候选（需人工复核）、一键分析 API 与分级建议报告，以及分步帮助教程。请先阅读[中英指南](docs/real-images.md)与[验证范围](docs/validation-real-images.md)。
 
-Open `http://127.0.0.1:4318/#real` locally: import → check protein/experiment/membrane → describe lanes once → batch proposals → manual review → CSV, SVG/PNG/TIFF, and project archive. Supported 8/16-bit pixels are measured directly; images are not sent to an API. Read the [English guide](docs/real-images.en.md) and [validation scope](docs/validation-real-images.md).
+Open `http://127.0.0.1:4318/#real` locally: import → check protein/experiment/membrane → describe lanes once → batch proposals → manual review → CSV, SVG/PNG/TIFF, and project archive. Supported 8/16-bit pixels are measured directly; images are not sent to an API. The workspace includes rolling-ball background correction, lane-projection sampling proposals (manual review required), a one-click analysis API with prioritized recommendations, and step-by-step guidance. Read the [English guide](docs/real-images.en.md) and [validation scope](docs/validation-real-images.md).
 
 公开可重算像素示例：[原图、项目包与预期结果 / Originals, archive, and expected results](public/examples/real/README.md)。网站内置示例、截图及公开验证文件仅使用原创合成数据；用户私有图片、结果和项目不会打包、预载或发布。 / Built-in examples, published screenshots, and public fixtures use synthetic data only; private user images, results, and projects are never bundled, preloaded, or published.
 
