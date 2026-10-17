@@ -55,6 +55,7 @@
         aria-label="页面导航"
       >
         <a href="#tools" data-i18n="nav.tools">分析工具</a>
+        <a href="#updates" data-i18n="nav.updates">更新记录</a>
         <a href="#about" data-i18n="nav.about">关于工作台</a>
         <a
           class="header-quick"
@@ -502,6 +503,96 @@
           <span aria-hidden="true">→</span></a
         >
       </aside>
+
+      <section
+        class="updates-section"
+        id="updates"
+        aria-labelledby="updates-title"
+      >
+        <div class="updates-heading">
+          <div>
+            <h2 id="updates-title" data-i18n="updates.title">最近更新</h2>
+            <p data-i18n="updates.description">
+              功能改进与修复，按发布时间记录。
+            </p>
+          </div>
+          <a
+            class="updates-all"
+            href="https://github.com/Gaoyuan-0423/blot-workbench/releases"
+          >
+            <span data-i18n="updates.all">完整发布记录</span>
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <div class="updates-list">
+          <article class="update-entry">
+            <div class="update-meta">
+              <time datetime="2026-10-18">2026.10.18</time>
+              <span class="update-latest" data-i18n="updates.latest"
+                >最新记录</span
+              >
+            </div>
+            <div class="update-content">
+              <h3 data-i18n="updates.portal.title">
+                更新记录上线，补齐 IHC 双语
+              </h3>
+              <p data-i18n="updates.portal.description">
+                首页新增中英文更新记录与版本链接；补齐 IHC
+                新增提示和导出表头的英文，并将 DAB 阈值提示限定于 IHC 染色。
+              </p>
+              <a
+                class="update-version"
+                href="https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/wisplab-deploy-20261018-updates"
+                >20261018-updates <span aria-hidden="true">↗</span></a
+              >
+            </div>
+          </article>
+          <article class="update-entry">
+            <div class="update-meta">
+              <time datetime="2026-10-17">2026.10.17</time>
+            </div>
+            <div class="update-content">
+              <h3 data-i18n="updates.analysis.title">
+                IHC 评分与 PCR 统计更新
+              </h3>
+              <ul>
+                <li data-i18n="updates.analysis.ihc">
+                  IHC 新增基于分割细胞核强度的 H-score（0–300），支持整图、ROI
+                  及结果导出；新增 DAB 阈值提示。
+                </li>
+                <li data-i18n="updates.analysis.pcr">
+                  修复 PCR Dunnett 多重比较中，部分条件下校正 P
+                  值偏小的数值计算问题。
+                </li>
+              </ul>
+              <a
+                class="update-version"
+                href="https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/wisplab-deploy-20261017-hscore-dunnett"
+                >20261017-hscore-dunnett <span aria-hidden="true">↗</span></a
+              >
+            </div>
+          </article>
+          <article class="update-entry">
+            <div class="update-meta">
+              <time datetime="2026-10-17">2026.10.17</time>
+            </div>
+            <div class="update-content">
+              <h3 data-i18n="updates.language.title">
+                首页与三个工具支持中英文
+              </h3>
+              <p data-i18n="updates.language.description">
+                提供「中文 / EN」切换并记住选择；首页完整介绍 IHC、H&E／Masson
+                染色与 IF 分析入口。
+              </p>
+              <a
+                class="update-version"
+                href="https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/wisplab-deploy-20261017-bilingual"
+                >20261017-bilingual <span aria-hidden="true">↗</span></a
+              >
+            </div>
+          </article>
+        </div>
+      </section>
 
       <section class="about-section" id="about" aria-labelledby="about-title">
         <div class="about-intro">

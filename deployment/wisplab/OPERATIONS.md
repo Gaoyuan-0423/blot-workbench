@@ -41,6 +41,10 @@ python3 release.py plan --version 20261016-example
 
 ## 版本与回滚
 
+首页的「更新记录 / Updates」位于 `deployment/wisplab/portal/index.html` 的 `#updates`；中英文文案在同目录 `locale.js` 的 `updates.*` 字典中维护。功能或修复发布前，新增一条简明记录，填写实际发布日期、唯一版本名和对应 `wisplab-deploy-版本名` 的 GitHub Release 链接；最新记录放在最前，并将“最新记录”标记移到该条。保留最近几条，完整历史通过“完整发布记录”进入 GitHub Releases。
+
+更新记录与功能代码一起测试、提交，再运行统一发布命令。它是面向使用者的发布说明，不自动罗列内部提交；仅开发说明等不影响网页的改动无需增加条目。发布日期和版本是该条记录的历史信息，不表示所有访问地址在发布传播期间已经切换成功，仍以发布器验收为准。
+
 WispLab GitHub release 的标签以 `wisplab-deploy-` 开头。每次发布保存三个源码 SHA、完整 CI 与 Pages 执行记录、静态归档、逐文件校验和及部署清单。自有域名 `/release.json` 可查看当前生效的版本和源码 SHA。
 
 双端回滚通过统一入口执行，而不是只改服务器的链接：
