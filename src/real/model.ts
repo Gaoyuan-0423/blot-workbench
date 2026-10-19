@@ -778,6 +778,17 @@ export function updateRealImage(
     ? { ...updated, designConfirmed: false }
     : updated;
 }
+// Only known, user-actionable proposal failures may be persisted in projects.
+// Unexpected exception text can contain implementation details and stays private.
+const publicProposalErrors = new Set([
+  "Image is too small to propose band and background ROIs.",
+  "No band row has sufficient contrast; select ROIs manually.",
+  "Multiple comparable band rows are ambiguous; select ROIs manually.",
+  "Fewer resolved lanes than requested; overlapping or weak bands need manual ROIs.",
+  "A requested lane has no resolvable band; overlapping or empty lanes need manual ROIs.",
+  "Insufficient adjacent background space; select band/background ROIs manually.",
+]);
+
 export function analyzeAll(project: RealProject, force = false): RealProject {
   ensure(
     project.laneLabels.length >= 2 && project.laneLabels.length <= MAX_LANES,
@@ -828,10 +839,12 @@ export function analyzeAll(project: RealProject, force = false): RealProject {
         !force && manual.has(region.lane) ? manual.get(region.lane)! : region,
       );
       next = updateRealImage(next, image.id, { regions, analysisError: "" });
-    } catch {
+    } catch (problem) {
       next = updateRealImage(next, image.id, {
         analysisError:
-          "Automatic proposal failed; review regions manually / 自动定位未完成，请人工检查区域",
+          problem instanceof Error && publicProposalErrors.has(problem.message)
+            ? problem.message
+            : "Automatic proposal failed; review regions manually / 自动定位未完成，请人工检查区域",
       });
     }
   }

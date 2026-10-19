@@ -3,6 +3,7 @@ import {
   translateMessage as tr,
   formatMessage as f,
   languageUrl,
+  translate as t,
 } from "../i18n";
 import LanguageSwitch from "../LanguageSwitch";
 import SuiteNav from "../SuiteNav";
@@ -28,7 +29,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { measureBands, type Rect } from "../quick/analysis";
+import { type Rect } from "../quick/analysis";
 import {
   createQuickExample,
   loadQuickImage,
@@ -36,9 +37,51 @@ import {
 } from "../quick/image";
 import { relativeSignals, resultCsv } from "../quick/results";
 import { recognizeSingle, type SinglePolarity } from "./model";
+import {
+  prepareRaster,
+  measurePreparedBands,
+  type PreparedRaster,
+  type PreparationConfig,
+} from "./preparation";
+import StripPreparation, {
+  rasterPreview,
+  type Appearance,
+} from "./StripPreparation";
 import "./single.css";
 
-type Strip = { image: QuickImage } & ReturnType<typeof recognizeSingle>;
+type Strip = {
+  id: string;
+  image: QuickImage;
+  prepared: PreparedRaster;
+  config: PreparationConfig;
+  appearance: Appearance;
+  mode: SinglePolarity;
+  control: number;
+  count: number;
+  selected: number;
+} & ReturnType<typeof recognizeSingle>;
+const MAX_EXPOSURES = 6;
+const MAX_EXPOSURE_PIXELS = 30_000_000;
+
+function newStrip(image: QuickImage, mode: SinglePolarity): Strip {
+  const prepared = prepareRaster(image);
+  const result = recognizeSingle(
+    image,
+    mode === "auto" ? prepared.polarity : mode,
+  );
+  return {
+    id: crypto.randomUUID(),
+    image,
+    prepared,
+    config: {},
+    appearance: { brightness: 100, contrast: 100 },
+    mode,
+    control: 0,
+    count: result.bands.length || 6,
+    selected: 0,
+    ...result,
+  };
+}
 const number = (value: number | null) =>
   value == null
     ? "—"
@@ -56,18 +99,42 @@ function download(blob: Blob, filename: string) {
 
 export default function SingleStripApp() {
   const { language } = useLanguage();
-  const [strip, setStrip] = useState<Strip | null>(null);
-  const [mode, setMode] = useState<SinglePolarity>("auto");
+  const [strips, setStrips] = useState<Strip[]>([]);
+  const [activeId, setActiveId] = useState("");
+  const strip = strips.find((entry) => entry.id === activeId) ?? null;
+  const setStrip = useCallback(
+    (next: Strip | null | ((current: Strip | null) => Strip | null)) => {
+      setStrips((entries) =>
+        entries.flatMap((entry) => {
+          if (entry.id !== activeId) return [entry];
+          const changed = typeof next === "function" ? next(entry) : next;
+          return changed ? [changed] : [];
+        }),
+      );
+    },
+    [activeId],
+  );
+  const mode = strip?.mode ?? "auto";
+  const control = strip?.control ?? 0,
+    count = strip?.count ?? 6,
+    selected = strip?.selected ?? 0;
+  const setMode = (mode: SinglePolarity) =>
+    setStrip((current) => current && { ...current, mode });
+  const setControl = (control: number) =>
+    setStrip((current) => current && { ...current, control });
+  const setCount = (count: number) =>
+    setStrip((current) => current && { ...current, count });
+  const setSelected = (selected: number) =>
+    setStrip((current) => current && { ...current, selected });
   const [busy, setBusy] = useState(false),
-    [error, setError] = useState(""),
+    [errors, setErrors] = useState<{ file?: string; message: string }[]>([]),
     [hover, setHover] = useState(false);
-  const [control, setControl] = useState(0),
-    [count, setCount] = useState(6),
-    [selected, setSelected] = useState(0);
+  const setError = (message: string) => setErrors(message ? [{ message }] : []);
   const [editing, setEditing] = useState(false),
     [kind, setKind] = useState<"rect" | "background">("rect");
   const [exporting, setExporting] = useState(false);
   const input = useRef<HTMLInputElement>(null),
+    exposureInput = useRef<HTMLInputElement>(null),
     chart = useRef<SVGSVGElement>(null),
     epoch = useRef(0);
   const drag = useRef<{
@@ -79,15 +146,9 @@ export default function SingleStripApp() {
   const signals = useMemo(
     () =>
       strip
-        ? measureBands(
-            strip.image.gray,
-            strip.image.width,
-            strip.image.height,
-            strip.bands,
-            strip.polarity,
-          )
+        ? measurePreparedBands(strip.prepared, strip.bands, strip.polarity)
         : [],
-    [strip],
+    [strip?.prepared, strip?.bands, strip?.polarity],
   );
   const values = relativeSignals(signals, null, control),
     valid = values.some((v) => v != null);
@@ -101,37 +162,118 @@ export default function SingleStripApp() {
   ];
   const rect = strip?.bands[selected]?.[kind];
   const replace = useCallback((image: QuickImage, polarity: SinglePolarity) => {
-    const result = recognizeSingle(image, polarity);
-    setStrip({ image, ...result });
-    setControl(0);
-    setSelected(0);
-    setCount(result.bands.length || 6);
+    const next = newStrip(image, polarity);
+    setStrips([next]);
+    setActiveId(next.id);
     setEditing(false);
     setKind("rect");
+    drag.current = null;
   }, []);
   const load = useCallback(
-    async (file: File) => {
+    async (files: File[], append = false) => {
+      if (!files.length) return;
       const id = ++epoch.current;
       setBusy(true);
       setError("");
+      const retained = append ? strips : [];
+      const loaded: Strip[] = [];
+      const failures: { file?: string; message: string }[] = [];
+      let pixels = retained.reduce(
+        (sum, entry) =>
+          sum + entry.prepared.source.width * entry.prepared.source.height,
+        0,
+      );
+      const room = MAX_EXPOSURES - retained.length;
+      if (files.length > room)
+        failures.push({
+          message: t(
+            "一次最多保留 6 张曝光图，多出的文件未导入。",
+            "Keep up to 6 exposures at a time. Extra files were not imported.",
+          ),
+        });
       try {
-        const image = await loadQuickImage(file);
-        if (id === epoch.current) replace(image, mode);
-      } catch (e) {
-        if (id === epoch.current)
-          setError(
-            f(
-              "导入失败：{0}{1}",
-              (e as Error).message,
-              strip ? " " + tr("仍显示上一张图片。") : "",
-            ),
-          );
+        for (const file of files.slice(0, room)) {
+          if (epoch.current !== id) return;
+          try {
+            const image = await loadQuickImage(file);
+            if (epoch.current !== id) return;
+            if (pixels + image.width * image.height > MAX_EXPOSURE_PIXELS) {
+              failures.push({
+                file: file.name,
+                message: t(
+                  "曝光图总像素超过 3000 万，请移除部分图片后再添加。",
+                  "The exposures exceed 30 million pixels in total. Remove an image before adding more.",
+                ),
+              });
+              continue;
+            }
+            loaded.push(newStrip(image, "auto"));
+            pixels += image.width * image.height;
+          } catch (e) {
+            failures.push({ file: file.name, message: (e as Error).message });
+          }
+        }
+        if (epoch.current !== id) return;
+        if (loaded.length) {
+          setStrips((current) => [...(append ? current : []), ...loaded]);
+          setActiveId(loaded[0].id);
+          setEditing(false);
+          setKind("rect");
+          drag.current = null;
+        }
+        if (failures.length) {
+          if (!loaded.length && strip)
+            failures.push({ message: "仍显示上一张图片。" });
+          setErrors(failures);
+        }
       } finally {
-        if (id === epoch.current) setBusy(false);
+        if (epoch.current === id) setBusy(false);
       }
     },
-    [mode, replace, strip],
+    [strips, strip],
   );
+  const chooseExposure = (id: string) => {
+    drag.current = null;
+    setEditing(false);
+    setKind("rect");
+    setError("");
+    setActiveId(id);
+  };
+  const removeExposure = () => {
+    if (!strip) return;
+    const remaining = strips.filter((entry) => entry.id !== strip.id);
+    setStrips(remaining);
+    chooseExposure(remaining[0]?.id ?? "");
+  };
+  const applyPreparation = (config: PreparationConfig) => {
+    if (!strip || busy) return false;
+    try {
+      const prepared = prepareRaster(strip.prepared.source, config);
+      const image = rasterPreview(prepared);
+      const result = recognizeSingle(
+        image,
+        mode === "auto" ? prepared.polarity : mode,
+      );
+      setStrip({
+        ...strip,
+        image,
+        prepared,
+        config,
+        ...result,
+        control: 0,
+        selected: 0,
+        count: result.bands.length || 6,
+      });
+      setEditing(false);
+      setKind("rect");
+      setError("");
+      drag.current = null;
+      return true;
+    } catch (e) {
+      setError(tr((e as Error).message));
+      return false;
+    }
+  };
   useEffect(() => {
     const paste = (event: ClipboardEvent) => {
       if (
@@ -145,7 +287,7 @@ export default function SingleStripApp() {
         ?.getAsFile();
       if (file) {
         event.preventDefault();
-        void load(file);
+        void load([file]);
       }
     };
     window.addEventListener("paste", paste);
@@ -164,7 +306,7 @@ export default function SingleStripApp() {
     try {
       const result = recognizeSingle(
         strip.image,
-        next,
+        next === "auto" ? strip.prepared.polarity : next,
         manual
           ? Math.max(
               1,
@@ -190,7 +332,7 @@ export default function SingleStripApp() {
     next: Rect,
     target: "rect" | "background" = kind,
   ) => {
-    if (!strip) return;
+    if (!strip || busy) return;
     const width = Math.max(
         1,
         Math.min(strip.image.width, Math.round(next.width)),
@@ -226,7 +368,7 @@ export default function SingleStripApp() {
   };
   const move = (event: PointerEvent<SVGSVGElement>) => {
     const m = event.currentTarget.getScreenCTM();
-    if (!m || !drag.current || !strip) return;
+    if (!m || !drag.current || !strip || busy) return;
     const p = new DOMPoint(event.clientX, event.clientY).matrixTransform(
         m.inverse(),
       ),
@@ -247,6 +389,12 @@ export default function SingleStripApp() {
       "rect",
     );
   };
+  const exportStem = strip
+    ? `${strip.image.name
+        .replace(/\.[^.]+$/, "")
+        .replace(/[\x00-\x1f<>:"/\\|?*]/g, "_")
+        .slice(0, 64)}-${strip.id.slice(0, 8)}`
+    : "single-strip";
   const exportCsv = () => {
     if (!strip) return;
     download(
@@ -259,18 +407,36 @@ export default function SingleStripApp() {
             labels: signals.map((_, i) => f("泳道 {0}", i + 1)),
             control,
             bands: strip.bands,
-            signals,
+            signals: signals.map((signal) => ({
+              ...signal,
+              warning: signal.warning ? tr(signal.warning) : undefined,
+            })),
             reference: null,
             referenceFile: "",
             referenceProtein: "",
             values,
             rowY: 0,
             warnings,
+            preparation: {
+              exposureId: strip.id,
+              sourceWidth: strip.prepared.source.width,
+              sourceHeight: strip.prepared.source.height,
+              metadata: strip.prepared.metadata,
+              transformed: !!(
+                strip.config.straighten ||
+                strip.config.curve ||
+                strip.config.crop
+              ),
+              areas: signals.map((signal) => ({
+                source: signal.sourceArea,
+                background: signal.backgroundSourceArea,
+              })),
+            },
           }),
         ],
         { type: "text/csv;charset=utf-8" },
       ),
-      tr("单条带识别-结果.csv"),
+      `${exportStem}-${tr("单条带识别-结果.csv")}`,
     );
   };
   const exportImage = async () => {
@@ -296,7 +462,7 @@ export default function SingleStripApp() {
         canvas.toBlob(resolve, "image/png"),
       );
       if (!png) throw new Error(tr("图片导出失败，请导出 CSV。"));
-      download(png, tr("单条带识别-结果.png"));
+      download(png, `${exportStem}-${tr("单条带识别-结果.png")}`);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -328,25 +494,55 @@ export default function SingleStripApp() {
       </div>
       <main className="single-main">
         <div className="single-heading">
-          <span className="single-kicker">{tr("一个栏目，一张条带图")}</span>
+          <span className="single-kicker">
+            {t("导入 · 看清 · 看结果", "Import · Inspect · See results")}
+          </span>
           <h1>{tr("单条带识别")}</h1>
-          <p>{tr("导入一张裁好的条带图，自动识别，直接看结果。")}</p>
+          <p>
+            {t(
+              "导入条带图，自动看结果；倾斜、多排或多张曝光，也能在这里整理。",
+              "Import a strip and see results. Straighten, select a row, or compare exposures here.",
+            )}
+          </p>
         </div>
         <input
           ref={input}
           hidden
           type="file"
+          multiple
           accept="image/png,image/jpeg,.png,.jpg,.jpeg"
           aria-label={tr("导入单排条带图片")}
           onChange={(e) => {
-            const file = e.target.files?.[0];
+            const files = Array.from(e.target.files ?? []);
             e.target.value = "";
-            if (file) void load(file);
+            void load(files);
           }}
         />
-        {error && (
+        <input
+          ref={exposureInput}
+          hidden
+          type="file"
+          multiple
+          accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+          aria-label={t("添加曝光图片", "Add exposure images")}
+          onChange={(e) => {
+            const files = Array.from(e.target.files ?? []);
+            e.target.value = "";
+            void load(files, true);
+          }}
+        />
+        {!!errors.length && (
           <div className="single-error" role="alert">
-            {tr(error)}
+            <div>
+              {errors.map((error, index) => (
+                <p key={index}>
+                  {error.file && <>{error.file}: </>}
+                  {error.file
+                    ? f("导入失败：{0}{1}", tr(error.message), "")
+                    : tr(error.message)}
+                </p>
+              ))}
+            </div>
             <button onClick={() => setError("")} aria-label={tr("关闭提示")}>
               <X size={16} />
             </button>
@@ -370,8 +566,7 @@ export default function SingleStripApp() {
           onDrop={(e) => {
             e.preventDefault();
             setHover(false);
-            const file = e.dataTransfer.files[0];
-            if (file) void load(file);
+            void load(Array.from(e.dataTransfer.files));
           }}
           className={hover ? "single-drop-active" : ""}
         >
@@ -390,7 +585,12 @@ export default function SingleStripApp() {
                 <Upload size={16} />
                 {tr("导入图片")}{" "}
               </button>
-              <small>{tr("8-bit PNG / JPG · 单排条带 · 最大 15 MB")}</small>
+              <small>
+                {t(
+                  "8-bit PNG / JPG · 每张最大 15 MB · 可同时选择多张曝光图",
+                  "8-bit PNG / JPG · Up to 15 MB each · Select several exposures together",
+                )}
+              </small>
               <div className="single-example-line">
                 <span>{tr("先看看效果")}</span>
                 <button disabled={busy} onClick={sample}>
@@ -405,10 +605,58 @@ export default function SingleStripApp() {
                   <ImagePlus size={15} />
                   {strip.image.name}
                 </span>
-                <button disabled={busy} onClick={() => input.current?.click()}>
-                  {tr("更换图片")}{" "}
-                </button>
+                <div className="single-file-actions">
+                  <button
+                    disabled={busy || strips.length >= MAX_EXPOSURES}
+                    onClick={() => exposureInput.current?.click()}
+                  >
+                    {t("添加曝光图", "Add exposure")}
+                  </button>
+                  <button
+                    disabled={busy}
+                    onClick={() => input.current?.click()}
+                  >
+                    {tr("更换图片")}
+                  </button>
+                  <button disabled={busy} onClick={removeExposure}>
+                    {t("移除此图", "Remove image")}
+                  </button>
+                </div>
               </div>
+              {strips.length > 1 && (
+                <section
+                  className="single-exposures"
+                  aria-label={t("选择曝光图", "Choose an exposure")}
+                >
+                  <div
+                    role="tablist"
+                    aria-label={t("曝光图片", "Exposure images")}
+                  >
+                    {strips.map((entry, i) => (
+                      <button
+                        key={entry.id}
+                        role="tab"
+                        aria-selected={entry.id === activeId}
+                        disabled={busy}
+                        onClick={() => chooseExposure(entry.id)}
+                        aria-label={entry.image.name}
+                      >
+                        <img src={entry.prepared.source.dataUrl} alt="" />
+                        <span>
+                          <small>{i + 1}</small>
+                          {entry.image.name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <p>
+                    {t(
+                      "点击切换当前曝光；每张图分别保留取样和显示设置，结果不会混合。",
+                      "Select an exposure. Each keeps its own regions and display settings; results are kept separate.",
+                    )}
+                  </p>
+                </section>
+              )}
               <div className="single-columns">
                 <section className="single-card single-source">
                   <div className="single-card-title">
@@ -419,119 +667,119 @@ export default function SingleStripApp() {
                         : tr("等待调整")}
                     </span>
                   </div>
-                  <div className="single-image-surface">
-                    <svg
-                      viewBox={`0 0 ${strip.image.width} ${strip.image.height}`}
-                      role="img"
-                      aria-label={tr("单排条带取样预览")}
-                      onPointerMove={move}
-                      onPointerUp={() => {
-                        drag.current = null;
-                      }}
-                      onPointerCancel={() => {
-                        drag.current = null;
-                      }}
-                    >
-                      <image
-                        href={strip.image.dataUrl}
-                        width={strip.image.width}
-                        height={strip.image.height}
-                      />
-                      {strip.bands.map((b, i) => (
-                        <g key={b.id}>
-                          {b.background && (
-                            <rect
-                              {...b.background}
-                              fill="none"
-                              stroke="#be955b"
-                              strokeWidth="1"
-                              strokeDasharray="4 3"
-                              vectorEffect="non-scaling-stroke"
-                            />
-                          )}
+                  <StripPreparation
+                    key={strip.id}
+                    image={strip.image}
+                    prepared={strip.prepared}
+                    config={strip.config}
+                    appearance={strip.appearance}
+                    onAppearance={(appearance) =>
+                      setStrip(
+                        (current) => current && { ...current, appearance },
+                      )
+                    }
+                    onApply={applyPreparation}
+                    disabled={busy}
+                    onPointerMove={move}
+                    onPointerEnd={() => {
+                      drag.current = null;
+                    }}
+                  >
+                    {strip.bands.map((b, i) => (
+                      <g key={b.id}>
+                        {b.background && (
                           <rect
-                            {...b.rect}
-                            className="single-roi"
-                            role="button"
-                            aria-label={f("泳道 {0} 取样框", i + 1)}
-                            tabIndex={0}
-                            fill={selected === i ? "#4f46e515" : "#4f46e503"}
-                            stroke={selected === i ? "#4338ca" : "#818cf8"}
-                            strokeWidth={selected === i ? 2 : 1.2}
+                            {...b.background}
+                            fill="none"
+                            stroke="#be955b"
+                            strokeWidth="1"
+                            strokeDasharray="4 3"
                             vectorEffect="non-scaling-stroke"
-                            onPointerDown={(e) => {
-                              const svg = e.currentTarget.ownerSVGElement,
-                                m = svg?.getScreenCTM();
-                              if (!m || !svg) return;
-                              const p = new DOMPoint(
-                                e.clientX,
-                                e.clientY,
-                              ).matrixTransform(m.inverse());
+                          />
+                        )}
+                        <rect
+                          {...b.rect}
+                          className="single-roi"
+                          role="button"
+                          aria-label={f("泳道 {0} 取样框", i + 1)}
+                          tabIndex={0}
+                          fill={selected === i ? "#4f46e515" : "#4f46e503"}
+                          stroke={selected === i ? "#4338ca" : "#818cf8"}
+                          strokeWidth={selected === i ? 2 : 1.2}
+                          vectorEffect="non-scaling-stroke"
+                          onPointerDown={(e) => {
+                            if (busy) return;
+                            const svg = e.currentTarget.ownerSVGElement,
+                              m = svg?.getScreenCTM();
+                            if (!m || !svg) return;
+                            const p = new DOMPoint(
+                              e.clientX,
+                              e.clientY,
+                            ).matrixTransform(m.inverse());
+                            setSelected(i);
+                            setKind("rect");
+                            drag.current = {
+                              x: p.x,
+                              y: p.y,
+                              rect: b.rect,
+                              index: i,
+                            };
+                            svg.setPointerCapture(e.pointerId);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
                               setSelected(i);
                               setKind("rect");
-                              drag.current = {
-                                x: p.x,
-                                y: p.y,
-                                rect: b.rect,
-                                index: i,
-                              };
-                              svg.setPointerCapture(e.pointerId);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                setSelected(i);
-                                setKind("rect");
-                                setEditing(true);
-                              }
-                              const delta: Record<string, [number, number]> = {
-                                ArrowLeft: [-1, 0],
-                                ArrowRight: [1, 0],
-                                ArrowUp: [0, -1],
-                                ArrowDown: [0, 1],
-                              };
-                              const d = delta[e.key];
-                              if (d) {
-                                e.preventDefault();
-                                setSelected(i);
-                                setKind("rect");
-                                changeRect(
-                                  i,
-                                  {
-                                    ...b.rect,
-                                    x: Math.max(
-                                      0,
-                                      Math.min(
-                                        strip.image.width - b.rect.width,
-                                        b.rect.x + d[0],
-                                      ),
+                              setEditing(true);
+                            }
+                            const delta: Record<string, [number, number]> = {
+                              ArrowLeft: [-1, 0],
+                              ArrowRight: [1, 0],
+                              ArrowUp: [0, -1],
+                              ArrowDown: [0, 1],
+                            };
+                            const d = delta[e.key];
+                            if (d) {
+                              e.preventDefault();
+                              setSelected(i);
+                              setKind("rect");
+                              changeRect(
+                                i,
+                                {
+                                  ...b.rect,
+                                  x: Math.max(
+                                    0,
+                                    Math.min(
+                                      strip.image.width - b.rect.width,
+                                      b.rect.x + d[0],
                                     ),
-                                    y: Math.max(
-                                      0,
-                                      Math.min(
-                                        strip.image.height - b.rect.height,
-                                        b.rect.y + d[1],
-                                      ),
+                                  ),
+                                  y: Math.max(
+                                    0,
+                                    Math.min(
+                                      strip.image.height - b.rect.height,
+                                      b.rect.y + d[1],
                                     ),
-                                  },
-                                  "rect",
-                                );
-                              }
-                            }}
-                          />
-                          <text
-                            x={b.rect.x + b.rect.width / 2}
-                            y={Math.max(10, b.rect.y - 5)}
-                            fontSize={Math.max(10, strip.image.width / 55)}
-                            fill="#4338ca"
-                            textAnchor="middle"
-                            pointerEvents="none"
-                          >
-                            {i + 1}
-                          </text>
-                        </g>
-                      ))}
-                    </svg>
-                  </div>
+                                  ),
+                                },
+                                "rect",
+                              );
+                            }
+                          }}
+                        />
+                        <text
+                          x={b.rect.x + b.rect.width / 2}
+                          y={Math.max(10, b.rect.y - 5)}
+                          fontSize={Math.max(10, strip.image.width / 55)}
+                          fill="#4338ca"
+                          textAnchor="middle"
+                          pointerEvents="none"
+                        >
+                          {i + 1}
+                        </text>
+                      </g>
+                    ))}
+                  </StripPreparation>
                   <div className="single-image-caption">
                     <span>
                       <i />
@@ -782,6 +1030,21 @@ export default function SingleStripApp() {
                               "8-bit 像素估计 · 自动取样待核对 · 未做内参归一化",
                             )}{" "}
                           </text>
+                          <text
+                            x="24"
+                            y={signals.length * 40 + 94}
+                            fill="#667085"
+                            fontSize="9"
+                          >
+                            <title>
+                              {strip.image.name} · {strip.id}
+                            </title>
+                            {t("来源", "Source")}:{" "}
+                            {strip.image.name.length > 48
+                              ? strip.image.name.slice(0, 45) + "…"
+                              : strip.image.name}{" "}
+                            · {strip.id.slice(0, 8)}
+                          </text>
                         </svg>
                       </div>
                       <div className="single-downloads">
@@ -829,7 +1092,12 @@ export default function SingleStripApp() {
                   ) : (
                     <div className="single-empty-result">
                       <ScanLine size={28} />
-                      <p>{tr("识别到条带后，结果会直接显示在这里。")}</p>
+                      <p>
+                        {t(
+                          "识别到条带后，结果会直接显示在这里。多排图片可点「圈出一排」，倾斜图片可先「拉直条带」。",
+                          "Results appear here once bands are detected. Use Select one row for multiple rows, or Straighten strip for a tilted image.",
+                        )}
+                      </p>
                       <span>{tr("请保留条带上下和两侧的空白背景。")}</span>
                     </div>
                   )}

@@ -30,14 +30,14 @@ const cards = [
   {
     href: "#real",
     icon: Microscope,
-    zhTitle: "完整 WB 分析",
-    enTitle: "Full WB analysis",
+    zhTitle: "原图项目分析（进阶）",
+    enTitle: "Original-image projects (advanced)",
     zhText:
-      "从原始 TIFF / PNG 开始，完成背景扣除、候选复核、归一化、统计与图版导出。",
+      "适合批量原图、实验配对与统计。需要先设置泳道和图像信息；只想导入一排条带看结果，请优先使用单条带识别。",
     enText:
-      "Start with original TIFF or PNG files. Review bands, correct background, normalize, run statistics, and compose figures.",
-    zhCta: "打开完整工作区",
-    enCta: "Open full workspace",
+      "For original-image batches, experimental pairing, and statistics. Set up lanes and image metadata first. For a single row and immediate results, use single-strip recognition.",
+    zhCta: "打开进阶工作区",
+    enCta: "Open advanced workspace",
   },
   {
     href: "#demo",

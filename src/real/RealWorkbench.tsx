@@ -256,6 +256,8 @@ const pixelErrorZh: Record<string, string> = {
     "检测到多个相近条带行，无法可靠选择，请手动调整区域。",
   "Fewer resolved lanes than requested; overlapping or weak bands need manual ROIs.":
     "可分辨的泳道少于设定数量；重叠或弱条带需手动设置区域。",
+  "A requested lane has no resolvable band; overlapping or empty lanes need manual ROIs.":
+    "部分泳道未找到可分辨条带；请核对泳道数量，或手动设置空泳道、重叠条带的区域。",
   "Insufficient adjacent background space; select band/background ROIs manually.":
     "相邻背景空间不足，请手动选择条带与背景区域。",
 };
@@ -1294,6 +1296,45 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
       (entry) => entry.value?.warnings ?? (entry.error ? [entry.error] : []),
     ),
   ]);
+  const includedImages =
+    project?.images.filter((entry) => !entry.excluded) ?? [];
+  const proposedImages = includedImages.filter(
+    (entry) => entry.regions.length > 0 && !entry.analysisError,
+  );
+  const failedImages = includedImages.filter((entry) => entry.analysisError);
+  const pendingImages = includedImages.filter(
+    (entry) => !entry.regions.length && !entry.analysisError,
+  );
+  const mappingUnapplied =
+    !!project &&
+    (designMode !== (project.pairedDesign ? "paired" : "shared") ||
+      (designMode === "paired"
+        ? pairPreview !== null ||
+          pairDraft !== pairDescription(project.pairedDesign?.pairs ?? [])
+        : lanePreview !== null || laneDraft !== project.laneDescription));
+  const showRegions = (imageId?: string) => {
+    if (imageId) setSelectedId(imageId);
+    sections.current[2]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  const recognizeImages = (withReport = false) =>
+    void run(
+      t("正在识别条带并计算…", "Recognizing bands and calculating…"),
+      () => {
+        if (!currentProject.current) return;
+        const next = analyzeAll(currentProject.current, withReport);
+        accept(next);
+        if (withReport) setAnalysisReport(buildAnalysisReport(next));
+        const included = next.images.filter((entry) => !entry.excluded);
+        const failed = included.filter((entry) => entry.analysisError);
+        const proposed = included.filter(
+          (entry) => entry.regions.length && !entry.analysisError,
+        );
+        setNotice(
+          `已有候选区域 ${proposed.length} 张，识别未完成 ${failed.length} 张。请核对图中取样框；归一化还需要确认图像配对。 / ${proposed.length} image(s) have candidate regions; recognition is incomplete for ${failed.length}. Check the boxes; normalization also requires image pairing.`,
+        );
+        showRegions(failed[0]?.id ?? proposed[0]?.id);
+      },
+    );
 
   const importFiles = (files: File[]) =>
     void run(t("正在读取原始图像…", "Reading original images…"), async () => {
@@ -1336,10 +1377,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
       accept(next);
       setSelectedId(next.images[previousCount]?.id ?? next.images[0]?.id ?? "");
       setNotice(
-        t(
-          `已导入 ${files.length} 张原图。请确认文件信息与泳道映射，再建议区域。`,
-          `Imported ${files.length} originals. Check image metadata and lane assignments before suggesting regions.`,
-        ),
+        `已导入 ${files.length} 张原图，尚未开始识别。核对下方泳道设置，再点“识别并查看条带”。 / Imported ${files.length} originals; recognition has not started. Check the lane settings below, then choose “Recognize & view bands”.`,
       );
     });
   const archive = () =>
@@ -2075,6 +2113,92 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           }}
         />
         {project.images.length > 0 && (
+          <div
+            className="real-recognition-progress"
+            data-testid="real-recognition-progress"
+          >
+            <div>
+              <h3>
+                {pendingImages.length === includedImages.length &&
+                pendingImages.length > 0
+                  ? t(
+                      "原图已导入，尚未识别",
+                      "Originals imported — recognition not started",
+                    )
+                  : t("条带识别进度", "Band recognition progress")}
+              </h3>
+              <p>
+                {t(
+                  `待识别 ${pendingImages.length} 张 · 已有候选 ${proposedImages.length} 张 · 未完成 ${failedImages.length} 张`,
+                  `${pendingImages.length} awaiting recognition · ${proposedImages.length} with candidates · ${failedImages.length} incomplete`,
+                )}
+              </p>
+              <p>
+                {t(
+                  `当前设置 ${project.laneLabels.length} 个泳道标签，其中 ${project.laneLabels.filter((label) => !isExcludedLane(label)).length} 个参与定量：`,
+                  `${project.laneLabels.length} lane labels configured; ${project.laneLabels.filter((label) => !isExcludedLane(label)).length} included in quantification: `,
+                )}
+                <strong>{project.laneLabels.join(" · ")}</strong>
+              </p>
+              <p className="real-muted">
+                {mappingUnapplied
+                  ? t(
+                      "泳道设置已修改但尚未应用。请先核对并确认，再识别。",
+                      "Lane settings have unapplied changes. Review and confirm them before recognition.",
+                    )
+                  : t(
+                      "先确认泳道数量与图片一致，再识别。识别后检查取样框；归一化还需要目标/内参配对。",
+                      "Check that the lane count matches your images, then recognize bands. Review the boxes afterward; normalization also requires target/reference pairing.",
+                    )}
+              </p>
+            </div>
+            <div className="real-actions">
+              <button
+                className="real-button"
+                onClick={() =>
+                  sections.current[1]?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  })
+                }
+              >
+                {t("核对泳道设置", "Review lane settings")}
+              </button>
+              <button
+                className="real-button primary"
+                disabled={!!busy || !includedImages.length || mappingUnapplied}
+                onClick={() => recognizeImages()}
+              >
+                <ScanLine size={15} />
+                {t("识别并查看条带", "Recognize & view bands")}
+              </button>
+              <a className="real-button" href={languageUrl("?mode=single")}>
+                {t(
+                  "只分析一排？用单条带识别",
+                  "Just one row? Use single-strip recognition",
+                )}
+              </a>
+            </div>
+            {failedImages.length > 0 && (
+              <ul className="real-recognition-failures">
+                {failedImages.map((entry) => (
+                  <li key={entry.id}>
+                    <button
+                      className="real-file-name"
+                      onClick={() => showRegions(entry.id)}
+                    >
+                      {entry.name}
+                    </button>
+                    <span>
+                      {localizeMessage(entry.analysisError, language)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+        {project.images.length > 0 && (
           <div className="real-table-scroll">
             <table className="real-mapping-table">
               <thead>
@@ -2680,33 +2804,8 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           </details>
           <button
             className="real-button primary"
-            disabled={
-              !!busy ||
-              !project.images.length ||
-              designMode !== (project.pairedDesign ? "paired" : "shared") ||
-              (designMode === "paired"
-                ? pairPreview !== null ||
-                  pairDraft !==
-                    pairDescription(project.pairedDesign?.pairs ?? [])
-                : lanePreview !== null || laneDraft !== project.laneDescription)
-            }
-            onClick={() =>
-              void run(
-                t(
-                  "正在逐图建议区域并计算…",
-                  "Proposing regions and calculating…",
-                ),
-                () => {
-                  commit((previous) => analyzeAll(previous));
-                  setNotice(
-                    t(
-                      "已处理未排除图像；已有手动区域保留。请逐图复核。",
-                      "Processed included images and retained manual regions. Review each image.",
-                    ),
-                  );
-                },
-              )
-            }
+            disabled={!!busy || !includedImages.length || mappingUnapplied}
+            onClick={() => recognizeImages()}
           >
             <ScanLine size={16} />
             {t("全部建议并计算", "Propose & calculate all")}
@@ -2732,17 +2831,8 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           </button>
           <button
             className="real-button"
-            disabled={!!busy || !project.images.length}
-            onClick={() =>
-              void run(
-                t("正在一键分析所有图像…", "Running one-click analysis…"),
-                () => {
-                  commit((previous) => analyzeAll(previous, true));
-                  const next = currentProject.current;
-                  if (next) setAnalysisReport(buildAnalysisReport(next));
-                },
-              )
-            }
+            disabled={!!busy || !includedImages.length || mappingUnapplied}
+            onClick={() => recognizeImages(true)}
           >
             <ShieldCheck size={16} />
             {t("一键分析并体检", "Run all & report")}
@@ -2986,7 +3076,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
               <button
                 className="real-button"
                 disabled={!!busy}
-                onClick={() => void archive()}
+                onClick={loadPixelExample}
               >
                 <FlaskConical size={15} />
                 {t("载入内置示例", "Load the built-in example")}
@@ -3027,6 +3117,55 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                 </button>
               ))}
             </div>
+            {image.analysisError && (
+              <div className="real-recognition-error" role="alert">
+                <strong>
+                  {t(
+                    "这张图尚未完成条带识别",
+                    "Band recognition is incomplete for this image",
+                  )}
+                </strong>
+                <p>{localizeMessage(image.analysisError, language)}</p>
+                <p>
+                  {t(
+                    "核对泳道数量和深浅色模式后重试。多排图请先定位需要的条带行；也可创建并调整手动取样框。",
+                    "Check the lane count and signal polarity, then retry. For multiple rows, first locate the row you need; you can also create and adjust manual regions.",
+                  )}
+                </p>
+                <div className="real-actions">
+                  <button
+                    className="real-button"
+                    onClick={() =>
+                      sections.current[1]?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      })
+                    }
+                  >
+                    {t("核对泳道数量", "Check lane count")}
+                  </button>
+                  <button
+                    className="real-button"
+                    disabled={!!busy || image.excluded || mappingUnapplied}
+                    onClick={() => recognizeImages()}
+                  >
+                    {t("重试识别", "Retry recognition")}
+                  </button>
+                  {!image.regions.length && (
+                    <button
+                      className="real-button"
+                      disabled={!!busy || image.excluded}
+                      onClick={manualGrid}
+                    >
+                      {t("手动放置取样框", "Place regions manually")}
+                    </button>
+                  )}
+                  <a className="real-button" href={languageUrl("?mode=single")}>
+                    {t("改用单条带识别", "Use single-strip recognition")}
+                  </a>
+                </div>
+              </div>
+            )}
             <div className="real-editor">
               <div>
                 <div className="real-editor-toolbar">

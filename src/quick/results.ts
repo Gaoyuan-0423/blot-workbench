@@ -58,6 +58,14 @@ export function resultCsv(input: {
   referenceRowY?: number;
   referencePolarity?: string;
   warnings?: string[];
+  preparation?: {
+    exposureId: string;
+    sourceWidth: number;
+    sourceHeight: number;
+    metadata: unknown;
+    transformed: boolean;
+    areas: { source: number; background: number }[];
+  };
 }) {
   const header = [
     "source",
@@ -91,6 +99,16 @@ export function resultCsv(input: {
     "reference_warning",
     "warnings",
   ];
+  if (input.preparation)
+    header.push(
+      "coordinate_space",
+      "source_width",
+      "source_height",
+      "preparation",
+      "source_pixel_area",
+      "background_source_pixel_area",
+      "exposure_id",
+    );
   const validValues = relativeSignals(
     input.signals,
     input.reference,
@@ -157,7 +175,9 @@ export function resultCsv(input: {
       b.rect.width,
       b.rect.height,
       bg ? JSON.stringify(bg) : "",
-      "quick-v1; 8-bit pixels; local mean background subtraction; optional reference ratio; relative to selected control",
+      input.preparation
+        ? "single-preparation-v1; 8-bit decoded source pixels; original pixel center integration; local mean background subtraction; relative to selected control"
+        : "quick-v1; 8-bit pixels; local mean background subtraction; optional reference ratio; relative to selected control",
       "UNREVIEWED_PIXEL_ESTIMATE",
       note,
       reference?.raw,
@@ -170,6 +190,17 @@ export function resultCsv(input: {
       referenceBackground ? JSON.stringify(referenceBackground) : "",
       reference?.warning,
       warnings,
+      ...(input.preparation
+        ? [
+            input.preparation.transformed ? "prepared_pixels" : "source_pixels",
+            input.preparation.sourceWidth,
+            input.preparation.sourceHeight,
+            JSON.stringify(input.preparation.metadata),
+            input.preparation.areas[i]?.source,
+            input.preparation.areas[i]?.background,
+            input.preparation.exposureId,
+          ]
+        : []),
     ];
   });
   return (

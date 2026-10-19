@@ -308,4 +308,20 @@ export const messages: Record<string, string> = {
     "Simple mode supports only 8-bit PNG; this image is {0}-bit. Use an 8-bit copy and keep the high-bit-depth original.",
   "← 工作台首页": "← Workbench home",
   "单条带识别 →": "Single-strip analysis →",
+  "校直点须位于原图范围内。":
+    "Straightening points must be within the original image.",
+  "校直后的图片过大，请先使用较小的条带图片。":
+    "The straightened image is too large. Use a smaller strip image.",
+  "整体校直需要两个不同的点。":
+    "Overall straightening requires two different points.",
+  "弯曲校直需要 3–8 个基线点。":
+    "Curved straightening requires 3\u20138 baseline points.",
+  "弯曲基线点须从左到右分开，不能位于同一列。":
+    "Curve points must be separated from left to right, not in the same column.",
+  "裁剪范围须位于校直后的完整图片内，且坐标为整数。":
+    "The crop must be inside the full corrected image and use integer coordinates.",
+  "取样框包含校直后空白区域，请将框移回原图范围内。":
+    "A sampling region includes padding from straightening. Move it inside the original image area.",
+  "背景框包含校直后空白区域，请将框移回原图范围内。":
+    "A background region includes padding from straightening. Move it inside the original image area.",
 };

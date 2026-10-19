@@ -69,8 +69,12 @@ test("switching single-strip copy preserves measurements and regions; errors ret
       mimeType: "image/tiff",
       buffer: Buffer.from("II*\0invalid"),
     });
-  await expect(page.getByRole("alert")).not.toContainText(/[\u3400-\u9fff]/);
   await expect(page.getByRole("alert")).toContainText("Import failed");
+  await expect(page.getByRole("alert")).toContainText("我的原始数据.tif");
+  // User filenames remain verbatim; only system copy must follow the language.
+  expect(
+    (await page.getByRole("alert").innerText()).replace("我的原始数据.tif", ""),
+  ).not.toMatch(/[\u3400-\u9fff]/);
   await page
     .getByRole("button", { name: "Switch to Chinese", exact: true })
     .click();
@@ -183,15 +187,13 @@ test("automatic multi-row protein labels follow the language until the user edit
         for (let x = 18 + lane * 60; x < 42 + lane * 60; x++)
           pixels[y * width + x] = 200 - lane * 20;
   await page.goto("/?mode=quick&lang=en");
-  await page
-    .getByLabel("Import band image", { exact: true })
-    .setInputFiles({
-      name: "我的实验.png",
-      mimeType: "image/png",
-      buffer: Buffer.from(
-        encode({ width, height, data: pixels, channels: 1, depth: 8 }),
-      ),
-    });
+  await page.getByLabel("Import band image", { exact: true }).setInputFiles({
+    name: "我的实验.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      encode({ width, height, data: pixels, channels: 1, depth: 8 }),
+    ),
+  });
   await expect(page.getByLabel("Protein name", { exact: true })).toHaveValue(
     "Protein 1",
   );

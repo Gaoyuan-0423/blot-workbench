@@ -879,3 +879,50 @@
   padding: 0;
 }
 .real-step-help li { margin: 4px 0; }
+
+.real-recognition-progress,
+.real-recognition-error {
+  margin: 16px 0;
+  padding: 16px 18px;
+  border: 1px solid #d6d6ed;
+  border-radius: 9px;
+  background: #f6f6ff;
+  overflow-wrap: anywhere;
+}
+.real-recognition-progress h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+.real-recognition-progress p,
+.real-recognition-error p {
+  margin: 7px 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.real-recognition-progress .real-actions,
+.real-recognition-error .real-actions {
+  margin-top: 12px;
+}
+.real-recognition-progress a,
+.real-recognition-error a {
+  text-decoration: none;
+}
+.real-recognition-failures {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.real-recognition-failures li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+.real-recognition-failures span {
+  flex: 1 1 260px;
+}
+.real-recognition-error {
+  border-color: #e7c7ab;
+  background: #fff9f1;
+}

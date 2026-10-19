@@ -213,6 +213,14 @@ export const messages = {
     zh: "最新记录",
     en: "Latest update",
   },
+  "updates.wb.title": {
+    zh: "单条带校直、曝光挑选与识别引导",
+    en: "Strip straightening, exposure selection, and recognition guidance",
+  },
+  "updates.wb.description": {
+    zh: "WB 单条带新增两点旋正、弯曲校直、直接圈选一排、多曝光切换，以及不改变定量的亮度／对比度预览。原图项目分析明确显示待识别、候选与失败原因。",
+    en: "Single-strip WB adds two-point straightening, curve correction, row selection, exposure switching, and brightness/contrast previews that leave measurements unchanged. Original-image projects now show pending recognition, candidates, and reasons for failure.",
+  },
   "updates.portal.title": {
     zh: "更新记录上线，补齐 IHC 双语",
     en: "Release notes and IHC translation fixes",

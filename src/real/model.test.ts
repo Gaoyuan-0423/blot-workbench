@@ -488,6 +488,31 @@ describe("lane descriptions, analysis history, and batch proposals", () => {
     ).toThrow();
   });
 
+  it.each([
+    "Image is too small to propose band and background ROIs.",
+    "No band row has sufficient contrast; select ROIs manually.",
+    "Multiple comparable band rows are ambiguous; select ROIs manually.",
+    "Fewer resolved lanes than requested; overlapping or weak bands need manual ROIs.",
+    "A requested lane has no resolvable band; overlapping or empty lanes need manual ROIs.",
+    "Insufficient adjacent background space; select band/background ROIs manually.",
+  ])("keeps the safe proposal failure actionable: %s", async (message) => {
+    const original = await experimentProject();
+    const spy = vi.spyOn(pixels, "proposeRegions").mockImplementation(() => {
+      throw new Error(message);
+    });
+    try {
+      const next = analyzeAll(original, true);
+      expect(next.images.map((image) => image.analysisError)).toEqual(
+        original.images.map(() => message),
+      );
+      expect(next.images.map((image) => image.regions)).toEqual(
+        original.images.map((image) => image.regions),
+      );
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it("proposes only active trailing lanes, preserves manual ROIs, and isolates one image's proposal failure", async () => {
     let original = await experimentProject();
     for (const image of original.images.slice(1))
