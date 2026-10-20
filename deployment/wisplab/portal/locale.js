@@ -214,6 +214,14 @@ export const messages = {
     zh: "最新记录",
     en: "Latest update",
   },
+  "updates.publication.title": {
+    zh: "WB 图版与原始数据导出",
+    en: "WB figures and source-data export",
+  },
+  "updates.publication.description": {
+    zh: "WB 新增条带图版排版与原始数据文档，可将原图、项目、分析结果及溯源记录打包导出。",
+    en: "Arrange WB strips into figures, create source-data documents, and export originals, projects, analysis results and provenance together.",
+  },
   "updates.platform.title": {
     zh: "统一账号与项目保存",
     en: "Optional accounts and local projects across WispLab",

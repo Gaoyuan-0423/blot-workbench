@@ -4,6 +4,11 @@ import { z } from "../schema-validator";
 import { pairedTTest, type PairedTestResult } from "./statistics";
 import { APP_VERSION } from "../core/types";
 import {
+  publicationSchema,
+  validatePublicationSettings,
+  type PublicationSettings,
+} from "./publication-settings";
+import {
   decodeRaster,
   inspectRasterDimensions,
   measureRegion,
@@ -81,6 +86,8 @@ export interface RealProject {
   normalizationPreference?: "reference-unit";
   statisticalTest?: "none" | "paired-t";
   exampleKind?: "synthetic";
+  /** Figure layout and source-document labels never affect measurement regions. */
+  publication?: PublicationSettings;
   images: RealImage[];
 }
 export type ResultStatus = "draft" | "ready" | "blocked";
@@ -327,6 +334,22 @@ export function updateRealProject(
     ...patch,
     ...(labelsChanged ? { designConfirmed: false } : {}),
   };
+}
+/** Save presentation settings without invalidating measurements or review. */
+export function updateRealPublication(
+  project: RealProject,
+  value: PublicationSettings,
+): RealProject {
+  const publication = validatePublicationSettings(
+    value,
+    project.images.map((image) => {
+      const raster = imageRaster(image);
+      return { id: image.id, width: raster.width, height: raster.height };
+    }),
+  );
+  if (JSON.stringify(project.publication) === JSON.stringify(publication))
+    return project;
+  return { ...project, publication, updatedAt: now() };
 }
 async function sha256(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest(
@@ -1852,6 +1875,7 @@ const baseSchema = z
     normalizationPreference: z.literal("reference-unit").optional(),
     statisticalTest: z.enum(["none", "paired-t"]).optional(),
     exampleKind: z.literal("synthetic").optional(),
+    publication: publicationSchema.optional(),
   })
   .strict();
 const projectSchema = baseSchema
@@ -2011,6 +2035,14 @@ async function validateProject(value: unknown): Promise<RealProject> {
       previous = old.revision;
     }
   }
+  if (project.publication)
+    project.publication = validatePublicationSettings(
+      project.publication,
+      project.images.map((image) => {
+        const raster = imageRaster(image);
+        return { id: image.id, width: raster.width, height: raster.height };
+      }),
+    );
   return project;
 }
 export async function exportRealProject(project: RealProject): Promise<Blob> {

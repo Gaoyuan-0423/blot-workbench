@@ -27,6 +27,7 @@ In the development version, **User guide / 使用教程** in the sidebar opens t
 | [方法与相关工作 / Methods and related work](methods.md) | 演示公式、验证要求及现有工具 / Demonstration formulas, validation requirements, and existing tools |
 | [架构与路线图 / Architecture and roadmap](architecture.md) | 当前组成与后续阶段 / Current components and future stages |
 | [批量自动流程设计 / Batch automation design](automation-design.md) | 已实现子集与后续 API 自动化规划 / Implemented subset and planned API automation |
+| [图版与原始数据优化 / Figures and source-data workflow](wb-publication-optimization.md) | 多条带排版、来源文档、导出检查与验证 / Strip layout, source documents, export checks, and validation |
 | [数据与隐私 / Data and privacy](privacy.md) | 浏览器存储、静态托管与可选服务数据流 / Browser storage, static hosting, and optional-service data flows |
 | [演示验证记录 / Demo validation](validation.md) | 已发布演示的运行证据与边界 / Released-demo evidence and limitations |
 | [真实图像验证 / Real-image validation](validation-real-images.md) | 格式、数值与交互测试范围 / Format, numeric, and workflow coverage |

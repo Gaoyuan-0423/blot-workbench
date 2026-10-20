@@ -72,6 +72,10 @@ curl -s -X POST http://127.0.0.1:4318/api/analyze \
 
 ## 6. Export, save, and return
 
+**Figures and source data**: the section below the results can arrange multiple original images as strip rows, with panel letters, protein labels, molecular-weight text, row ordering, presentation crops and a physical figure width. Presentation crops are stored separately from measurement ROIs and do not alter numerical results. Image types (white-light, overlay, ECL, whole-membrane stain and long exposure) are separate from target/reference analysis roles.
+
+Check the effective DPI calculated from source pixels and the source notices before exporting. SVG/PNG exports provide the figure. The offline source-data HTML includes full display previews of every project image and can be printed to PDF in a browser. The complete ZIP also includes source records, result/statistics CSV files and a project archive with the original bytes. Display previews do not replace original high-bit-depth files. Figure settings survive saving and project restoration. See the [implementation scope](wb-publication-optimization.md).
+
 CSV exports retain provenance, measurement method, normalization values, review state, and quality flags. Charts support SVG, PNG, and TIFF. Figure export renders results and does not modify measurement images. A TIFF figure export does not establish source-image bit-depth preservation.
 
 Real projects use a distinct archive format and browser-storage key, including original images and settings. Existing synthetic archives remain available through the legacy workspace. Export a project archive for long-term backup and migration: browser storage is not a backup. Archives can contain private experimental data and should not be uploaded to public repositories.

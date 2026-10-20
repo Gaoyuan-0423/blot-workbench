@@ -46,6 +46,7 @@ import {
   saveRealProject,
   updateRealImage,
   updateRealProject,
+  updateRealPublication,
   type PairedLanePair,
   type RealImage,
   type RealImagePatch,
@@ -62,6 +63,7 @@ import {
 } from "./pixels";
 import { renderFigure } from "./figure-export";
 import { buildComposedFigureSvg } from "./figure-compose";
+import PublicationPanel from "./PublicationPanel";
 import { ROLLING_BALL_ALGORITHM } from "./rolling-ball";
 import { buildAnalysisReport, type AnalysisReport } from "./analysis-report";
 import { APP_VERSION } from "../core/types";
@@ -2074,6 +2076,7 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           t("泳道与实验设计", "Lanes & design"),
           t("区域与复核", "Regions & review"),
           t("结果与导出", "Results & export"),
+          t("图版与原始数据", "Figure & source data"),
         ].map((label, index) => (
           <button
             key={index}
@@ -4211,6 +4214,18 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
           </p>
         </details>
       </section>
+      <PublicationPanel
+        key={project.id}
+        project={project}
+        disabled={Boolean(busy)}
+        onChange={(settings) =>
+          commit((previous) => updateRealPublication(previous, settings))
+        }
+        onRun={run}
+        sectionRef={(element) => {
+          sections.current[4] = element;
+        }}
+      />
       <footer className="real-footer">
         <span>
           {t(
