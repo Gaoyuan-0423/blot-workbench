@@ -1,5 +1,5 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
-import { z } from "zod";
+import { z } from "../schema-validator";
 import { get, set } from "idb-keyval";
 import type { Project } from "./types";
 import { clone, fixtureHash, getFixtures, sha256, toBase64 } from "./fixtures";
