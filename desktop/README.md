@@ -43,6 +43,8 @@ The smoke check launches real Electron with a temporary profile, disables HTTP(S
 
 After packaging, run `npm run test:packaged --prefix desktop` on that target platform. It launches the actual `.app`/EXE, checks the isolated temporary profile, and repeats the offline suite with `app.isPackaged: true`. CI runs this before retaining installers. This verifies the installed resource layout; it does not certify an OS signature or bypass installation warnings.
 
+Windows packaged testing handles a Playwright startup race: the first custom-protocol page can finish loading before Playwright observes its navigation event. The test connects only to its disposable process's loopback DevTools endpoint, verifies the local portal URL, complete document, visible heading and three local tool links, captures `packaged-before-reload.png`, then reloads that rendered page once. Blank or failed pages fail this check. The actual packaged executable, `app.asar`, sandbox and all 13 subsequent assertions remain in use. This helper and its debugging connection are excluded from the distributed app.
+
 ## CI packages / 可安装版本
 
 Use the `Desktop packages (unsigned experimental)` workflow with the three exact tested SHAs. No publication or deployment happens automatically; workflow outputs remain versioned GitHub Actions artifacts for 30 days. Retain chosen installers, manifest and checksums in a deliberate GitHub Release before artifact expiry.

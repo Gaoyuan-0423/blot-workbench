@@ -1,0 +1,63 @@
+name: Publish verified desktop packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      desktop_run_id:
+        description: 'Completed successful main desktop.yml run ID'
+        required: true
+        type: string
+      tag:
+        description: 'wisplab-desktop-X.Y.Z-experimental.N (must match package version)'
+        required: true
+        type: string
+      wb_sha:
+        description: 'Expected WB tool full 40-character source SHA'
+        required: true
+        type: string
+      pathology_sha:
+        description: 'Expected pathology tool full 40-character source SHA'
+        required: true
+        type: string
+      pcr_sha:
+        description: 'Expected PCR tool full 40-character source SHA'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'Gaoyuan-0423/blot-workbench' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test publisher guards without network or publication
+        run: python3 -m unittest discover -s desktop/test -p 'test_publish_release.py'
+      - name: Verify build, copy six installers and publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DESKTOP_RUN_ID: ${{ inputs.desktop_run_id }}
+          DESKTOP_TAG: ${{ inputs.tag }}
+          WB_SHA: ${{ inputs.wb_sha }}
+          PATHOLOGY_SHA: ${{ inputs.pathology_sha }}
+          PCR_SHA: ${{ inputs.pcr_sha }}
+        run: |
+          python3 desktop/scripts/publish-release.py \
+            --run-id "$DESKTOP_RUN_ID" --tag "$DESKTOP_TAG" \
+            --wb-sha "$WB_SHA" --pathology-sha "$PATHOLOGY_SHA" --pcr-sha "$PCR_SHA" \
+            --publish

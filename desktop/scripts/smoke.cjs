@@ -7,6 +7,8 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
 const { deflateSync } = require('node:zlib');
+const { execFileSync } = require('node:child_process');
+const { restoreInitialNavigation } = require('./packaged-navigation.cjs');
 
 function png(width, height, pixel) {
   const crc = data => {
@@ -48,16 +50,58 @@ const ihc = () => png(320, 240, (x, y) => {
   const root = path.resolve(__dirname, '..'), reports = path.join(root, 'reports');
   await fs.mkdir(reports, { recursive: true });
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), 'wisplab-desktop-smoke-'));
-  const report = { checks: [], failures: [], remoteRequests: [], phase: 'launch' };
+  const downloads = path.join(profile, 'downloads');
+  await fs.mkdir(downloads);
+  const report = { checks: [], failures: [], remoteRequests: [], downloads: [], phase: 'launch' };
   let app, page;
+  let launchDiagnostic;
   const watchdog = setTimeout(() => { app?.process().kill('SIGTERM'); }, 180_000);
   try {
     const binary = process.env.WISPLAB_DESKTOP_BINARY;
-    app = await electron.launch({
+    // A native startup dialog can block CDP initialization before firstWindow().
+    // Capture the disposable Windows CI desktop before Playwright times out and
+    // terminates the process; this never runs in the distributed application.
+    if (process.platform === 'win32' && binary) {
+      report.bundledIndexes = Object.fromEntries(await Promise.all(
+        ['portal', 'wb', 'pathology', 'pcr'].map(async tool => {
+          const file = path.join(path.dirname(binary), 'resources/apps', tool, 'index.html');
+          return [tool, await fs.stat(file).then(value => value.isFile(), () => false)];
+        }),
+      ));
+      launchDiagnostic = setTimeout(() => {
+        if (app) return;
+        try {
+          report.launchWindows = execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', `
+            Get-Process | Where-Object { $_.MainWindowTitle } |
+              Select-Object Id, ProcessName, MainWindowTitle | ConvertTo-Json -Compress
+            Add-Type -AssemblyName System.Windows.Forms
+            Add-Type -AssemblyName System.Drawing
+            $bounds = [System.Windows.Forms.SystemInformation]::VirtualScreen
+            $bitmap = New-Object System.Drawing.Bitmap($bounds.Width, $bounds.Height)
+            $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+            $graphics.CopyFromScreen($bounds.Left, $bounds.Top, 0, 0, $bitmap.Size)
+            $bitmap.Save((Join-Path $env:WISPLAB_SMOKE_REPORTS 'windows-launch.png'))
+            $graphics.Dispose()
+            $bitmap.Dispose()
+          `], { env: { ...process.env, WISPLAB_SMOKE_REPORTS: reports }, encoding: 'utf8', timeout: 10_000 });
+        } catch (error) {
+          report.launchDiagnosticError = error.message;
+        }
+      }, 15_000);
+    }
+    const launching = electron.launch({
       ...(binary ? { executablePath: binary } : {}),
       args: [...(binary ? [] : [root]), `--user-data-dir=${profile}`],
       env: { ...process.env, WISPLAB_DESKTOP_USER_DATA: profile, ELECTRON_ENABLE_LOGGING: '1' }, timeout: 45_000,
     });
+    if (binary && (process.platform === 'win32' || process.env.WISPLAB_SMOKE_RELOAD_ON_CONNECT === '1')) {
+      const [launched, navigation] = await Promise.allSettled([launching, restoreInitialNavigation(profile, reports)]);
+      if (launched.status === 'fulfilled') app = launched.value;
+      else throw launched.reason;
+      if (navigation.status === 'rejected') throw navigation.reason;
+      report.renderedBeforeStartupReload = navigation.value;
+    } else app = await launching;
+    clearTimeout(launchDiagnostic);
     report.phase = 'runtime';
     const runtime = await app.evaluate(({ app }) => ({ packaged: app.isPackaged, userData: app.getPath('userData') }));
     assert.equal(await fs.realpath(runtime.userData), await fs.realpath(profile), 'Smoke must use a disposable profile');
@@ -114,16 +158,21 @@ const ihc = () => png(320, 240, (x, y) => {
         const target = directory + '/' + item.getFilename().replace(/[\\/]/g, '_');
         const origin = item.getInitiatorOrigin();
         item.setSavePath(target);
-        item.once('done', (_event, state) => globalThis.__desktopDownloads.push({ target, state, origin }));
+        item.once('done', (_event, state) => globalThis.__desktopDownloads.push({
+          target, state, origin, receivedBytes: item.getReceivedBytes(), totalBytes: item.getTotalBytes(),
+        }));
       });
-    }, reports);
+    }, downloads);
     const exported = async button => {
       const count = await app.evaluate(() => globalThis.__desktopDownloads.length);
       await button.click();
       await expect.poll(() => app.evaluate(() => globalThis.__desktopDownloads.length)).toBe(count + 1);
       const item = await app.evaluate(() => globalThis.__desktopDownloads.at(-1));
+      report.downloads.push(item);
       assert.equal(item.state, 'completed'); assert.equal(item.origin, 'app://wisplab');
-      assert.ok((await fs.stat(item.target)).size > 30);
+      const size = (await fs.stat(item.target)).size;
+      assert.ok(size > 30);
+      assert.equal(size, item.receivedBytes); assert.equal(size, item.totalBytes);
       return item.target;
     };
     await page.evaluate(() => { window.open('app://wisplab/wb/?mode=single&lang=zh'); });
@@ -191,7 +240,9 @@ const ihc = () => png(320, 240, (x, y) => {
     await expect(page.locator('.result-overall td').nth(1)).toHaveText(/%$/);
     const area = Number.parseFloat(await page.locator('.result-overall td').nth(1).textContent());
     assert.ok(area > 2 && area < 40, `Unexpected synthetic IHC area: ${area}`);
-    await exported(page.getByRole('button', { name: '导出 Excel', exact: true }));
+    const excel = await fs.readFile(await exported(page.getByRole('button', { name: '导出 Excel', exact: true })));
+    assert.equal(excel.readUInt32LE(0), 0x04034b50);
+    assert.ok(excel.includes(Buffer.from('[Content_Types].xml')) && excel.includes(Buffer.from('xl/workbook.xml')));
     await page.screenshot({ path: path.join(reports, 'desktop-pathology-zh.png'), fullPage: true });
     report.checks.push('offline pathology import, worker analysis and Excel export');
 
@@ -226,6 +277,7 @@ const ihc = () => png(320, 240, (x, y) => {
     if (page) await page.screenshot({ path: path.join(reports, 'desktop-smoke-failure.png'), fullPage: true }).catch(() => {});
     process.exitCode = 1;
   } finally {
+    clearTimeout(launchDiagnostic);
     clearTimeout(watchdog);
     if (app) {
       const forceClose = setTimeout(() => app.process().kill('SIGTERM'), 10_000);
