@@ -1,5 +1,7 @@
 # Blot Workbench / 印迹工作台
 
+> **首版范围 / First-edition scope (2026-10-20):** 保留可选注册、登录和本地项目保存；不开放实验数据上传或云同步。跨电脑请导出、导入项目文件。Optional accounts and local projects are available; experimental-data uploads and cloud sync are disabled. Transfer projects between computers using exported project files.
+
 [中英首页 / Bilingual home](README.md) · [Live demo](https://gaoyuan-0423.github.io/blot-workbench/) · [User guide](docs/user-guide.en.md) · [Vision API guide](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/vision-api.en.md) · [Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
 A Western blot project workbench for laboratories. The first step is to make image organization, sample relationships, review, and returning to unfinished work easier, before validating experimental-image quantification.
@@ -49,7 +51,7 @@ Download the [example project](public/examples/example.wbproj.zip), [expected re
 
 ## Not implemented
 
-Arbitrary instrument formats, reliable unattended analysis, technical-replicate aggregation, automatic cross-membrane calibration, ANOVA/nonparametric/multiple-comparison workflows, publication figure composition, immunofluorescence, desktop installers, and Wisp Science integration remain future work. Automatic proposals are local heuristics requiring human review.
+Arbitrary instrument formats, reliable unattended analysis, technical-replicate aggregation, automatic cross-membrane calibration, ANOVA/nonparametric/multiple-comparison workflows, publication figure composition, immunofluorescence within WB, and Wisp Science integration remain future work. Automatic proposals are local heuristics requiring human review.
 
 See the [architecture and roadmap](docs/architecture.md) and [batch automation design](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/automation-design.md). The design document distinguishes the new local preview from planned vision-assisted and complex-design behavior.
 
@@ -86,11 +88,23 @@ Browser tests require the environment matching the project's Playwright version.
 
 ## Data and privacy
 
-Projects are processed in the browser, which holds one current workspace. Creating a project, loading the example, or importing another archive replaces it. Export work you want to keep first. Browser storage is not a backup: clearing site data, changing browsers/origins, or private browsing may make saved work unavailable. The hosted site and local server do not synchronize.
+Analysis runs on the device by default and needs no account. Guests can download and open recoverable archives through **Local project**. Creating a project, loading an example, or confirming another archive replaces the current workspace for that mode. Download work you want to keep before refreshing or closing single-strip or quick mode. Browser storage is not a backup: clearing site data or changing browsers/origins can make saved work unavailable.
+
+The code includes optional account and cloud-saving capabilities; production availability depends on deployment. Account access alone does not mean cloud uploads are enabled. When cloud saving is enabled, an explicit upload confirmation sends the project archive, including available original images or tables, labels, ROIs, settings, and results. Cloud saves retain separate versions rather than providing continuous background backup. Signing in or viewing history does not automatically upload or replace current analysis; restoring requires selecting a version and confirming.
+
+Account authorization limits access, but server administrators can access stored files; there is no end-to-end encryption. Archives exclude account tokens and local API keys. The same account can be used across tools, but each website origin has separate login storage and may require a separate sign-in. Login tokens are session-only unless **Remember me** is selected; passwords are not written to browser storage or project files. This edition has no automated password recovery.
+
+Hosted sites, local servers, and desktop do not automatically copy their project stores. Move projects through local archive export/import, or explicit cloud save/restore only where that capability is enabled. Signing out does not erase the current local experiment. These descriptions do not claim that a production cloud service has been activated.
 
 GitHub Pages serves the online page, scripts, and synthetic examples, so opening the site makes network requests. The optional development API test sends only the built-in synthetic PNG and prompt to your configured service, **not current project data or experimental images**. The local service holds the key only in memory; it is not returned, persisted in browser storage, or exported with projects. Restarting clears configuration. Providers may charge for requests; a local timeout or cancellation does not guarantee remote billing stops. See [privacy](docs/privacy.md) and the [API guide](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/vision-api.en.md).
 
 ROI, pairing, or analysis-parameter changes invalidate prior illustrative results. Updating a template must not silently alter existing analysis snapshots. Numerical correctness and experimental-image reliability require separate validation. See [methods](docs/methods.md).
+
+## Experimental offline desktop
+
+The desktop shell and packaging workflow are implemented experimentally. They bundle the same web builds and load installed resources under `app://wisplab/`; core WB, pathology, PCR analysis, and local project operations can run offline. Cloud capabilities, where enabled, need a network connection. Remote AI is not an offline feature, and the first edition does not bundle the WB local vision proxy.
+
+Default desktop packages are unsigned, without Apple notarization or Windows publisher verification. There is no automatic updater: a website update does not replace an installed application. Each desktop version needs explicit packaging, release, and manual installation. Export projects before rollback because older versions may not support newer formats. Implementation or local Mac checks do not establish Windows installation acceptance or a publicly available installer. See the [desktop guide](desktop/README.md) and [release handoff](docs/platform-cloud-desktop.md).
 
 ## Contributing and citation
 

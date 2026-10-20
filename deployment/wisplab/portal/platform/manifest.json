@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "sourceRepository": "Gaoyuan-0423/blot-workbench",
+  "sourceDirectory": "platform",
+  "files": {
+    "client.js": "6a938f39cfa59cae942c0f8f38fcd270a5298da46397c3a171964dbeb2d08114",
+    "wisplab.js": "55ea880a4645d9abbd49f5c4b6de2c2bafdca8260da21344289be2315884cdb9",
+    "wisplab.css": "31b6fa47503450beb3e0b00aae076549c0b026b99f70549b66fe89862f10aa19"
+  }
+}

@@ -459,8 +459,8 @@ export default function UserGuide({
         </ol>
         <p>
           {t(
-            "数据只在浏览器本机处理与保存；导出项目包才是可靠备份。公共演示不包含你的私人图像。",
-            "Data is processed and saved only in your browser; the exported project package is the only reliable backup. The public demo never contains your private images.",
+            "核心分析在本机完成。下载项目包作本地备份，也可在另一台电脑打开继续分析；公共演示不包含你的私人图像。",
+            "Core analysis runs locally. Download a project archive as a local backup or open it on another computer to continue. Public demos never contain your private images.",
           )}
         </p>
       </section>

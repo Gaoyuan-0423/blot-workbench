@@ -35,7 +35,11 @@ The new real-image route separates pure pixel computation, project/provenance lo
 
 目标是在 Windows/macOS 的明确浏览器矩阵上提供网页版本。浏览器原生解码和 Canvas 显示不能直接充当高位深定量管线，解码器和原始数组读取必须独立验证。对大图和批量任务还需测内存、后台任务取消及存储限额。
 
-如果浏览器格式支持、文件权限或性能不满足目标，再比较本地服务加网页界面与桌面封装。当前没有桌面安装包，不以“网页跨平台”替代各平台验收。
+`desktop/` 已实现实验性 Electron 封装与打包流程，捆绑三个工具同一套网页构建及首页，在 `app://wisplab/` 加载本地资源；没有另行维护一套分析算法。核心分析与本地项目操作可离线使用。默认包未签名、未经公证，没有自动更新器；网站更新不会自动替换已安装程序。安装包发布与各平台验收仍是独立步骤，不以“网页跨平台”或本机 Mac 检查替代 Windows 验收。见[桌面说明](../desktop/README.md)。
+
+账号与云保存代码独立于本机分析，实际开放能力由部署决定；账号入口不意味着已启用实验数据上传。仅在云保存已启用且用户主动确认上传后，项目包才发送到服务端；本地项目不因登录而自动上传或被替换。
+
+The experimental Electron shell in `desktop/` bundles the same three web builds and portal under `app://wisplab/`, without a separate analysis implementation. Core analysis and local projects work offline. Default packages are unsigned and unnotarized, with no automatic updater; website updates do not replace installed software. Distribution and platform acceptance are separate steps. Account and cloud-saving code is optional and deployment-controlled: account access does not establish that experimental-data upload is enabled. Uploads require both an enabled capability and explicit user confirmation; sign-in does not automatically upload or replace local work.
 
 ## Wisp Science：计划中的可选适配
 
@@ -53,4 +57,4 @@ IF 的多通道读取、标定、阈值/分割、细胞或组织对象、视野�
 
 ## English summary
 
-The current browser alpha demonstrates project state and review workflows. Real-image decoding, quantification, explicit pairing, and opt-in inference are experimental development features with separate validation requirements. Desktop packages, IF, and Wisp integration remain future stages. The analysis core and project format should be independent of UI hosts and language models. Each stage requires evidence before expanding its scope; Windows/macOS compatibility must be tested, not inferred from the web stack.
+The earlier browser alpha demonstrates project state and review workflows. Real-image decoding, quantification, explicit pairing, and opt-in inference are experimental features with separate validation requirements. An experimental desktop shell and packaging workflow now bundle the existing web applications; publication and platform acceptance are separate. IF within WB and Wisp integration remain future stages. The analysis core and project format stay independent of UI hosts and language models. Each stage requires evidence before expanding its scope; Windows/macOS compatibility must be tested, not inferred from the web stack.

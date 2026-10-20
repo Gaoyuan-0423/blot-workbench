@@ -1,0 +1,108 @@
+name: Desktop packages (unsigned experimental)
+
+on:
+  workflow_dispatch:
+    inputs:
+      wb_sha:
+        description: 'WB full 40-character main commit SHA with successful CI'
+        required: true
+        type: string
+      pathology_sha:
+        description: 'Pathology full 40-character main commit SHA with successful CI'
+        required: true
+        type: string
+      pcr_sha:
+        description: 'PCR full 40-character main commit SHA with successful CI'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m unittest discover -s desktop/test -p 'test_*.py'
+      - name: Stage exact tested offline builds
+        env:
+          GH_TOKEN: ${{ secrets.WISPLAB_ARTIFACT_TOKEN || github.token }}
+          WB_SHA: ${{ inputs.wb_sha }}
+          PATHOLOGY_SHA: ${{ inputs.pathology_sha }}
+          PCR_SHA: ${{ inputs.pcr_sha }}
+        run: python3 desktop/scripts/stage.py ci --wb-sha "$WB_SHA" --pathology-sha "$PATHOLOGY_SHA" --pcr-sha "$PCR_SHA"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-offline-resources
+          path: desktop/resources/
+          if-no-files-found: error
+          retention-days: 30
+
+  package:
+    needs: stage
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+            arch: x64
+          - os: macos-latest
+            platform: mac
+            arch: arm64
+          - os: macos-15-intel
+            platform: mac
+            arch: x64
+    runs-on: ${{ matrix.os }}
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - uses: actions/download-artifact@v4
+        with:
+          name: desktop-offline-resources
+          path: desktop/resources/
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:smoke
+      - name: Package unsigned experimental app
+        run: npx electron-builder --${{ matrix.platform }} --${{ matrix.arch }} --publish never
+      - run: npm run test:packaged
+      - run: npm run checksums
+      - name: Retain installers and exact source manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: WispLab-${{ matrix.platform }}-${{ matrix.arch }}-unsigned
+          path: |
+            desktop/out/*.dmg
+            desktop/out/*.zip
+            desktop/out/*.exe
+            desktop/out/*.blockmap
+            desktop/out/SHASUMS256.txt
+            desktop/resources/release.json
+            desktop/reports/
+          if-no-files-found: error
+          retention-days: 30

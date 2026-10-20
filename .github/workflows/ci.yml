@@ -29,6 +29,7 @@ jobs:
       - name: Verify WispLab release and rollback tooling
         run: python3 -m unittest discover -s deployment/wisplab -p 'test_*.py' -q
       - run: npm ci
+      - run: node scripts/sync-platform.mjs --check
       - run: node --test scripts/*.check.mjs
       - run: npm run check
       - run: node scripts/third-party-notices.mjs --output dist/THIRD_PARTY_NOTICES.txt
@@ -39,6 +40,20 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 30
+
+  cloud:
+    name: Real cloud authorization and concurrency tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify pinned backend and isolated synthetic accounts
+        run: python3 -m unittest discover -s services/cloud -p 'test_*.py' -v
 
   browser:
     name: ${{ matrix.os }} / ${{ matrix.channel }}

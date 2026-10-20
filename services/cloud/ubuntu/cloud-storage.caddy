@@ -1,0 +1,20 @@
+# FUTURE OPT-IN ONLY: full private project storage, NOT the first release.
+# Replace the accounts-only snippet only after capacity/backup/access acceptance.
+# Never import this and cloud.caddy simultaneously.
+handle /api/* {
+  @wisplab_cloud path /api/wisplab/* /api/collections/users/records /api/collections/users/auth-with-password /api/collections/users/auth-refresh /api/collections/cloud_projects/records /api/collections/cloud_projects/records/* /api/collections/cloud_snapshots/records /api/collections/cloud_snapshots/records/* /api/files/token /api/files/cloud_snapshots/*
+  handle @wisplab_cloud {
+    request_body {
+      max_size 294649856
+    }
+    header Cache-Control "no-store"
+    header Referrer-Policy "no-referrer"
+    header X-Content-Type-Options "nosniff"
+    reverse_proxy 127.0.0.1:8090 {
+      header_up X-Real-IP {remote_host}
+    }
+  }
+  handle {
+    respond "Not found" 404
+  }
+}

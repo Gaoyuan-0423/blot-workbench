@@ -1,3 +1,9 @@
+import { connectProjectAdapter } from "../project-archive";
+import {
+  exportSingleProject,
+  importSingleProject,
+  type SingleProject,
+} from "../cloud-project";
 import {
   useLanguage,
   translateMessage as tr,
@@ -143,6 +149,87 @@ export default function SingleStripApp() {
     rect: Rect;
     index: number;
   } | null>(null);
+  const projectSnapshot = useMemo<SingleProject>(
+    () => ({ strips, activeId, editing, kind }),
+    [strips, activeId, editing, kind],
+  );
+  const snapshotRef = useRef(projectSnapshot);
+  snapshotRef.current = projectSnapshot;
+  const busyRef = useRef(busy);
+  busyRef.current = busy;
+  const [restoration, setRestoration] = useState(0);
+  useEffect(() => {
+    let mounted = true;
+    const dispose = connectProjectAdapter({
+      tool: "wb-single",
+      exportProject: async () => {
+        if (busyRef.current)
+          throw new Error(
+            t("请等待图片导入完成。", "Wait for image import to finish."),
+          );
+        const state = snapshotRef.current;
+        const result = await exportSingleProject(state);
+        return {
+          blob: result.blob,
+          name: `${(state.strips.find((s) => s.id === state.activeId)?.image.name ?? "WB single strip").replace(/\.[^.]+$/, "")}.wisplab.zip`,
+          format: "wisplab-wb-single-v1.zip",
+          summaryTranslations: {
+            zh:
+              result.completeness.join("\n") ||
+              "保留原图、多曝光、校直裁剪、手动取样框和显示设置。",
+            en:
+              result.completeness.join("\n") ||
+              "Preserves originals, exposures, geometry, manual sampling boxes and display settings.",
+          },
+          summary:
+            result.completeness.join("\n") ||
+            t(
+              "保留原图、多曝光、校直裁剪、手动取样框和显示设置。",
+              "Preserves originals, exposures, geometry, manual sampling boxes and display settings.",
+            ),
+        };
+      },
+      importProject: async (blob, options) => {
+        const before = snapshotRef.current,
+          version = epoch.current;
+        const result = await importSingleProject(blob);
+        const current = () =>
+          options?.isCurrent?.() !== false &&
+          mounted &&
+          epoch.current === version &&
+          snapshotRef.current === before;
+        if (!current()) throw new DOMException("Cancelled", "AbortError");
+        if (
+          !window.confirm(
+            t(
+              "打开此版本会替换当前工作内容，是否继续？",
+              "Opening this version replaces the current workspace. Continue?",
+            ) +
+              (result.completeness.length
+                ? "\n\n" + result.completeness.join("\n")
+                : ""),
+          )
+        )
+          throw new DOMException("Cancelled", "AbortError");
+        if (!current()) throw new DOMException("Cancelled", "AbortError");
+        ++epoch.current;
+        setBusy(false);
+        setStrips(result.project.strips);
+        setActiveId(result.project.activeId);
+        setEditing(result.project.editing);
+        setKind(result.project.kind);
+        drag.current = null;
+        setHover(false);
+        setErrors(result.completeness.map((message) => ({ message })));
+        setRestoration((n) => n + 1);
+      },
+    });
+    return () => {
+      mounted = false;
+      ++epoch.current;
+      dispose();
+    };
+  }, []);
   const signals = useMemo(
     () =>
       strip
@@ -485,7 +572,7 @@ export default function SingleStripApp() {
         </a>
         <span className="single-local">
           <ShieldCheck size={14} />
-          {tr("图片不上传")}{" "}
+          {tr("本机分析 · 本地项目保存")}{" "}
         </span>
       </header>
       <div className="strip-suite">
@@ -668,7 +755,7 @@ export default function SingleStripApp() {
                     </span>
                   </div>
                   <StripPreparation
-                    key={strip.id}
+                    key={`${strip.id}:${restoration}`}
                     image={strip.image}
                     prepared={strip.prepared}
                     config={strip.config}

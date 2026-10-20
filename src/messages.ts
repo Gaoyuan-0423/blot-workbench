@@ -31,7 +31,7 @@ export const messages: Record<string, string> = {
   "单条带识别-结果.png": "single-strip-results.png",
   返回工作台: "Back to workbench",
   单条带识别: "Single-strip analysis",
-  图片不上传: "Images stay on your device",
+  "本机分析 · 本地项目保存": "Local analysis · Local project files",
   "一个栏目，一张条带图": "One workspace. One strip.",
   "导入一张裁好的条带图，自动识别，直接看结果。":
     "Import a cropped strip, detect bands automatically, and see the results immediately.",
@@ -191,8 +191,8 @@ export const messages: Record<string, string> = {
   内参净信号: "Reference net signal",
   "净信号 = 条带积分 − 背景均值 × 取样面积。每根柱代表一条泳道，不自动推断生物学重复或显著性。":
     "Net signal = integrated band intensity − mean background × sampling area. Each bar represents one lane; biological replicates and significance are not inferred.",
-  "本地计算，图片不上传。刷新前请导出结果。":
-    "Computed locally; images are not uploaded. Export results before refreshing.",
+  "本机计算。刷新前请下载项目文件或导出结果。":
+    "Computed locally. Download a project file or export results before refreshing.",
   "8-bit 像素估计 · 自动取样需核对 · 原始 TIFF / 16-bit 请保留原始定量流程":
     "8-bit pixel estimate · Review automatic regions · Keep your original quantification workflow for TIFF / 16-bit data",
   多批次项目演示: "Multi-batch project demo",

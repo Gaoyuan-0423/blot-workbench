@@ -9,7 +9,9 @@
 - 当前支持 **8-bit PNG / JPEG**，每张不超过 15 MB。TIFF 和 16-bit 原图不在此版本支持范围内。截图、JPEG 压缩和导出转换都可能改变像素，原始图像应另行保存。
 - 深色条带使用默认的“浅底 · 深色条带”；浅色条带可改为“深底 · 浅色条带”。
 
-图片在当前浏览器中读取、计算，不上传到服务器，无需账号或 API。简易分析不自动保存；刷新或关闭前请导出所需结果。
+图片默认在当前浏览器中读取、计算，不会因导入或调整取样而自动上传，无需账号或 API。刷新或关闭前可通过“本地项目”下载可恢复项目包，并导出所需结果。代码提供可选云保存能力，但是否开放取决于实际部署；有账号入口不代表已启用图片上传。只有部署启用云保存、且用户主动确认上传时，包含原图和设置的项目包才会发送到服务端。详见[隐私说明](privacy.md)。
+
+Images are read and measured in the current browser by default. Importing or adjusting regions does not automatically upload data, and analysis needs no account or API. Before refreshing or closing, download a recoverable archive through **Local project** and export any required results. Optional cloud-saving code is available, but deployment determines whether it is enabled; account access alone does not imply image uploads are enabled. Only when cloud saving is enabled and the user explicitly confirms an upload is the project archive, including original images and settings, sent to the service. See [privacy](privacy.md).
 
 ## 查看和调整
 

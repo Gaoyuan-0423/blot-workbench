@@ -11,12 +11,13 @@
     />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://wisplab.top; object-src 'none'; base-uri 'self'; form-action 'none'"
     />
     <title data-i18n="page.title">WispLab · 实验分析工作台</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css" />
     <script type="module" src="./locale.js"></script>
+    <script type="module" src="./platform/wisplab.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main" data-i18n="skip">跳到主要内容</a>
@@ -46,7 +47,7 @@
         </svg>
         <span
           >WispLab<span class="brand-divider" aria-hidden="true"></span
-          ><small data-i18n="brand.tagline">实验分析工作台</small></span
+          ><small data-i18n="brand.tagline">实验数据分析平台</small></span
         >
       </a>
       <nav
@@ -54,6 +55,9 @@
         data-i18n-aria-label="nav.label"
         aria-label="页面导航"
       >
+        <a href="?account=login" data-language-link data-i18n="nav.account"
+          >登录 / 注册</a
+        >
         <a href="#tools" data-i18n="nav.tools">分析工具</a>
         <a href="#updates" data-i18n="nav.updates">更新记录</a>
         <a href="#about" data-i18n="nav.about">关于工作台</a>
@@ -527,10 +531,27 @@
         <div class="updates-list">
           <article class="update-entry">
             <div class="update-meta">
-              <time datetime="2026-10-19">2026.10.19</time>
+              <time datetime="2026-10-20">2026.10.20</time>
               <span class="update-latest" data-i18n="updates.latest"
                 >最新记录</span
               >
+            </div>
+            <div class="update-content">
+              <h3 data-i18n="updates.platform.title">统一账号与项目保存</h3>
+              <p data-i18n="updates.platform.description">
+                可选用户名和密码登录；游客也可下载、打开本地项目。实验数据保存在本机，通过项目文件在电脑间转移，首版不开放数据上传或云同步。首页与三个工具统一使用
+                WispLab 品牌标识。
+              </p>
+              <a
+                class="update-version"
+                href="https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/wisplab-deploy-20261020-platform"
+                >20261020-platform <span aria-hidden="true">↗</span></a
+              >
+            </div>
+          </article>
+          <article class="update-entry">
+            <div class="update-meta">
+              <time datetime="2026-10-19">2026.10.19</time>
             </div>
             <div class="update-content">
               <h3 data-i18n="updates.wb.title">
@@ -650,7 +671,7 @@
     </main>
     <footer class="site-footer">
       <a href="./" class="footer-brand" data-language-link
-        >WispLab<span data-i18n="brand.tagline">实验分析工作台</span></a
+        >WispLab<span data-i18n="brand.tagline">实验数据分析平台</span></a
       ><span data-i18n="footer.tagline">让每一步分析，都更清楚。</span
       ><a href="#main"
         ><span data-i18n="footer.top">回到顶部</span>

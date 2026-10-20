@@ -1,0 +1,41 @@
+{
+  "name": "wisplab-desktop",
+  "productName": "WispLab Experimental",
+  "version": "0.1.0-experimental.1",
+  "private": true,
+  "description": "Offline WispLab tools — experimental unsigned desktop build",
+  "author": "WispLab",
+  "license": "MIT",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.cjs",
+    "test:smoke": "node scripts/smoke.cjs",
+    "test:packaged": "node scripts/packaged-smoke.cjs",
+    "checksums": "node scripts/checksums.cjs",
+    "icons": "node scripts/icons.cjs",
+    "package:dir": "electron-builder --dir --publish never",
+    "package:mac": "electron-builder --mac dmg zip --publish never",
+    "package:win": "electron-builder --win nsis portable --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "44.9.1",
+    "electron-builder": "26.15.3",
+    "playwright": "1.64.0"
+  },
+  "build": {
+    "appId": "top.wisplab.desktop.experimental",
+    "productName": "WispLab Experimental",
+    "artifactName": "WispLab-${version}-${os}-${arch}-unsigned.${ext}",
+    "icon": "build/icon.png",
+    "directories": { "output": "out" },
+    "asar": true,
+    "files": ["main.cjs", "preload.cjs", "lib/**", "build/icon.png", "package.json"],
+    "extraResources": [{ "from": "resources/apps", "to": "apps" }, { "from": "resources/release.json", "to": "release.json" }],
+    "mac": { "category": "public.app-category.education", "identity": null, "target": ["dmg", "zip"] },
+    "win": { "target": [{ "target": "nsis", "arch": ["x64"] }, { "target": "portable", "arch": ["x64"] }], "signExecutable": false },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "perMachine": false, "installerLanguages": ["en_US", "zh_CN"], "artifactName": "WispLab-${version}-win-${arch}-setup-unsigned.${ext}" },
+    "portable": { "artifactName": "WispLab-${version}-win-${arch}-portable-unsigned.${ext}" },
+    "publish": null
+  }
+}

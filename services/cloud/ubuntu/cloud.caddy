@@ -1,0 +1,21 @@
+# FIRST RELEASE: accounts only. Import INSIDE the wisplab.top site block.
+# Project/file/usage APIs are deliberately unavailable, even to signed-in users.
+handle /api/* {
+  @wisplab_accounts path /api/wisplab/capabilities /api/wisplab/logout-all /api/collections/users/records /api/collections/users/auth-with-password /api/collections/users/auth-refresh
+  handle @wisplab_accounts {
+    request_body {
+      max_size 16384
+    }
+    header Cache-Control "no-store"
+    header Referrer-Policy "no-referrer"
+    header X-Content-Type-Options "nosniff"
+    reverse_proxy 127.0.0.1:8090 {
+      # Ignore a caller-supplied X-Real-IP. The backend trusts only this header.
+      header_up X-Real-IP {remote_host}
+    }
+  }
+  # Never expose project storage, files, admin, settings, batch or realtime.
+  handle {
+    respond "Not found" 404
+  }
+}

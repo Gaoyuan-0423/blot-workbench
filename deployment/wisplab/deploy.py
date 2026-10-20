@@ -238,10 +238,11 @@ def no_symlink_ancestors(path: Path):
 
 
 def caddy_snippet(base: Path) -> bytes:
-    blocks = [f"# Managed by {OWNER}; static files only; preserve the main Caddyfile.\n"]
+    blocks = [f"# Managed by {OWNER}; static sites and optional cloud API import; preserve the main Caddyfile.\n"]
     for site, domain in SITES.items():
+        cloud = "    import /etc/caddy/wisplab-cloud/*.caddy\n" if site == "portal" else ""
         blocks.append(f'''{domain} {{
-    encode zstd gzip
+{cloud}    encode zstd gzip
     header Cache-Control "no-cache"
     handle /release.json {{
         root * {base}/current

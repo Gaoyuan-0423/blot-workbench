@@ -456,7 +456,7 @@ test("public pixel example loads after confirmation and pending edits survive br
     "Personal workspace on this device",
   );
   await expect(page.locator(".real-workspace-banner")).toContainText(
-    "do not become website examples or public displays",
+    "Imported images and results stay on this device and never become a public website example.",
   );
   await saved(page);
   await page
