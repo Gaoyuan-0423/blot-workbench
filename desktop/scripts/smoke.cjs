@@ -8,6 +8,7 @@ const path = require('node:path');
 const os = require('node:os');
 const { deflateSync } = require('node:zlib');
 const { execFileSync } = require('node:child_process');
+const { restoreInitialNavigation } = require('./packaged-navigation.cjs');
 
 function png(width, height, pixel) {
   const crc = data => {
@@ -86,11 +87,18 @@ const ihc = () => png(320, 240, (x, y) => {
         }
       }, 15_000);
     }
-    app = await electron.launch({
+    const launching = electron.launch({
       ...(binary ? { executablePath: binary } : {}),
       args: [...(binary ? [] : [root]), `--user-data-dir=${profile}`],
       env: { ...process.env, WISPLAB_DESKTOP_USER_DATA: profile, ELECTRON_ENABLE_LOGGING: '1' }, timeout: 45_000,
     });
+    if (binary && (process.platform === 'win32' || process.env.WISPLAB_SMOKE_RELOAD_ON_CONNECT === '1')) {
+      const [launched, navigation] = await Promise.allSettled([launching, restoreInitialNavigation(profile, reports)]);
+      if (launched.status === 'fulfilled') app = launched.value;
+      else throw launched.reason;
+      if (navigation.status === 'rejected') throw navigation.reason;
+      report.renderedBeforeStartupReload = navigation.value;
+    } else app = await launching;
     clearTimeout(launchDiagnostic);
     report.phase = 'runtime';
     const runtime = await app.evaluate(({ app }) => ({ packaged: app.isPackaged, userData: app.getPath('userData') }));
