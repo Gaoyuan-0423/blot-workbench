@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../schema-validator";
 
 /**
  * Shared validation for vision-provider band candidates. The local server

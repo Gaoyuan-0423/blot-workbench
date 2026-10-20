@@ -1,6 +1,6 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import { get, set } from "idb-keyval";
-import { z } from "zod";
+import { z } from "../schema-validator";
 import { pairedTTest, type PairedTestResult } from "./statistics";
 import { APP_VERSION } from "../core/types";
 import {
