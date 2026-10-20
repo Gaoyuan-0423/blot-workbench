@@ -50,7 +50,9 @@ const ihc = () => png(320, 240, (x, y) => {
   const root = path.resolve(__dirname, '..'), reports = path.join(root, 'reports');
   await fs.mkdir(reports, { recursive: true });
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), 'wisplab-desktop-smoke-'));
-  const report = { checks: [], failures: [], remoteRequests: [], phase: 'launch' };
+  const downloads = path.join(profile, 'downloads');
+  await fs.mkdir(downloads);
+  const report = { checks: [], failures: [], remoteRequests: [], downloads: [], phase: 'launch' };
   let app, page;
   let launchDiagnostic;
   const watchdog = setTimeout(() => { app?.process().kill('SIGTERM'); }, 180_000);
@@ -156,16 +158,21 @@ const ihc = () => png(320, 240, (x, y) => {
         const target = directory + '/' + item.getFilename().replace(/[\\/]/g, '_');
         const origin = item.getInitiatorOrigin();
         item.setSavePath(target);
-        item.once('done', (_event, state) => globalThis.__desktopDownloads.push({ target, state, origin }));
+        item.once('done', (_event, state) => globalThis.__desktopDownloads.push({
+          target, state, origin, receivedBytes: item.getReceivedBytes(), totalBytes: item.getTotalBytes(),
+        }));
       });
-    }, reports);
+    }, downloads);
     const exported = async button => {
       const count = await app.evaluate(() => globalThis.__desktopDownloads.length);
       await button.click();
       await expect.poll(() => app.evaluate(() => globalThis.__desktopDownloads.length)).toBe(count + 1);
       const item = await app.evaluate(() => globalThis.__desktopDownloads.at(-1));
+      report.downloads.push(item);
       assert.equal(item.state, 'completed'); assert.equal(item.origin, 'app://wisplab');
-      assert.ok((await fs.stat(item.target)).size > 30);
+      const size = (await fs.stat(item.target)).size;
+      assert.ok(size > 30);
+      assert.equal(size, item.receivedBytes); assert.equal(size, item.totalBytes);
       return item.target;
     };
     await page.evaluate(() => { window.open('app://wisplab/wb/?mode=single&lang=zh'); });
@@ -233,7 +240,9 @@ const ihc = () => png(320, 240, (x, y) => {
     await expect(page.locator('.result-overall td').nth(1)).toHaveText(/%$/);
     const area = Number.parseFloat(await page.locator('.result-overall td').nth(1).textContent());
     assert.ok(area > 2 && area < 40, `Unexpected synthetic IHC area: ${area}`);
-    await exported(page.getByRole('button', { name: '导出 Excel', exact: true }));
+    const excel = await fs.readFile(await exported(page.getByRole('button', { name: '导出 Excel', exact: true })));
+    assert.equal(excel.readUInt32LE(0), 0x04034b50);
+    assert.ok(excel.includes(Buffer.from('[Content_Types].xml')) && excel.includes(Buffer.from('xl/workbook.xml')));
     await page.screenshot({ path: path.join(reports, 'desktop-pathology-zh.png'), fullPage: true });
     report.checks.push('offline pathology import, worker analysis and Excel export');
 

@@ -94,7 +94,7 @@ jobs:
         run: npx electron-builder --${{ matrix.platform }} --${{ matrix.arch }} --publish never
       - run: npm run test:packaged
         env:
-          DEBUG: ${{ matrix.platform == 'win' && 'pw:browser,pw:protocol' || 'pw:browser' }}
+          DEBUG: pw:browser
       - run: npm run checksums
       - name: Retain installers and exact source manifest
         uses: actions/upload-artifact@v4
