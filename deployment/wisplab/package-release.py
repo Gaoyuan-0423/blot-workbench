@@ -35,7 +35,8 @@ REPOSITORIES = {
     "pcr": "Gaoyuan-0423/pcr-workbench",
 }
 PORTAL_FILES = {"index.html", "styles.css", "favicon.svg"}
-PORTAL_OPTIONAL_FILES = {"locale.js"}
+PORTAL_OPTIONAL_FILES = {"locale.js", "platform/client.js", "platform/wisplab.js", "platform/wisplab.css", "platform/manifest.json"}
+PLATFORM_FILES = {"platform/client.js", "platform/wisplab.js", "platform/wisplab.css", "platform/manifest.json"}
 ORT_FILES = {"ort-wasm-simd-threaded.wasm", "ort-wasm-simd-threaded.mjs"}
 FORBIDDEN_COMPONENTS = {
     "node_modules", "src", "tests", "test", "fixtures", "test-results",
@@ -197,8 +198,30 @@ def collect_files(root: Path, *, portal: bool = False) -> dict[str, bytes]:
         raise PackageError(f"Built index.html is missing: {root}")
     if portal and (not PORTAL_FILES.issubset(collected)
                    or set(collected) - PORTAL_FILES - PORTAL_OPTIONAL_FILES):
-        raise PackageError("Portal requires index.html, styles.css, favicon.svg; only locale.js and excluded .qa/ are additionally allowed.")
+        raise PackageError("Portal requires index.html, styles.css, favicon.svg; only locale.js, the verified platform assets and excluded .qa/ are additionally allowed.")
+    validate_platform(collected)
     return collected
+
+
+def validate_platform(files: dict[str, bytes]) -> None:
+    present = set(files) & PLATFORM_FILES
+    if not present:
+        return  # Historical releases remain deployable.
+    if present != PLATFORM_FILES:
+        raise PackageError("Shared platform assets must be complete")
+    try:
+        manifest = json.loads(files["platform/manifest.json"])
+        expected = {name.removeprefix("platform/"): sha256(files[name]) for name in PLATFORM_FILES if name != "platform/manifest.json"}
+        if manifest.get("schemaVersion") != 1 or manifest.get("sourceRepository") != "Gaoyuan-0423/blot-workbench" or manifest.get("sourceDirectory") != "platform" or manifest.get("files") != expected:
+            raise ValueError("mismatch")
+    except (ValueError, TypeError, AttributeError) as error:
+        raise PackageError("Shared platform asset manifest mismatch") from error
+
+
+def validate_platform_suite(files: dict[str, bytes]) -> None:
+    manifests = [files.get(f"{site}/platform/manifest.json") for site in ("portal", "wb", "pathology", "pcr")]
+    if any(manifests) and (not all(manifests) or len(set(manifests)) != 1):
+        raise PackageError("All four sites must use the same generated platform version")
 
 
 class IndexAssets(HTMLParser):
@@ -330,7 +353,10 @@ def validate_ci_provenance(provenance: dict) -> tuple[dict, dict | None]:
 def validate_ci_layout(site: str, files: dict[str, bytes]) -> None:
     """CI replaces local Git comparison; retain narrow public static layouts."""
     public_suffixes = {".png", ".jpg", ".jpeg", ".webp", ".svg", ".json", ".csv", ".txt", ".md", ".zip", ".rdml", ".xml", ".xlsx"}
+    validate_platform(files)
     for name in files:
+        if name in PLATFORM_FILES:
+            continue
         if name in {"index.html", "THIRD_PARTY_NOTICES.txt"}:
             continue
         if name.startswith("assets/") and VITE_ASSET.fullmatch(name[7:]):
@@ -369,6 +395,7 @@ def package_ci_release(*, version: str, portal: Path, artifact_dirs: dict[str, P
         entry["files"] = {name: sha256(data) for name, data in sorted(files.items())}
         sites[site] = entry
         all_files.update({f"{site}/{name}": data for name, data in files.items()})
+    validate_platform_suite(all_files)
     if sum(map(len, all_files.values())) > MAX_TOTAL_BYTES or len(all_files) > MAX_FILES:
         raise PackageError("Combined sites exceed package limits")
     manifest = {
@@ -476,6 +503,7 @@ def main() -> int:
             entry["repository"] = REPOSITORIES[site]
         sites[site] = entry
         all_files.update({f"{site}/{name}": data for name, data in files.items()})
+    validate_platform_suite(all_files)
     if sum(map(len, all_files.values())) > MAX_TOTAL_BYTES or len(all_files) > MAX_FILES:
         raise PackageError("Combined sites exceed package limits")
     for site, root in roots.items():

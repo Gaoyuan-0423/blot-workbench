@@ -7,6 +7,9 @@ export interface QuickImage {
   width: number;
   height: number;
   gray: Uint8Array;
+  /** Original upload bytes, independent of the browser preview and measurement pixels. */
+  original?: { mime: "image/png" | "image/jpeg"; bytes: Uint8Array };
+  synthetic?: boolean;
 }
 
 export const QUICK_IMAGE_LIMITS = {
@@ -242,6 +245,7 @@ export async function loadQuickImage(file: File): Promise<QuickImage> {
       width: canvas.width,
       height: canvas.height,
       gray,
+      original: { mime: header.mime, bytes },
     };
   } finally {
     URL.revokeObjectURL(url);
@@ -319,6 +323,8 @@ function makeExample(reference: boolean): QuickImage {
       ? translateMessage("合成示例内参（非实验数据）.png")
       : translateMessage("合成示例目标条带（非实验数据）.png"),
     dataUrl: `data:image/png;base64,${btoa(binary)}`,
+    original: { mime: "image/png", bytes: png },
+    synthetic: true,
     width,
     height,
     gray,

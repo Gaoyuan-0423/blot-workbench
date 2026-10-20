@@ -18,9 +18,10 @@ export const messages = {
     en: "WispLab home",
   },
   "brand.tagline": {
-    zh: "实验分析工作台",
-    en: "Experimental analysis",
+    zh: "实验数据分析平台",
+    en: "Experimental Data Analysis Platform",
   },
+  "nav.account": { zh: "登录 / 注册", en: "Sign in / Register" },
   "nav.label": {
     zh: "页面导航",
     en: "Page navigation",
@@ -212,6 +213,14 @@ export const messages = {
   "updates.latest": {
     zh: "最新记录",
     en: "Latest update",
+  },
+  "updates.platform.title": {
+    zh: "统一账号与项目保存",
+    en: "Optional accounts and local projects across WispLab",
+  },
+  "updates.platform.description": {
+    zh: "可选用户名和密码登录；游客也可下载、打开本地项目。实验数据保存在本机，通过项目文件在电脑间转移，首版不开放数据上传或云同步。首页与三个工具统一使用 WispLab 品牌标识。",
+    en: "Sign in optionally with a username and password, or download and open local projects as a guest. Experimental data stays on your device; transfer project files between computers. Data uploads and cloud sync are not enabled in this first edition. The homepage and all three tools share WispLab branding.",
   },
   "updates.wb.title": {
     zh: "单条带校直、曝光挑选与识别引导",

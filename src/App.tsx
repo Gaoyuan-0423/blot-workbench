@@ -132,6 +132,114 @@ function App() {
   currentProject.current = project;
   const dialog = useRef<HTMLElement>(null);
   const { language, setLanguage, t } = useLanguage();
+  const platformState = useRef({ busy, draftFields, modal, t });
+  platformState.current = { busy, draftFields, modal, t };
+  useEffect(() => {
+    let active = true;
+    let importing = false;
+    let unregister: (() => void) | undefined;
+    const aborted = () =>
+      new DOMException("Workspace changed or import cancelled", "AbortError");
+    const snapshot = () => {
+      const state = platformState.current;
+      if (
+        !active ||
+        importing ||
+        state.busy ||
+        state.draftFields.size ||
+        state.modal ||
+        !currentProject.current
+      )
+        throw aborted();
+      return currentProject.current;
+    };
+    const register = () => {
+      const host = window as typeof window & {
+        WispLab?: {
+          registerProjectAdapter(adapter: {
+            tool: string;
+            exportProject(): Promise<{
+              blob: Blob;
+              name: string;
+              summary: string;
+              summaryTranslations?: { zh: string; en: string };
+            }>;
+            importProject(
+              blob: Blob,
+              options?: { isCurrent: () => boolean },
+            ): Promise<void>;
+          }): () => void;
+        };
+      };
+      if (!host.WispLab) return;
+      unregister?.();
+      unregister = host.WispLab.registerProjectAdapter({
+        tool: "wb-demo",
+        async exportProject() {
+          const before = snapshot();
+          const blob = await exportProject(before);
+          if (snapshot() !== before) throw aborted();
+          return {
+            blob,
+            name: `blot-workbench-${before.name.replace(/[^\p{L}\p{N}_-]/gu, "_")}.wbproj.zip`,
+            summaryTranslations: {
+              zh: "WB 合成示例项目 · " + before.name,
+              en: "WB synthetic demo project · " + before.name,
+            },
+            summary:
+              platformState.current.t(
+                "WB 合成示例项目 · ",
+                "WB synthetic demo project · ",
+              ) + before.name,
+          };
+        },
+        async importProject(blob, options) {
+          const before = snapshot();
+          importing = true;
+          try {
+            const next = await importProject(blob);
+            const unchanged = () =>
+              active &&
+              (options?.isCurrent() ?? true) &&
+              currentProject.current === before &&
+              !platformState.current.busy &&
+              !platformState.current.draftFields.size &&
+              !platformState.current.modal;
+            if (!unchanged()) throw aborted();
+            if (
+              !window.confirm(
+                platformState.current.t(
+                  "项目包已通过校验。导入将替换当前 WB 示例工作区；需要保留的内容请先导出。确认导入？",
+                  "The archive passed validation. Importing replaces the current WB demo workspace. Export anything you need to keep first. Import this project?",
+                ),
+              )
+            )
+              throw aborted();
+            if (!unchanged()) throw aborted();
+            currentProject.current = next;
+            setProject(next);
+            setSaveState("saving");
+            setChecked([]);
+            setSelectedRoi("");
+            setPendingImport(null);
+            setError("");
+            setNotice(
+              platformState.current.t("项目已导入", "Project imported"),
+            );
+          } finally {
+            importing = false;
+          }
+        },
+      });
+    };
+    register();
+    window.addEventListener("wisplab:ready", register);
+    return () => {
+      active = false;
+      unregister?.();
+      window.removeEventListener("wisplab:ready", register);
+    };
+  }, []);
   useEffect(() => {
     let active = true;
     (async () => {
@@ -463,7 +571,10 @@ function App() {
           <div className="local-note">
             <ShieldCheck size={18} />
             <strong>
-              {t("项目保存在本机", "Projects stay on your device")}
+              {t(
+                "本机分析，本地项目保存",
+                "Local analysis, local project files",
+              )}
             </strong>
             <p>
               {t(

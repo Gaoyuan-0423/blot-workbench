@@ -978,6 +978,109 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
     setDialog(null);
     setError("");
   };
+  const platformState = useRef({ laneDraft, pairDraft, dragging, dialog, t });
+  platformState.current = { laneDraft, pairDraft, dragging, dialog, t };
+  useEffect(() => {
+    let active = true;
+    let importing = false;
+    let unregister: (() => void) | undefined;
+    const aborted = () =>
+      new DOMException("Workspace changed or import cancelled", "AbortError");
+    const unchanged = (before: RealProject) => {
+      const state = platformState.current;
+      return (
+        active &&
+        currentProject.current === before &&
+        !working.current &&
+        !state.dragging &&
+        !state.dialog &&
+        state.laneDraft === before.laneDescription &&
+        state.pairDraft === pairDescription(before.pairedDesign?.pairs ?? [])
+      );
+    };
+    const snapshot = () => {
+      const before = currentProject.current;
+      if (importing || !before || !unchanged(before)) throw aborted();
+      return before;
+    };
+    const register = () => {
+      const host = window as typeof window & {
+        WispLab?: {
+          registerProjectAdapter(adapter: {
+            tool: string;
+            exportProject(): Promise<{
+              blob: Blob;
+              name: string;
+              summary: string;
+              summaryTranslations?: { zh: string; en: string };
+            }>;
+            importProject(
+              blob: Blob,
+              options?: { isCurrent: () => boolean },
+            ): Promise<void>;
+          }): () => void;
+        };
+      };
+      if (!host.WispLab) return;
+      unregister?.();
+      unregister = host.WispLab.registerProjectAdapter({
+        tool: "wb-real",
+        async exportProject() {
+          const before = snapshot();
+          const blob = await exportRealProject(before);
+          if (snapshot() !== before) throw aborted();
+          return {
+            blob,
+            name: `${fileStem(before.name)}.realwb.zip`,
+            summaryTranslations: {
+              zh: "WB 原图项目 · " + before.name,
+              en: "WB original-image project · " + before.name,
+            },
+            summary:
+              platformState.current.t(
+                "WB 原图项目 · ",
+                "WB original-image project · ",
+              ) + before.name,
+          };
+        },
+        async importProject(blob, options) {
+          const before = snapshot();
+          importing = true;
+          try {
+            const next = await importRealProject(blob);
+            if (!unchanged(before) || !(options?.isCurrent() ?? true))
+              throw aborted();
+            if (
+              !window.confirm(
+                platformState.current.t(
+                  "项目包已通过校验。导入将替换当前 WB 原图工作区；需要保留的内容请先导出。确认导入？",
+                  "The archive passed validation. Importing replaces the current WB original-image workspace. Export anything you need to keep first. Import this project?",
+                ),
+              )
+            )
+              throw aborted();
+            if (!unchanged(before) || !(options?.isCurrent() ?? true))
+              throw aborted();
+            replace(next);
+            setAnalysisReport(null);
+            setSaveState("saving");
+            setNotice(
+              platformState.current.t("项目已导入", "Project imported"),
+            );
+          } finally {
+            importing = false;
+          }
+        },
+      });
+    };
+    register();
+    window.addEventListener("wisplab:ready", register);
+    return () => {
+      active = false;
+      unregister?.();
+      window.removeEventListener("wisplab:ready", register);
+    };
+  }, []);
   const commit = (change: (previous: RealProject) => RealProject) => {
     if (!currentProject.current) return;
     try {
@@ -1764,8 +1867,8 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
                 "This example uses virtual bands. Website examples and public screenshots use synthetic data only.",
               )
             : t(
-                "自己导入的图像和结果只保存在此浏览器中，不会成为网站示例或公开展示。",
-                "Images and results you import stay in this browser; they do not become website examples or public displays.",
+                "自己导入的图像和结果保存在本机，不会成为网站示例或公开展示。",
+                "Imported images and results stay on this device and never become a public website example.",
               )}
         </span>
       </div>
@@ -2016,8 +2119,8 @@ export default function RealWorkbench({ onDemo }: { onDemo: () => void }) {
             <ol>
               <li>
                 {t(
-                  "把仪器导出的原始 TIFF/PNG 一次拖入或批量选择；原图字节原样保留，不上传。",
-                  "Drag in or batch-select the original TIFF/PNG exports; original bytes are kept and never uploaded.",
+                  "把仪器导出的原始 TIFF/PNG 一次拖入或批量选择；原图字节原样保留，可下载项目文件保存。",
+                  "Drag in or batch-select the original TIFF/PNG exports; original bytes are retained. Download a project file to keep your work.",
                 )}
               </li>
               <li>

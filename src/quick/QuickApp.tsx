@@ -1,8 +1,15 @@
+import { connectProjectAdapter } from "../project-archive";
+import {
+  exportQuickProject,
+  importQuickProject,
+  type QuickProject,
+} from "../cloud-project";
 import {
   useLanguage,
   translateMessage as tr,
   formatMessage as f,
   languageUrl,
+  translate as t,
 } from "../i18n";
 import LanguageSwitch from "../LanguageSwitch";
 import SuiteNav from "../SuiteNav";
@@ -244,6 +251,126 @@ export default function QuickApp() {
     rect: Rect;
     index: number;
   } | null>(null);
+  const projectSnapshot = useMemo<QuickProject>(
+    () => ({
+      data,
+      external,
+      inspectReference,
+      externalActive,
+      active,
+      reference,
+      control,
+      labels,
+      polarity,
+      selected,
+      editing,
+      editBackground,
+      count,
+      showBoxes,
+    }),
+    [
+      data,
+      external,
+      inspectReference,
+      externalActive,
+      active,
+      reference,
+      control,
+      labels,
+      polarity,
+      selected,
+      editing,
+      editBackground,
+      count,
+      showBoxes,
+    ],
+  );
+  const snapshotRef = useRef(projectSnapshot);
+  snapshotRef.current = projectSnapshot;
+  const busyRef = useRef(busy);
+  busyRef.current = busy;
+  useEffect(() => {
+    let mounted = true;
+    const dispose = connectProjectAdapter({
+      tool: "wb-quick",
+      exportProject: async () => {
+        if (busyRef.current)
+          throw new Error(
+            t("请等待图片导入完成。", "Wait for image import to finish."),
+          );
+        const state = snapshotRef.current;
+        const result = await exportQuickProject(state);
+        return {
+          blob: result.blob,
+          name: `${(state.data?.image.name ?? "WB quick project").replace(/\.[^.]+$/, "")}.wisplab.zip`,
+          format: "wisplab-wb-quick-v1.zip",
+          summaryTranslations: {
+            zh:
+              result.completeness.join("\n") ||
+              "保留原图、内参、样本名称、分行与手动取样框。",
+            en:
+              result.completeness.join("\n") ||
+              "Preserves originals, reference images, sample names, rows and manual sampling boxes.",
+          },
+          summary:
+            result.completeness.join("\n") ||
+            t(
+              "保留原图、内参、样本名称、分行与手动取样框。",
+              "Preserves originals, reference images, sample names, rows and manual sampling boxes.",
+            ),
+        };
+      },
+      importProject: async (blob, options) => {
+        const before = snapshotRef.current,
+          version = epoch.current;
+        const result = await importQuickProject(blob);
+        const current = () =>
+          options?.isCurrent?.() !== false &&
+          mounted &&
+          epoch.current === version &&
+          snapshotRef.current === before;
+        if (!current()) throw new DOMException("Cancelled", "AbortError");
+        if (
+          !window.confirm(
+            t(
+              "打开此版本会替换当前工作内容，是否继续？",
+              "Opening this version replaces the current workspace. Continue?",
+            ) +
+              (result.completeness.length
+                ? "\n\n" + result.completeness.join("\n")
+                : ""),
+          )
+        )
+          throw new DOMException("Cancelled", "AbortError");
+        if (!current()) throw new DOMException("Cancelled", "AbortError");
+        ++epoch.current;
+        setBusy(false);
+        drag.current = null;
+        setDragging(false);
+        const p = result.project;
+        setData(p.data);
+        setExternal(p.external);
+        setInspectReference(p.inspectReference);
+        setExternalActive(p.externalActive);
+        setActive(p.active);
+        setReference(p.reference);
+        setControl(p.control);
+        setLabels(p.labels);
+        setPolarity(p.polarity);
+        setSelected(p.selected);
+        setEditing(p.editing);
+        setEditBackground(p.editBackground);
+        setCount(p.count);
+        setShowBoxes(p.showBoxes);
+        setError(result.completeness.join("\n"));
+      },
+    });
+    return () => {
+      mounted = false;
+      ++epoch.current;
+      dispose();
+    };
+  }, []);
   const row = data?.rows[active];
   const refParts = reference.split(":");
   const refSource = refParts[0] === "external" ? external : data;
@@ -1366,7 +1493,7 @@ export default function QuickApp() {
         <footer className="quick-footer">
           <span>
             <ShieldCheck size={14} />
-            {tr("本地计算，图片不上传。刷新前请导出结果。")}{" "}
+            {tr("本机计算。刷新前请下载项目文件或导出结果。")}{" "}
           </span>
           <span>
             {tr(
