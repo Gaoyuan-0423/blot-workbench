@@ -88,9 +88,13 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run test:smoke
+        env:
+          DEBUG: pw:browser
       - name: Package unsigned experimental app
         run: npx electron-builder --${{ matrix.platform }} --${{ matrix.arch }} --publish never
       - run: npm run test:packaged
+        env:
+          DEBUG: pw:browser
       - run: npm run checksums
       - name: Retain installers and exact source manifest
         uses: actions/upload-artifact@v4
@@ -106,3 +110,11 @@ jobs:
             desktop/reports/
           if-no-files-found: error
           retention-days: 30
+      - name: Preserve smoke diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-diagnostics-${{ matrix.platform }}-${{ matrix.arch }}
+          path: desktop/reports/
+          if-no-files-found: warn
+          retention-days: 14

@@ -48,7 +48,7 @@ const ihc = () => png(320, 240, (x, y) => {
   const root = path.resolve(__dirname, '..'), reports = path.join(root, 'reports');
   await fs.mkdir(reports, { recursive: true });
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), 'wisplab-desktop-smoke-'));
-  const report = { checks: [], failures: [], remoteRequests: [] };
+  const report = { checks: [], failures: [], remoteRequests: [], phase: 'launch' };
   let app, page;
   const watchdog = setTimeout(() => { app?.process().kill('SIGTERM'); }, 180_000);
   try {
@@ -56,8 +56,9 @@ const ihc = () => png(320, 240, (x, y) => {
     app = await electron.launch({
       ...(binary ? { executablePath: binary } : {}),
       args: [...(binary ? [] : [root]), `--user-data-dir=${profile}`],
-      env: { ...process.env, WISPLAB_DESKTOP_USER_DATA: profile }, timeout: 45_000,
+      env: { ...process.env, WISPLAB_DESKTOP_USER_DATA: profile, ELECTRON_ENABLE_LOGGING: '1' }, timeout: 45_000,
     });
+    report.phase = 'runtime';
     const runtime = await app.evaluate(({ app }) => ({ packaged: app.isPackaged, userData: app.getPath('userData') }));
     assert.equal(await fs.realpath(runtime.userData), await fs.realpath(profile), 'Smoke must use a disposable profile');
     report.packaged = runtime.packaged;
@@ -216,9 +217,12 @@ const ihc = () => png(320, 240, (x, y) => {
     assert.deepEqual(report.failures, []);
     assert.deepEqual(report.remoteRequests, [], 'Guest analysis and local projects must not contact HTTP(S), including account/capability APIs');
     report.checks.push('guest analysis and local projects make zero HTTP(S) requests');
+    report.phase = 'complete';
     report.success = true;
   } catch (error) {
     report.success = false; report.error = error.stack;
+    // Preserve the primary failure even if Windows still holds a profile file.
+    console.error(report.error);
     if (page) await page.screenshot({ path: path.join(reports, 'desktop-smoke-failure.png'), fullPage: true }).catch(() => {});
     process.exitCode = 1;
   } finally {
@@ -228,7 +232,13 @@ const ihc = () => png(320, 240, (x, y) => {
       await app.close().catch(() => {});
       clearTimeout(forceClose);
     }
-    await fs.rm(profile, { recursive: true, force: true });
+    try {
+      await fs.rm(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+    } catch (error) {
+      report.cleanupError = error.message;
+      report.success = false;
+      process.exitCode = 1;
+    }
     await fs.writeFile(path.join(reports, 'smoke.json'), JSON.stringify(report, null, 2) + '\n');
     console.log(JSON.stringify(report, null, 2));
   }
