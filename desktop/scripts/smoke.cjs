@@ -7,6 +7,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
 const { deflateSync } = require('node:zlib');
+const { execFileSync } = require('node:child_process');
 
 function png(width, height, pixel) {
   const crc = data => {
@@ -50,14 +51,47 @@ const ihc = () => png(320, 240, (x, y) => {
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), 'wisplab-desktop-smoke-'));
   const report = { checks: [], failures: [], remoteRequests: [], phase: 'launch' };
   let app, page;
+  let launchDiagnostic;
   const watchdog = setTimeout(() => { app?.process().kill('SIGTERM'); }, 180_000);
   try {
     const binary = process.env.WISPLAB_DESKTOP_BINARY;
+    // A native startup dialog can block CDP initialization before firstWindow().
+    // Capture the disposable Windows CI desktop before Playwright times out and
+    // terminates the process; this never runs in the distributed application.
+    if (process.platform === 'win32' && binary) {
+      report.bundledIndexes = Object.fromEntries(await Promise.all(
+        ['portal', 'wb', 'pathology', 'pcr'].map(async tool => {
+          const file = path.join(path.dirname(binary), 'resources/apps', tool, 'index.html');
+          return [tool, await fs.stat(file).then(value => value.isFile(), () => false)];
+        }),
+      ));
+      launchDiagnostic = setTimeout(() => {
+        if (app) return;
+        try {
+          report.launchWindows = execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', `
+            Get-Process | Where-Object { $_.MainWindowTitle } |
+              Select-Object Id, ProcessName, MainWindowTitle | ConvertTo-Json -Compress
+            Add-Type -AssemblyName System.Windows.Forms
+            Add-Type -AssemblyName System.Drawing
+            $bounds = [System.Windows.Forms.SystemInformation]::VirtualScreen
+            $bitmap = New-Object System.Drawing.Bitmap($bounds.Width, $bounds.Height)
+            $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+            $graphics.CopyFromScreen($bounds.Left, $bounds.Top, 0, 0, $bitmap.Size)
+            $bitmap.Save((Join-Path $env:WISPLAB_SMOKE_REPORTS 'windows-launch.png'))
+            $graphics.Dispose()
+            $bitmap.Dispose()
+          `], { env: { ...process.env, WISPLAB_SMOKE_REPORTS: reports }, encoding: 'utf8', timeout: 10_000 });
+        } catch (error) {
+          report.launchDiagnosticError = error.message;
+        }
+      }, 15_000);
+    }
     app = await electron.launch({
       ...(binary ? { executablePath: binary } : {}),
       args: [...(binary ? [] : [root]), `--user-data-dir=${profile}`],
       env: { ...process.env, WISPLAB_DESKTOP_USER_DATA: profile, ELECTRON_ENABLE_LOGGING: '1' }, timeout: 45_000,
     });
+    clearTimeout(launchDiagnostic);
     report.phase = 'runtime';
     const runtime = await app.evaluate(({ app }) => ({ packaged: app.isPackaged, userData: app.getPath('userData') }));
     assert.equal(await fs.realpath(runtime.userData), await fs.realpath(profile), 'Smoke must use a disposable profile');
@@ -226,6 +260,7 @@ const ihc = () => png(320, 240, (x, y) => {
     if (page) await page.screenshot({ path: path.join(reports, 'desktop-smoke-failure.png'), fullPage: true }).catch(() => {});
     process.exitCode = 1;
   } finally {
+    clearTimeout(launchDiagnostic);
     clearTimeout(watchdog);
     if (app) {
       const forceClose = setTimeout(() => app.process().kill('SIGTERM'), 10_000);
