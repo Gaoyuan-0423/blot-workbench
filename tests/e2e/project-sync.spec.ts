@@ -66,6 +66,13 @@ async function restore(
   );
 }
 
+async function openSingleAdjustments(page: Page) {
+  const panel = page.locator("details.single-adjust");
+  if ((await panel.getAttribute("open")) === null)
+    await panel.locator("summary").click();
+  await expect(page.getByLabel("对照泳道")).toBeVisible();
+}
+
 test("single: preserve exposures, manual ROI and display settings; cancellation and stale parses cannot replace edits", async ({
   page,
 }) => {
@@ -76,7 +83,7 @@ test("single: preserve exposures, manual ROI and display settings; cancellation 
   await expect(page.locator(".single-filebar")).toBeVisible();
   await page.getByRole("button", { name: "显示调整", exact: true }).click();
   await page.getByRole("slider", { name: "显示亮度" }).press("End");
-  await page.getByText("识别不准？调整取样", { exact: true }).click();
+  await openSingleAdjustments(page);
   await page.getByLabel("对照泳道").selectOption("1");
   const x = page.getByLabel("取样框 x", { exact: true });
   await x.fill(String(Number(await x.inputValue()) + 1));
@@ -102,6 +109,23 @@ test("single: preserve exposures, manual ROI and display settings; cancellation 
     await importSingleProject(new Blob([new Uint8Array(await exported(page))]))
   ).project;
   expect(again.strips[0].bands).toEqual(saved.strips[0].bands);
+  // Restoring a project can leave the native details panel collapsed. Exercise
+  // the real user path from that state before testing an edit during parsing.
+  const adjustments = page.locator("details.single-adjust");
+  if ((await adjustments.getAttribute("open")) !== null)
+    await adjustments.locator("summary").click();
+  await expect(page.getByLabel("对照泳道")).toBeHidden();
+  await openSingleAdjustments(page);
+  // Let the native toggle event reach the project snapshot before holding the
+  // import open, so the later control change is the edit that invalidates it.
+  await expect
+    .poll(async () => {
+      const current = await importSingleProject(
+        new Blob([new Uint8Array(await exported(page))]),
+      );
+      return current.project.editing;
+    })
+    .toBe(true);
   // Hold parsing open, then make a real UI edit. The late decode must abort.
   await page.evaluate((bytes) => {
     const buffer = new Uint8Array(bytes).buffer;
