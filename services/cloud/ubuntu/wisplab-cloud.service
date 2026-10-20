@@ -1,0 +1,34 @@
+[Unit]
+Description=WispLab private project cloud (PocketBase)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=wisplab-cloud
+Group=wisplab-cloud
+WorkingDirectory=/var/lib/wisplab-cloud
+Environment=WISPLAB_ENV=production
+Environment=GOMEMLIMIT=768MiB
+EnvironmentFile=/etc/wisplab-cloud/environment
+ExecStart=/opt/wisplab-cloud/current/bin/pocketbase serve --hooksWatch=false --http=127.0.0.1:8090 --dir=/var/lib/wisplab-cloud/pb_data --hooksDir=/opt/wisplab-cloud/current/pb_hooks --migrationsDir=/opt/wisplab-cloud/current/pb_migrations --origins=https://wisplab.top,https://wb.wisplab.top,https://pathology.wisplab.top,https://pcr.wisplab.top,https://gaoyuan-0423.github.io,app://wisplab
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=60
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/wisplab-cloud
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

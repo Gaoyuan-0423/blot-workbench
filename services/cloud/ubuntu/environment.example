@@ -1,0 +1,11 @@
+# Server operator chooses capacity after checking disk space/backups.
+# Keep this file root-owned; do not add user passwords or client API keys.
+WISPLAB_ENV=production
+WISPLAB_REGISTRATION=closed
+# First release: accounts only. Scientific projects remain on the user's device.
+WISPLAB_PROJECT_STORAGE=local
+WISPLAB_MAX_FILE_BYTES=293601280
+WISPLAB_USER_BYTES=536870912
+WISPLAB_TOTAL_BYTES=5368709120
+WISPLAB_MAX_PROJECTS=100
+WISPLAB_MAX_REVISIONS=200

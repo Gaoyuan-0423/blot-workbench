@@ -1,0 +1,53 @@
+{
+  "version": "0.40.5",
+  "source": "https://github.com/pocketbase/pocketbase/releases/tag/v0.40.5",
+  "publishedAt": "2026-10-08T16:45:10Z",
+  "checkedAt": "2026-10-20",
+  "assets": {
+    "darwin_amd64": {
+      "url": "https://github.com/pocketbase/pocketbase/releases/download/v0.40.5/pocketbase_0.40.5_darwin_amd64.zip",
+      "sha256": "3640f0c4d9e0e5a47e321f10ddf6698508d4f20721bcf5dfb7c4192835e5105f",
+      "apiUrl": "https://api.github.com/repos/pocketbase/pocketbase/releases/assets/622395642"
+    },
+    "darwin_arm64": {
+      "url": "https://github.com/pocketbase/pocketbase/releases/download/v0.40.5/pocketbase_0.40.5_darwin_arm64.zip",
+      "sha256": "d9a176e0491bc825fff88c2a4edffb07307f785ac2bd9710e82c5d223669fc17",
+      "apiUrl": "https://api.github.com/repos/pocketbase/pocketbase/releases/assets/622395719"
+    },
+    "linux_amd64": {
+      "url": "https://github.com/pocketbase/pocketbase/releases/download/v0.40.5/pocketbase_0.40.5_linux_amd64.zip",
+      "sha256": "1dbea1b01eb3dfe64953513859d01e759c96650c4e3264fa4eecd54b769382e4",
+      "apiUrl": "https://api.github.com/repos/pocketbase/pocketbase/releases/assets/622395648"
+    },
+    "linux_arm64": {
+      "url": "https://github.com/pocketbase/pocketbase/releases/download/v0.40.5/pocketbase_0.40.5_linux_arm64.zip",
+      "sha256": "570baa1c45d2fb92fc0073582b945ca0ece03cbf9837ccabf49a222f99dd02e3",
+      "apiUrl": "https://api.github.com/repos/pocketbase/pocketbase/releases/assets/622395676"
+    },
+    "linux_armv7": {
+      "url": "https://github.com/pocketbase/pocketbase/releases/download/v0.40.5/pocketbase_0.40.5_linux_armv7.zip",
+      "sha256": "14718c29f71c266b571a74d9b6d90e2924beec72404ed1c4294733c0570ae612",
+      "apiUrl": "https://api.github.com/repos/pocketbase/pocketbase/releases/assets/622395641"
+    },
+    "linux_ppc64le": {
+      "url": "https://github.com/pocketbase/pocketbase/releases/download/v0.40.5/pocketbase_0.40.5_linux_ppc64le.zip",
+      "sha256": "b7007a4016913ea958d1242904edc9baff726a19e0357760b74fd39c7b263f30",
+      "apiUrl": "https://api.github.com/repos/pocketbase/pocketbase/releases/assets/622395683"
+    },
+    "linux_s390x": {
+      "url": "https://github.com/pocketbase/pocketbase/releases/download/v0.40.5/pocketbase_0.40.5_linux_s390x.zip",
+      "sha256": "6272251e85d75b4911e5e5c7e477f7dd2c46f4f5277659dcc521591b10482c9e",
+      "apiUrl": "https://api.github.com/repos/pocketbase/pocketbase/releases/assets/622395644"
+    },
+    "windows_amd64": {
+      "url": "https://github.com/pocketbase/pocketbase/releases/download/v0.40.5/pocketbase_0.40.5_windows_amd64.zip",
+      "sha256": "d0980d1f3a8097ff4c03a876e8c98f3008a83c0d42cc03b636bc92b2d4788d1c",
+      "apiUrl": "https://api.github.com/repos/pocketbase/pocketbase/releases/assets/622395680"
+    },
+    "windows_arm64": {
+      "url": "https://github.com/pocketbase/pocketbase/releases/download/v0.40.5/pocketbase_0.40.5_windows_arm64.zip",
+      "sha256": "7dd0d7c500812cac571e450525595b93556527161b1eb86493dabdfc31974ef5",
+      "apiUrl": "https://api.github.com/repos/pocketbase/pocketbase/releases/assets/622395681"
+    }
+  }
+}
