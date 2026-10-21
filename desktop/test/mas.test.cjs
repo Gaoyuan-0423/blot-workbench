@@ -6,7 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const plist = require('plist');
-const { options, TEAM_ID, APP_IDENTIFIER, parseIdentities, profileCertificateHashes, selectIdentity, validateProfile, validateResources, provisioningDeviceId, verifyEntitlements, assertReady } = require('../mas/checks.cjs');
+const { options, TEAM_ID, BUNDLE_ID, APP_IDENTIFIER, parseIdentities, profileCertificateHashes, selectIdentity, validateProfile, validateResources, provisioningDeviceId, verifyEntitlements, verifyOutputs, assertReady } = require('../mas/checks.cjs');
 const { createConfiguration } = require('../mas/config.cjs');
 const { targetArgument } = require('../scripts/mas-preflight.cjs');
 const certificate = Buffer.from('Synthetic certificate bytes for membership validation only');
@@ -161,6 +161,41 @@ test('minimal entitlements include only selected files/outbound access and inher
   assert.deepEqual(child, { 'com.apple.security.app-sandbox': true, 'com.apple.security.inherit': true });
   verifyEntitlements(parent, parent);
   assert.throws(() => verifyEntitlements({ ...parent, 'com.apple.security.network.server': true }, parent));
+});
+test('post-sign verification attaches the certificate prefix and checks the extracted public certificate', (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wisplab-mas-verification-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const app = path.join(root, 'mas-dev-universal', 'WispLab.app');
+  const contents = path.join(app, 'Contents');
+  fs.mkdirSync(path.join(contents, 'Frameworks', 'WispLab Helper.app'), { recursive: true });
+  fs.writeFileSync(path.join(contents, 'Info.plist'), plist.build({ CFBundleIdentifier: BUNDLE_ID, CFBundleShortVersionString: '1.0.0', CFBundleVersion: '1', ElectronTeamID: TEAM_ID }));
+  const profilePath = path.join(root, 'fixture.provisionprofile');
+  fs.writeFileSync(profilePath, 'synthetic profile');
+  fs.copyFileSync(profilePath, path.join(contents, 'embedded.provisionprofile'));
+  const opts = { ...options({}, 'mas-dev'), output: root, profile: profilePath };
+  let extractedDirectory, extractedCertificate = certificate;
+  const run = (file, args) => {
+    assert.equal(file, '/usr/bin/codesign');
+    if (args[0] === '--verify') return { stdout: '', stderr: '' };
+    if (args[1] === '--verbose=4') return { stdout: '', stderr: `TeamIdentifier=${TEAM_ID}` };
+    if (args[1] === '--entitlements') {
+      const name = args.at(-1) === app ? 'entitlements.plist' : 'entitlements.inherit.plist';
+      return { stdout: fs.readFileSync(path.join(__dirname, '../mas', name), 'utf8'), stderr: '' };
+    }
+    assert.equal(args.length, 3);
+    assert.match(args[1], /^--extract-certificates=.+/);
+    assert.equal(args[2], app);
+    const prefix = args[1].slice('--extract-certificates='.length);
+    extractedDirectory = path.dirname(prefix);
+    fs.writeFileSync(prefix + '0', extractedCertificate);
+    return { stdout: '', stderr: '' };
+  };
+  const report = { checks: { identities: { app: developmentIdentity } } };
+  assert.equal(verifyOutputs(opts, report, run), app);
+  assert.equal(fs.existsSync(extractedDirectory), false);
+  extractedCertificate = Buffer.from('wrong certificate');
+  assert.throws(() => verifyOutputs(opts, report, run), /different certificate/);
+  assert.equal(fs.existsSync(extractedDirectory), false);
 });
 test('store resources require exact CI provenance and hashes; extra files and symlinks fail', (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wisplab-mas-resources-'));

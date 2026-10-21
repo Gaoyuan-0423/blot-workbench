@@ -230,7 +230,9 @@ function verifyOutputs(opts, report, run = command) {
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'wisplab-mas-cert-'));
   try {
     const prefix = path.join(temporary, 'cert');
-    run('/usr/bin/codesign', ['--display', '--extract-certificates', prefix, app]);
+    // Optional long-option arguments must be attached; a separate prefix is
+    // interpreted as another code path by codesign.
+    run('/usr/bin/codesign', ['--display', `--extract-certificates=${prefix}`, app]);
     requireThat(hash(fs.readFileSync(prefix + '0'), 'sha1').toUpperCase() === report.checks.identities.app.sha1, 'Signed app uses a different certificate from preflight.');
   } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
   if (opts.target === 'mas') {
