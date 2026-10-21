@@ -5,11 +5,11 @@ const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const plist = require('plist');
-const { options, TEAM_ID, APP_IDENTIFIER, parseIdentities, selectIdentity, validateProfile, validateResources, provisioningDeviceId, verifyEntitlements, assertReady } = require('../mas/checks.cjs');
+const { options, TEAM_ID, APP_IDENTIFIER, parseIdentities, profileCertificateHashes, selectIdentity, validateProfile, validateResources, provisioningDeviceId, verifyEntitlements, assertReady } = require('../mas/checks.cjs');
 const { createConfiguration } = require('../mas/config.cjs');
 const { targetArgument } = require('../scripts/mas-preflight.cjs');
 const certificate = Buffer.from('Synthetic certificate bytes for membership validation only');
-const identity = { name: `Apple Distribution: Example (${TEAM_ID})`, sha1: crypto.createHash('sha1').update(certificate).digest('hex').toUpperCase() };
+const identity = { name: `Apple Distribution: Example (${TEAM_ID})`, teamId: TEAM_ID, sha1: crypto.createHash('sha1').update(certificate).digest('hex').toUpperCase() };
 const now = new Date('2026-10-21T00:00:00Z');
 function profile() {
   return { UUID: 'synthetic', TeamIdentifier: [TEAM_ID], Platform: ['OSX'], CreationDate: '2026-10-01T00:00:00Z', ExpirationDate: '2027-10-01T00:00:00Z', DeveloperCertificates: [certificate], Entitlements: { 'com.apple.application-identifier': APP_IDENTIFIER, 'com.apple.developer.team-identifier': TEAM_ID, 'get-task-allow': false } };
@@ -21,7 +21,7 @@ test('MAS configuration is independent, requires signing, and validates version/
   assert.equal(original.build.appId, 'top.wisplab.desktop.experimental');
   for (const target of ['mas', 'mas-dev']) {
     const opts = options({ WISPLAB_MAS_VERSION: '1.2.3', WISPLAB_MAS_BUILD_NUMBER: '42' }, target);
-    const config = createConfiguration(opts, {});
+    const config = createConfiguration(opts, { checks: { identities: { app: identity } } });
     await require('app-builder-lib/out/util/config/config').validateConfiguration(config, {});
     assert.equal(config.extends, null);
     assert.equal(config.appId, 'top.wisplab.desktop');
@@ -29,7 +29,7 @@ test('MAS configuration is independent, requires signing, and validates version/
     assert.equal(config.extraMetadata.version, '1.2.3');
     assert.equal(config.mac.bundleVersion, '42');
     assert.equal(config.forceCodeSigning, true);
-    assert.equal(config.mas.identity, TEAM_ID);
+    assert.equal(config.mas.identity, target === 'mas-dev' ? identity.sha1 : TEAM_ID);
     assert.notEqual(config.mac.identity, null);
     assert.equal(config.mas.preAutoEntitlements, false);
     assert.equal(config.mas.type, target === 'mas' ? 'distribution' : 'development');
@@ -45,12 +45,27 @@ test('MAS configuration is independent, requires signing, and validates version/
 });
 test('signing selection follows builder priorities and rejects ambiguous/wrong-team identities', () => {
   const development = { name: `Mac Developer: Example (${TEAM_ID})`, sha1: '1'.repeat(40) };
-  const identities = parseIdentities(`1) ${identity.sha1} "${identity.name}"\n2) ${development.sha1} "${development.name}"\n1) ${identity.sha1} "${identity.name}"`);
+  const identities = parseIdentities(`1) ${identity.sha1} "${identity.name}"\n2) ${development.sha1} "${development.name}"\n1) ${identity.sha1} "${identity.name}"`).map((entry) => ({ ...entry, teamId: TEAM_ID }));
   assert.equal(identities.length, 2);
   assert.deepEqual(selectIdentity(identities, ['Apple Distribution', '3rd Party Mac Developer Application']), identity);
-  assert.throws(() => selectIdentity([{ ...identity, name: 'Apple Distribution: Other (OTHERTEAM0)' }], ['Apple Distribution']), /Missing/);
+  assert.throws(() => selectIdentity([{ ...identity, teamId: 'OTHERTEAM0' }], ['Apple Distribution']), /Missing/);
   assert.throws(() => selectIdentity([identity, { ...identity, sha1: '2'.repeat(40) }], ['Apple Distribution']), /Multiple/);
   assert.throws(() => selectIdentity(identities, ['3rd Party Mac Developer Installer']), /Missing/);
+});
+test('development identity uses certificate OU and profile fingerprint, never CN parentheses as team ID', () => {
+  const development = { ...identity, name: 'Apple Development: Yuan Gao (Y24V367CCV)' };
+  const another = { ...development, sha1: '2'.repeat(40) };
+  const selected = selectIdentity([development, another], ['Mac Developer', 'Apple Development'], profileCertificateHashes(profile()));
+  assert.deepEqual(selected, development);
+  assert.throws(() => selectIdentity([{ ...development, teamId: 'OTHERTEAM0', name: `Apple Development: Example (${TEAM_ID})` }], ['Apple Development']), /Missing/);
+  assert.throws(() => selectIdentity([development], ['Apple Development'], ['3'.repeat(40)]), /Missing/);
+  const config = createConfiguration(options({}, 'mas-dev'), { checks: { identities: { app: selected } } });
+  assert.equal(config.mas.identity, development.sha1);
+  assert.equal(config.masDev.identity, development.sha1);
+  assert.throws(() => createConfiguration(options({}, 'mas-dev'), {}), /preflight-verified/);
+  const p = profile(); p.ProvisionedDevices = ['device']; p.Entitlements['get-task-allow'] = true;
+  assert.doesNotThrow(() => validateProfile(p, 'mas-dev', selected, now));
+  assert.throws(() => validateProfile(p, 'mas-dev', { ...selected, teamId: 'OTHERTEAM0' }, now), /organizational unit/);
 });
 test('profiles reject wrong team/bundle/certificate, expiry and wrong distribution purpose', () => {
   assert.equal(validateProfile(profile(), 'mas', identity, now).bundleId, 'top.wisplab.desktop');

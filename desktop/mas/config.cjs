@@ -4,8 +4,14 @@ const { DESKTOP, TEAM_ID, BUNDLE_ID, options, preflight, assertReady, verifyOutp
 // An explicit config path replaces package.json build; never spread or extend
 // the experimental config because its mac.identity=null disables signing.
 function createConfiguration(opts, report) {
+  const developmentIdentity = opts.target === 'mas-dev' ? report.checks?.identities?.app?.sha1 : undefined;
+  if (opts.target === 'mas-dev' && !/^[0-9A-F]{40}$/.test(developmentIdentity || ''))
+    throw new Error('A preflight-verified development certificate fingerprint is required.');
   const signing = {
-    identity: TEAM_ID,
+    // Development CN parentheses identify a person, not necessarily the team.
+    // Builder 26 matches SHA1 in the security identity listing. Store signing
+    // shares one qualifier with its installer, so retains the checked team ID.
+    identity: developmentIdentity || TEAM_ID,
     provisioningProfile: opts.profile,
     entitlements: path.join(__dirname, 'entitlements.plist'),
     entitlementsInherit: path.join(__dirname, 'entitlements.inherit.plist'),

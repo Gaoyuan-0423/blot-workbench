@@ -37,9 +37,28 @@ function parseIdentities(text) {
   return [...new Map([...text.matchAll(/\b([0-9A-Fa-f]{40})\s+"([^"]+)"/g)].map((match) =>
     [match[1].toUpperCase(), { sha1: match[1].toUpperCase(), name: match[2] }])).values()];
 }
-function selectIdentity(identities, types) {
+function certificateIdentity(bytes) {
+  const certificate = new crypto.X509Certificate(bytes);
+  const subject = certificate.toLegacyObject().subject;
+  return { name: subject.CN, teamId: subject.OU, sha1: certificate.fingerprint.replaceAll(':', '').toUpperCase() };
+}
+function profileCertificateHashes(profile) {
+  return (profile.DeveloperCertificates || []).map((certificate) =>
+    hash(Buffer.isBuffer(certificate) ? certificate : Buffer.from(certificate, 'base64'), 'sha1').toUpperCase());
+}
+function identifyCertificateTeams(identities, keychain, run = command) {
+  return identities.filter((identity) => /^(Apple Development|Mac Developer|Apple Distribution|3rd Party Mac Developer Application|3rd Party Mac Developer Installer):/.test(identity.name)).map((identity) => {
+    // find-certificate exports public certificates only, never private keys.
+    const pem = run('/usr/bin/security', ['find-certificate', '-a', '-c', identity.name, '-p', ...(keychain ? [keychain] : [])]).stdout;
+    const certificates = [...pem.matchAll(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g)].map((match) => certificateIdentity(match[0]));
+    const certificate = certificates.find((entry) => entry.sha1 === identity.sha1 && entry.name === identity.name);
+    requireThat(certificate, `Cannot verify public certificate metadata for ${identity.name}.`);
+    return { ...identity, teamId: certificate.teamId };
+  });
+}
+function selectIdentity(identities, types, allowedCertificateHashes) {
   for (const type of types) {
-    const matches = identities.filter((identity) => identity.name.startsWith(`${type}:`) && identity.name.endsWith(`(${TEAM_ID})`));
+    const matches = identities.filter((identity) => identity.name.startsWith(`${type}:`) && identity.teamId === TEAM_ID && (!allowedCertificateHashes || allowedCertificateHashes.includes(identity.sha1)));
     if (!matches.length) continue;
     requireThat(matches.length === 1, `Multiple ${type} identities for this team; use CSC_KEYCHAIN to select a dedicated keychain.`);
     return matches[0];
@@ -47,6 +66,7 @@ function selectIdentity(identities, types) {
   throw new Error(`Missing valid private-key identity: ${types.join(' or ')} for team ${TEAM_ID}.`);
 }
 function validateProfile(profile, target, identity, now = new Date()) {
+  requireThat(identity.teamId === TEAM_ID, 'Signing certificate organizational unit does not match the registered team.');
   requireThat(Array.isArray(profile.TeamIdentifier) && profile.TeamIdentifier.length === 1 && profile.TeamIdentifier[0] === TEAM_ID, 'Provisioning profile belongs to the wrong team.');
   const entitlements = profile.Entitlements || {};
   requireThat(entitlements['com.apple.application-identifier'] === APP_IDENTIFIER, 'Provisioning profile must contain the exact registered bundle ID; wildcard profiles are rejected.');
@@ -61,10 +81,7 @@ function validateProfile(profile, target, identity, now = new Date()) {
   } else {
     requireThat((debug === false || debug === undefined) && !profile.ProvisionedDevices, 'mas requires a Mac App Store distribution profile without device restrictions or get-task-allow.');
   }
-  requireThat(Array.isArray(profile.DeveloperCertificates) && profile.DeveloperCertificates.some((certificate) => {
-    const bytes = Buffer.isBuffer(certificate) ? certificate : Buffer.from(certificate, 'base64');
-    return hash(bytes, 'sha1').toUpperCase() === identity.sha1;
-  }), 'The selected app signing certificate is not included in the provisioning profile.');
+  requireThat(Array.isArray(profile.DeveloperCertificates) && profileCertificateHashes(profile).includes(identity.sha1), 'The selected app signing certificate is not included in the provisioning profile.');
   // Team-prefixed macOS application groups are authorized by the signing team,
   // not by profile group registration. Do not require a group.* entitlement here.
   return { uuid: profile.UUID, expiresAt: new Date(profile.ExpirationDate).toISOString(), teamId: TEAM_ID, bundleId: BUNDLE_ID };
@@ -144,19 +161,26 @@ function preflight(opts, run = command) {
     requireThat(sha === checks.resources?.desktopGitSha, 'Desktop sources changed after CI resource staging; stage again.');
     return sha;
   });
-  let appIdentity;
-  check('identities', () => {
-    const suffix = opts.keychain ? [opts.keychain] : [];
-    const identities = parseIdentities(run('/usr/bin/security', ['find-identity', '-v', ...suffix]).stdout + '\n' + run('/usr/bin/security', ['find-identity', '-v', '-p', 'codesigning', ...suffix]).stdout);
-    appIdentity = selectIdentity(identities, opts.target === 'mas' ? ['Apple Distribution', '3rd Party Mac Developer Application'] : ['Mac Developer', 'Apple Development']);
-    const installer = opts.target === 'mas' ? selectIdentity(identities, ['3rd Party Mac Developer Installer']) : undefined;
-    return { app: appIdentity, ...(installer ? { installer } : {}) };
-  });
-  check('profile', () => {
+  let appIdentity, profile, profileError;
+  try {
     requireThat(opts.profile && fs.statSync(opts.profile).isFile(), 'Set WISPLAB_MAS_PROFILE to an existing provisioning profile outside the repository.');
     const real = fs.realpathSync(opts.profile), repo = fs.realpathSync(path.join(DESKTOP, '..'));
     requireThat(real !== repo && !real.startsWith(repo + path.sep), 'Keep provisioning profiles outside the source repository.');
-    const profile = parsePlist(run('/usr/bin/security', ['cms', '-D', '-i', real]).stdout);
+    profile = parsePlist(run('/usr/bin/security', ['cms', '-D', '-i', real]).stdout);
+  } catch (error) { profileError = error; }
+  check('identities', () => {
+    const suffix = opts.keychain ? [opts.keychain] : [];
+    const identities = identifyCertificateTeams(parseIdentities(run('/usr/bin/security', ['find-identity', '-v', ...suffix]).stdout + '\n' + run('/usr/bin/security', ['find-identity', '-v', '-p', 'codesigning', ...suffix]).stdout), opts.keychain, run);
+    // Store app/installer share the team qualifier: keep store ambiguity checks
+    // before profile membership so Builder cannot select a different same-team
+    // certificate. Development uses the exact selected SHA1 qualifier instead.
+    appIdentity = selectIdentity(identities, opts.target === 'mas' ? ['Apple Distribution', '3rd Party Mac Developer Application'] : ['Mac Developer', 'Apple Development'], profile && opts.target === 'mas-dev' ? profileCertificateHashes(profile) : undefined);
+    const installer = opts.target === 'mas' ? selectIdentity(identities, ['3rd Party Mac Developer Installer']) : undefined;
+    if (installer) requireThat(appIdentity.name.includes(TEAM_ID) && installer.name.includes(TEAM_ID), 'Store app and installer identities must both match the shared team qualifier required by electron-builder.');
+    return { app: appIdentity, ...(installer ? { installer } : {}) };
+  });
+  check('profile', () => {
+    if (profileError) throw profileError;
     requireThat(appIdentity, 'A valid app signing identity is required to validate profile certificate membership.');
     const result = validateProfile(profile, opts.target, appIdentity);
     if (opts.target === 'mas-dev') {
@@ -212,4 +236,4 @@ function verifyOutputs(opts, report, run = command) {
   }
   return app;
 }
-module.exports = { DESKTOP, TEAM_ID, BUNDLE_ID, APP_IDENTIFIER, options, parseIdentities, selectIdentity, validateProfile, validateResources, provisioningDeviceId, preflight, assertReady, verifyEntitlements, verifyOutputs, command };
+module.exports = { DESKTOP, TEAM_ID, BUNDLE_ID, APP_IDENTIFIER, options, parseIdentities, certificateIdentity, identifyCertificateTeams, profileCertificateHashes, selectIdentity, validateProfile, validateResources, provisioningDeviceId, preflight, assertReady, verifyEntitlements, verifyOutputs, command };
