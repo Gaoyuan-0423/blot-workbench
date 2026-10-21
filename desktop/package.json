@@ -16,7 +16,10 @@
     "icons": "node scripts/icons.cjs",
     "package:dir": "electron-builder --dir --publish never",
     "package:mac": "electron-builder --mac dmg zip --publish never",
-    "package:win": "electron-builder --win nsis portable --x64 --publish never"
+    "package:win": "electron-builder --win nsis portable --x64 --publish never",
+    "mas:preflight": "node scripts/mas-preflight.cjs",
+    "package:mas": "node scripts/mas-build.cjs --target mas",
+    "package:mas-dev": "node scripts/mas-build.cjs --target mas-dev"
   },
   "devDependencies": {
     "electron": "44.9.1",

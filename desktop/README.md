@@ -2,6 +2,8 @@
 
 This is an **experimental, unsigned** offline desktop distribution. The renderer loads installed application files, never the live website. / 这是**未签名实验版**：应用读取安装包内的真实资源，启动与核心分析不依赖在线网站。
 
+Mac App Store 准备使用独立流程，见 [商店版交接 / MAS handoff](MAC_APP_STORE.md)：Xcode 账号、证书与 profile、沙箱迁移验收、TestFlight 和提审待办。该流程目前不代表已经签名、上传或可发布。 / The separate MAS handoff covers signing prerequisites and acceptance; it does not claim a signed or submission-ready release.
+
 **First release: optional accounts and local project files only.** Signing in does not upload images, tables, results or project archives, and does not synchronize experiments between computers. Export a project file on one device and import it on the other. Cloud project storage remains disabled; retained cloud code is for a separately reviewed future opt-in.
 
 **首版范围：账号可选，项目保存在本地。** 注册、登录不会上传实验数据，也不提供跨设备同步。更换电脑或在网页与桌面之间迁移时，请使用项目文件导出／导入。游客核心分析和本地项目无需账号或网络。

@@ -31,7 +31,7 @@ function createWindow() {
   window = new BrowserWindow({
     width: 1360, height: 900, minWidth: 390, minHeight: 600,
     icon: path.join(__dirname, 'build/icon.png'),
-    title: 'WispLab Experimental — unsigned / 未签名实验版', show: false,
+    title: process.mas ? 'WispLab' : 'WispLab Experimental — unsigned / 未签名实验版', show: false,
     webPreferences: { preload: path.join(__dirname, 'preload.cjs'), nodeIntegration: false, nodeIntegrationInWorker: false, contextIsolation: true, sandbox: true, webSecurity: true, allowRunningInsecureContent: false, webviewTag: false, partition: 'persist:wisplab-desktop' },
   });
   window.webContents.on('will-navigate', (event, url) => {

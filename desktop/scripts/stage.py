@@ -126,7 +126,10 @@ def main():
     args = parser.parse_args()
     destination = DESKTOP / 'resources'
     with tempfile.TemporaryDirectory(prefix='wisplab-desktop-stage-') as tmp:
-        staging = Path(tmp)
+        # macOS exposes its temporary directory through /var -> /private/var.
+        # Canonicalize only our newly created staging root; artifact contents
+        # still go through the strict no-symlink validator.
+        staging = Path(tmp).resolve()
         resources = staging / 'resources'
         apps = resources / 'apps'
         apps.mkdir(parents=True)

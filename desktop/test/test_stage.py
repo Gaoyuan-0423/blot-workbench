@@ -1,5 +1,8 @@
 import argparse
+from contextlib import nullcontext
 import importlib.util
+import json
+import os
 from pathlib import Path
 import tempfile
 import types
@@ -12,6 +15,41 @@ spec.loader.exec_module(stage)
 
 
 class ProvenanceTests(unittest.TestCase):
+    @unittest.skipIf(os.name == 'nt', 'Creating symlinks requires Windows privileges')
+    def test_owned_temporary_root_supports_symlinked_system_temp_parent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            actual = root / 'actual'
+            actual.mkdir()
+            alias = root / 'alias'
+            alias.symlink_to(actual, target_is_directory=True)
+            staging = alias / 'staging'
+            staging.mkdir()
+            desktop = root / 'desktop'
+            desktop.mkdir()
+            (desktop / 'package.json').write_text(json.dumps({'version': '0.1.0-test'}))
+
+            def fake_stage(args, apps, scratch):
+                self.assertEqual(scratch, actual / 'staging')
+                stage.validation.no_symlink_components(apps)
+                linked = apps / 'linked'
+                linked.symlink_to(desktop, target_is_directory=True)
+                with self.assertRaisesRegex(stage.validation.PackageError, 'Symbolic links'):
+                    stage.validation.no_symlink_components(linked)
+                linked.unlink()
+                return {}
+
+            argv = ['stage.py', 'ci', '--wb-sha', 'a' * 40,
+                    '--pathology-sha', 'b' * 40, '--pcr-sha', 'c' * 40]
+            with patch.object(stage, 'DESKTOP', desktop), \
+                    patch.object(stage.sys, 'argv', argv), \
+                    patch.object(stage.tempfile, 'TemporaryDirectory', return_value=nullcontext(str(staging))), \
+                    patch.object(stage, 'stage_ci', side_effect=fake_stage), \
+                    patch.object(stage, 'git', side_effect=['d' * 40, '']), \
+                    patch('builtins.print'):
+                stage.main()
+            self.assertEqual(json.loads((desktop / 'resources/release.json').read_text())['mode'], 'ci')
+
     def test_full_immutable_sha_required(self):
         sha = 'ab' * 20
         self.assertEqual(stage.full_sha(sha), sha)

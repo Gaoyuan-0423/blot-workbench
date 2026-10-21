@@ -1,0 +1,114 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const plist = require('plist');
+const { options, TEAM_ID, APP_IDENTIFIER, parseIdentities, selectIdentity, validateProfile, validateResources, provisioningDeviceId, verifyEntitlements, assertReady } = require('../mas/checks.cjs');
+const { createConfiguration } = require('../mas/config.cjs');
+const { targetArgument } = require('../scripts/mas-preflight.cjs');
+const certificate = Buffer.from('Synthetic certificate bytes for membership validation only');
+const identity = { name: `Apple Distribution: Example (${TEAM_ID})`, sha1: crypto.createHash('sha1').update(certificate).digest('hex').toUpperCase() };
+const now = new Date('2026-10-21T00:00:00Z');
+function profile() {
+  return { UUID: 'synthetic', TeamIdentifier: [TEAM_ID], Platform: ['OSX'], CreationDate: '2026-10-01T00:00:00Z', ExpirationDate: '2027-10-01T00:00:00Z', DeveloperCertificates: [certificate], Entitlements: { 'com.apple.application-identifier': APP_IDENTIFIER, 'com.apple.developer.team-identifier': TEAM_ID, 'get-task-allow': false } };
+}
+test('MAS configuration is independent, requires signing, and validates version/target input', async () => {
+  const original = require('../package.json');
+  assert.equal(original.build.mac.identity, null);
+  assert.equal(original.version, '0.1.0-experimental.1');
+  assert.equal(original.build.appId, 'top.wisplab.desktop.experimental');
+  for (const target of ['mas', 'mas-dev']) {
+    const opts = options({ WISPLAB_MAS_VERSION: '1.2.3', WISPLAB_MAS_BUILD_NUMBER: '42' }, target);
+    const config = createConfiguration(opts, {});
+    await require('app-builder-lib/out/util/config/config').validateConfiguration(config, {});
+    assert.equal(config.extends, null);
+    assert.equal(config.appId, 'top.wisplab.desktop');
+    assert.equal(config.productName, 'WispLab');
+    assert.equal(config.extraMetadata.version, '1.2.3');
+    assert.equal(config.mac.bundleVersion, '42');
+    assert.equal(config.forceCodeSigning, true);
+    assert.equal(config.mas.identity, TEAM_ID);
+    assert.notEqual(config.mac.identity, null);
+    assert.equal(config.mas.preAutoEntitlements, false);
+    assert.equal(config.mas.type, target === 'mas' ? 'distribution' : 'development');
+    assert.equal(config.mac.target[0].target, target);
+    assert.equal(config.publish, null);
+    assert.match(config.directories.output, new RegExp(target === 'mas' ? 'mas-store' : 'mas-dev'));
+    await assert.rejects(config.beforePack({ electronPlatformName: 'darwin', targets: [] }), /Only the selected MAS target/);
+  }
+  for (const env of [{ WISPLAB_MAS_VERSION: '1.0-beta' }, { WISPLAB_MAS_BUILD_NUMBER: '0' }, { WISPLAB_MAS_BUILD_NUMBER: '10000' }, { WISPLAB_MAS_ARCH: 'ia32' }, { CSC_NAME: '-' }, { CSC_LINK: 'secret.p12' }, { WISPLAB_MAS_PROFILE: 'relative.profile' }, { CSC_IDENTITY_AUTO_DISCOVERY: 'false' }]) assert.throws(() => options(env));
+  assert.throws(() => options({}, 'dmg'));
+  assert.throws(() => targetArgument(['--target', 'mas', '--publish', 'always']));
+  assert.throws(() => assertReady({ ok: false, errors: [{ check: 'identity', message: 'missing' }] }), /preflight failed/);
+});
+test('signing selection follows builder priorities and rejects ambiguous/wrong-team identities', () => {
+  const development = { name: `Mac Developer: Example (${TEAM_ID})`, sha1: '1'.repeat(40) };
+  const identities = parseIdentities(`1) ${identity.sha1} "${identity.name}"\n2) ${development.sha1} "${development.name}"\n1) ${identity.sha1} "${identity.name}"`);
+  assert.equal(identities.length, 2);
+  assert.deepEqual(selectIdentity(identities, ['Apple Distribution', '3rd Party Mac Developer Application']), identity);
+  assert.throws(() => selectIdentity([{ ...identity, name: 'Apple Distribution: Other (OTHERTEAM0)' }], ['Apple Distribution']), /Missing/);
+  assert.throws(() => selectIdentity([identity, { ...identity, sha1: '2'.repeat(40) }], ['Apple Distribution']), /Multiple/);
+  assert.throws(() => selectIdentity(identities, ['3rd Party Mac Developer Installer']), /Missing/);
+});
+test('profiles reject wrong team/bundle/certificate, expiry and wrong distribution purpose', () => {
+  assert.equal(validateProfile(profile(), 'mas', identity, now).bundleId, 'top.wisplab.desktop');
+  const withoutDebug = profile(); delete withoutDebug.Entitlements['get-task-allow'];
+  assert.doesNotThrow(() => validateProfile(withoutDebug, 'mas', identity, now));
+  for (const mutate of [
+    (p) => { p.TeamIdentifier = ['OTHERTEAM0']; },
+    (p) => { p.Entitlements['com.apple.application-identifier'] = `${TEAM_ID}.*`; },
+    (p) => { p.ExpirationDate = '2025-01-01'; },
+    (p) => { p.CreationDate = '2027-01-01'; },
+    (p) => { p.Platform = ['iOS']; },
+    (p) => { p.DeveloperCertificates = [Buffer.from('other')]; },
+    (p) => { p.ProvisionsAllDevices = true; },
+    (p) => { p.ProvisionedDevices = ['device']; },
+    (p) => { p.Entitlements['get-task-allow'] = true; },
+  ]) { const p = profile(); mutate(p); assert.throws(() => validateProfile(p, 'mas', identity, now)); }
+  const development = profile(); development.ProvisionedDevices = ['device']; development.Entitlements['get-task-allow'] = true;
+  assert.doesNotThrow(() => validateProfile(development, 'mas-dev', identity, now));
+  assert.throws(() => validateProfile(profile(), 'mas-dev', identity, now));
+});
+test('Apple Silicon provisioning UDID is not replaced by its hardware UUID', () => {
+  assert.equal(provisioningDeviceId({ SPHardwareDataType: [{ chip_type: 'Apple M4', provisioning_UDID: 'provisioning', platform_UUID: 'hardware' }] }), 'provisioning');
+  assert.equal(provisioningDeviceId({ SPHardwareDataType: [{ cpu_type: 'Intel Core i7', platform_UUID: 'intel-hardware' }] }), 'intel-hardware');
+  assert.throws(() => provisioningDeviceId({ SPHardwareDataType: [{ chip_type: 'Apple M4', platform_UUID: 'wrong' }] }), /Provisioning UDID/);
+});
+test('minimal entitlements include only selected files/outbound access and inherited helper sandbox', () => {
+  const parent = plist.parse(fs.readFileSync(path.join(__dirname, '../mas/entitlements.plist'), 'utf8'));
+  const child = plist.parse(fs.readFileSync(path.join(__dirname, '../mas/entitlements.inherit.plist'), 'utf8'));
+  assert.deepEqual(Object.keys(parent).sort(), ['com.apple.application-identifier', 'com.apple.developer.team-identifier', 'com.apple.security.app-sandbox', 'com.apple.security.application-groups', 'com.apple.security.files.user-selected.read-write', 'com.apple.security.network.client'].sort());
+  assert.deepEqual(parent['com.apple.security.application-groups'], [APP_IDENTIFIER]);
+  assert.deepEqual(child, { 'com.apple.security.app-sandbox': true, 'com.apple.security.inherit': true });
+  verifyEntitlements(parent, parent);
+  assert.throws(() => verifyEntitlements({ ...parent, 'com.apple.security.network.server': true }, parent));
+});
+test('store resources require exact CI provenance and hashes; extra files and symlinks fail', (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wisplab-mas-resources-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const sha = 'a'.repeat(40), fileHash = crypto.createHash('sha256').update('fixture').digest('hex');
+  const manifest = { schemaVersion: 1, mode: 'ci', desktopTreeDirty: false, desktopGitSha: sha, sources: {} };
+  for (const tool of ['wb', 'pathology', 'pcr', 'portal']) {
+    const repository = `Gaoyuan-0423/${tool === 'portal' || tool === 'wb' ? 'blot' : tool}-workbench`;
+    fs.mkdirSync(path.join(root, 'apps', tool), { recursive: true });
+    fs.writeFileSync(path.join(root, 'apps', tool, 'index.html'), 'fixture');
+    manifest.sources[tool] = { repository, gitSha: sha, dirty: false, buildOrigin: tool === 'portal' ? 'pinned-source' : 'successful-ci-artifact', files: { 'index.html': fileHash }, ci: { runId: 1, artifactId: 2, conclusion: 'success', headSha: sha, artifactName: 'web-dist', artifactDigest: `sha256:${'b'.repeat(64)}`, runUrl: `https://github.com/${repository}/actions/runs/1` } };
+  }
+  const save = () => fs.writeFileSync(path.join(root, 'release.json'), JSON.stringify(manifest));
+  save(); assert.equal(validateResources(root, 'mas').mode, 'ci');
+  manifest.mode = 'local'; save(); assert.throws(() => validateResources(root, 'mas'), /CI-staged/); assert.equal(validateResources(root, 'mas-dev').mode, 'local');
+  manifest.mode = 'ci'; manifest.sources.wb.ci.conclusion = 'failure'; save(); assert.throws(() => validateResources(root, 'mas'), /CI provenance/);
+  manifest.sources.wb.ci.conclusion = 'success'; save();
+  const original = path.join(root, 'apps/wb/index.html');
+  fs.writeFileSync(original, 'changed'); assert.throws(() => validateResources(root, 'mas'), /hashes/);
+  fs.writeFileSync(original, 'fixture'); fs.writeFileSync(path.join(root, 'apps/wb/extra.txt'), 'extra'); assert.throws(() => validateResources(root, 'mas'), /file list/);
+  fs.unlinkSync(path.join(root, 'apps/wb/extra.txt'));
+  const outside = path.join(root, 'outside');
+  fs.mkdirSync(outside);
+  // Directory junctions exercise the same lstat rejection on Windows without
+  // requiring Developer Mode or the symbolic-link privilege.
+  fs.symlinkSync(outside, path.join(root, 'apps/wb/link'), process.platform === 'win32' ? 'junction' : 'dir');
+  assert.throws(() => validateResources(root, 'mas'), /Symlink/);
+});
