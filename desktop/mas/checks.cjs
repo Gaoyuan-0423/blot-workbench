@@ -203,6 +203,21 @@ function assertReady(report) {
 function verifyEntitlements(actual, expected) {
   requireThat(JSON.stringify(Object.keys(actual).sort()) === JSON.stringify(Object.keys(expected).sort()) && Object.entries(expected).every(([key, value]) => JSON.stringify(actual[key]) === JSON.stringify(value)), 'Signed entitlements differ from the explicit minimal MAS entitlement set.');
 }
+function verifyInstallerSignature(packagePath, identity, run = command) {
+  const signature = run('/usr/sbin/pkgutil', ['--check-signature', packagePath]).stdout;
+  const status = signature.match(/^\s*Status:\s*(.+)$/m)?.[1].trim();
+  // pkgutil labels Mac App Store installer certificates as Development even
+  // though the selected identity is Mac Installer Distribution.
+  requireThat(status === 'signed by a developer certificate issued by Apple (Development)' || /^signed by a certificate trusted by (?:macOS|Mac OS X)$/.test(status || ''), 'Installer signature is not trusted.');
+  requireThat(signature.match(/^\s*1\.\s*(.+)$/m)?.[1].trim() === identity.name, 'Installer signature uses an unexpected signing identity.');
+  // Current macOS xar supports reading the TOC, not --extract-certs. Read only
+  // the signing chain's first DER certificate; no archive payload is extracted.
+  const toc = run('/usr/bin/xar', ['--dump-toc=-', '-f', packagePath]).stdout;
+  const signatures = [...toc.matchAll(/<signature\b[^>]*>[\s\S]*?<\/signature>/g)];
+  requireThat(signatures.length === 1, 'Expected one installer signature certificate chain.');
+  const certificate = signatures[0][0].match(/<X509Certificate\b[^>]*>([\s\S]*?)<\/X509Certificate>/)?.[1];
+  requireThat(certificate && hash(Buffer.from(certificate.replace(/\s+/g, ''), 'base64'), 'sha1').toUpperCase() === identity.sha1, 'Signed installer uses a different certificate from preflight.');
+}
 function verifyOutputs(opts, report, run = command) {
   const directories = fs.readdirSync(opts.output).filter((name) => name === opts.target || name === `${opts.target}-${opts.arch}`);
   requireThat(directories.length === 1, 'Expected exactly one MAS output directory for the selected architecture.');
@@ -238,9 +253,8 @@ function verifyOutputs(opts, report, run = command) {
   if (opts.target === 'mas') {
     const packages = fs.readdirSync(output).filter((name) => name.endsWith('.pkg'));
     requireThat(packages.length === 1, 'Expected one signed Mac App Store installer.');
-    const signature = run('/usr/sbin/pkgutil', ['--check-signature', path.join(output, packages[0])]).stdout;
-    requireThat(signature.includes('signed by a certificate trusted by') && signature.includes(report.checks.identities.installer.name), 'Installer signature is not trusted or uses an unexpected signing identity.');
+    verifyInstallerSignature(path.join(output, packages[0]), report.checks.identities.installer, run);
   }
   return app;
 }
-module.exports = { DESKTOP, TEAM_ID, BUNDLE_ID, APP_IDENTIFIER, options, parseIdentities, certificateIdentity, identifyCertificateTeams, profileCertificateHashes, selectIdentity, validateProfile, validateResources, provisioningDeviceId, preflight, assertReady, verifyEntitlements, verifyOutputs, command };
+module.exports = { DESKTOP, TEAM_ID, BUNDLE_ID, APP_IDENTIFIER, options, parseIdentities, certificateIdentity, identifyCertificateTeams, profileCertificateHashes, selectIdentity, validateProfile, validateResources, provisioningDeviceId, preflight, assertReady, verifyEntitlements, verifyInstallerSignature, verifyOutputs, command };

@@ -6,7 +6,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const plist = require('plist');
-const { options, TEAM_ID, BUNDLE_ID, APP_IDENTIFIER, parseIdentities, profileCertificateHashes, selectIdentity, validateProfile, validateResources, provisioningDeviceId, verifyEntitlements, verifyOutputs, assertReady } = require('../mas/checks.cjs');
+const { options, TEAM_ID, BUNDLE_ID, APP_IDENTIFIER, parseIdentities, profileCertificateHashes, selectIdentity, validateProfile, validateResources, provisioningDeviceId, verifyEntitlements, verifyInstallerSignature, verifyOutputs, assertReady } = require('../mas/checks.cjs');
 const { createConfiguration } = require('../mas/config.cjs');
 const { targetArgument } = require('../scripts/mas-preflight.cjs');
 const certificate = Buffer.from('Synthetic certificate bytes for membership validation only');
@@ -196,6 +196,38 @@ test('post-sign verification attaches the certificate prefix and checks the extr
   extractedCertificate = Buffer.from('wrong certificate');
   assert.throws(() => verifyOutputs(opts, report, run), /different certificate/);
   assert.equal(fs.existsSync(extractedDirectory), false);
+});
+test('MAS installer verification accepts Apple status and requires the exact leaf certificate', () => {
+  const installer = { ...identity, name: `3rd Party Mac Developer Installer: Example (${TEAM_ID})` };
+  let status = 'signed by a developer certificate issued by Apple (Development)';
+  let leafName = installer.name;
+  const chain = (bytes) => `<signature style="RSA"><KeyInfo><X509Data><X509Certificate>\n${bytes.toString('base64')}\n</X509Certificate></X509Data></KeyInfo></signature>`;
+  let toc = `<xar><toc>${chain(certificate)}</toc></xar>`;
+  const run = (file, args) => {
+    if (file === '/usr/sbin/pkgutil') {
+      assert.deepEqual(args, ['--check-signature', 'fixture.pkg']);
+      return { stdout: `Status: ${status}\nCertificate Chain:\n  1. ${leafName}\n  2. Apple Root CA\n`, stderr: '' };
+    }
+    assert.equal(file, '/usr/bin/xar');
+    assert.deepEqual(args, ['--dump-toc=-', '-f', 'fixture.pkg']);
+    return { stdout: toc, stderr: '' };
+  };
+  for (const accepted of [status, 'signed by a certificate trusted by macOS', 'signed by a certificate trusted by Mac OS X']) {
+    status = accepted;
+    assert.doesNotThrow(() => verifyInstallerSignature('fixture.pkg', installer, run));
+  }
+  for (const rejected of ['no signature', 'signed by an untrusted certificate', 'signed by a certificate that has since expired']) {
+    status = rejected;
+    assert.throws(() => verifyInstallerSignature('fixture.pkg', installer, run), /not trusted/);
+  }
+  status = 'signed by a developer certificate issued by Apple (Development)';
+  leafName = 'Unexpected Installer';
+  assert.throws(() => verifyInstallerSignature('fixture.pkg', installer, run), /unexpected signing identity/);
+  leafName = installer.name;
+  toc = chain(Buffer.from('different certificate with the same claimed name'));
+  assert.throws(() => verifyInstallerSignature('fixture.pkg', installer, run), /different certificate/);
+  toc = `<xar><toc>${chain(certificate)}${chain(certificate)}</toc></xar>`;
+  assert.throws(() => verifyInstallerSignature('fixture.pkg', installer, run), /one installer signature/);
 });
 test('store resources require exact CI provenance and hashes; extra files and symlinks fail', (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wisplab-mas-resources-'));
