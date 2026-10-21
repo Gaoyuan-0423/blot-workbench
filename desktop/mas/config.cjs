@@ -17,6 +17,11 @@ function createConfiguration(opts, report) {
     entitlementsInherit: path.join(__dirname, 'entitlements.inherit.plist'),
     preAutoEntitlements: false,
     hardenedRuntime: false,
+    // MAS validates the current distribution certificate and Apple re-signs the
+    // app; secure timestamps are required for Developer ID distribution instead.
+    // https://developer.apple.com/documentation/xcode/creating-distribution-signed-code-for-the-mac/
+    // https://developer.apple.com/documentation/technotes/tn3161-inside-code-signing-certificates
+    timestamp: 'none',
     type: opts.target === 'mas-dev' ? 'development' : 'distribution',
   };
   return {

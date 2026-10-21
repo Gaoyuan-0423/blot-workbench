@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { spawnSync } = require('node:child_process');
 const plist = require('plist');
 const { options, TEAM_ID, APP_IDENTIFIER, parseIdentities, profileCertificateHashes, selectIdentity, validateProfile, validateResources, provisioningDeviceId, verifyEntitlements, assertReady } = require('../mas/checks.cjs');
 const { createConfiguration } = require('../mas/config.cjs');
@@ -43,6 +44,48 @@ test('MAS configuration is independent, requires signing, and validates version/
   assert.throws(() => options({}, 'dmg'));
   assert.throws(() => targetArgument(['--target', 'mas', '--publish', 'always']));
   assert.throws(() => assertReady({ ok: false, errors: [{ check: 'identity', message: 'missing' }] }), /preflight failed/);
+});
+test('MAS timestamps are disabled only in the isolated MAS targets, not ordinary macOS configuration', async () => {
+  const report = { checks: { identities: { app: identity } } };
+  for (const target of ['mas', 'mas-dev']) {
+    const config = createConfiguration(options({}, target), report);
+    assert.equal(config.mas.timestamp, 'none');
+    assert.equal(config.masDev.timestamp, 'none');
+    assert.equal(Object.hasOwn(config.mac, 'timestamp'), false);
+    await assert.rejects(config.beforePack({ electronPlatformName: 'darwin', targets: [{ name: 'dmg' }] }), /Only the selected MAS target/);
+    await assert.rejects(config.beforePack({ electronPlatformName: 'mas', targets: [{ name: 'dmg' }] }), /Only the selected MAS target/);
+  }
+  assert.equal(Object.hasOwn(require('../package.json').build.mac, 'timestamp'), false);
+  assert.throws(() => options({}, 'dmg'));
+});
+test('MAS build failure remains nonzero after real temporary-file asynchronous cleanup', (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wisplab-mas-exit-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const marker = path.join(root, 'cleanup-completed');
+  const child = spawnSync(process.execPath, ['-e', `
+    const fs = require('node:fs');
+    const { TmpDir } = require('temp-file');
+    const { failBuild } = require('./scripts/mas-build.cjs');
+    (async () => {
+      const directory = await new TmpDir().createTempDir();
+      console.log(JSON.stringify({ directory }));
+      require('async-exit-hook')((callback) => {
+        if (callback) setTimeout(() => {
+          fs.writeFileSync(process.env.MAS_TEST_CLEANUP_MARKER, 'completed');
+          callback();
+        }, 10);
+      });
+      throw new Error('synthetic signing failure');
+    })().catch(failBuild);
+  `], {
+    cwd: path.join(__dirname, '..'), encoding: 'utf8', timeout: 15000,
+    env: { ...process.env, APP_BUILDER_TMP_DIR: root, TMP_DIR_MANAGER_ENSURE_REMOVED_ON_EXIT: 'true', MAS_TEST_CLEANUP_MARKER: marker },
+  });
+  assert.ifError(child.error);
+  assert.equal(child.status, 1, child.stderr);
+  assert.match(child.stderr, /MAS build blocked: synthetic signing failure/);
+  assert.equal(fs.existsSync(JSON.parse(child.stdout).directory), false);
+  assert.equal(fs.readFileSync(marker, 'utf8'), 'completed');
 });
 test('signing selection follows builder priorities and rejects ambiguous/wrong-team identities', () => {
   const development = { name: `Mac Developer: Example (${TEAM_ID})`, sha1: '1'.repeat(40) };

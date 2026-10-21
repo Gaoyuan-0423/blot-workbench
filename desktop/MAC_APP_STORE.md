@@ -1,8 +1,8 @@
 # Mac App Store preparation / 商店版准备
 
-**下一步由所有者在完整 Xcode 中登录开发者账号并准备证书、描述文件。当前仅完成准备工作，未生成已验证的签名商店包，未上传或提审。**
+**Xcode、三类签名身份及开发/商店描述文件已准备好，两种目标的预检均已通过。下一步完成签名构建和真实沙箱验收；当前尚无已验证的签名构建，未上传或提审。**
 
-**Next: the owner signs in to full Xcode and prepares certificates and provisioning profiles. This is preparation only; no verified signed store build, upload or submission is claimed.**
+**Xcode, all three signing identities and development/store profiles are ready; both targets have passed preflight. Signed builds and real sandbox acceptance are next. No verified signed build, upload or submission is claimed.**
 
 ## 已知状态 / Current handoff
 
@@ -12,8 +12,9 @@
 | Apple ID（应用编号 / app identifier） | `6825229877` |
 | Bundle ID | `top.wisplab.desktop` |
 | Team ID | `29RXSR5JXC` |
-| 本机工具 / Local tools | `xcode-select -p` → `/Library/Developer/CommandLineTools`；没有完整 Xcode.app / full Xcode absent |
-| 本机身份 / Local identities | `security find-identity -v -p codesigning` → `0 valid identities found` |
+| 本机工具 / Local tools | Xcode `27.1`（`27A9275`）已初始化 / initialized |
+| 本机身份 / Local identities | Apple Development、Apple Distribution、Mac Installer Distribution 均有效 / all three identities valid |
+| 描述文件 / Provisioning profiles | 开发和商店 profiles 已生成并通过预检 / both profiles created and preflight passed |
 
 后台应用记录不等于签名能力。现有 `package:mac` 仍是独立的未签名实验版流程；MAS 使用单独配置 `desktop/mas/config.cjs`。
 
@@ -37,11 +38,15 @@ The owner installs and opens full Xcode, signs in under Accounts, selects the te
 
 Both targets use Electron's MAS build. Use `mas-dev` for registered local machines and the Apple-delivered TestFlight build for distribution testing; do not assess a store-signed `.app` by launching it directly.
 
+独立 MAS 配置对 `mas-dev` 和 `mas` 均设置 `timestamp: 'none'`。Apple 在商店接收时检查分发证书有效性，随后重新签名；这条渠道不依赖安全时间戳。Developer ID 商店外分发及公证仍要求安全时间戳，本设置不应用于普通 macOS 构建。参见 [Apple 签名指导](https://developer.apple.com/documentation/xcode/creating-distribution-signed-code-for-the-mac/)与 [TN3161 证书有效期说明](https://developer.apple.com/documentation/technotes/tn3161-inside-code-signing-certificates)。
+
+The isolated MAS configuration sets `timestamp: 'none'` for both targets. Apple checks the distribution certificate at submission and re-signs the app. Developer ID distribution and notarization still require secure timestamps; this setting does not apply to the ordinary macOS build configuration. See the Apple signing guidance and TN3161 linked above.
+
 Profile 创建步骤：[development](https://developer.apple.com/help/account/provisioning-profiles/create-a-development-provisioning-profile/)、[Mac App Store Connect](https://developer.apple.com/help/account/provisioning-profiles/create-an-app-store-provisioning-profile/)。仅有 API 上传密钥不能替代应用签名私钥。
 
 ## 2. 预检与构建 / Preflight and build
 
-从 WB 仓库根目录运行。`mas:preflight` 只读检查，不签名、不上传；当前缺少 Xcode、身份和 profile 时应报告未就绪。
+从 WB 仓库根目录运行。`mas:preflight` 只读检查，不签名、不上传；缺少 Xcode、身份或 profile 时应报告未就绪。
 
 Run from the WB repository root. Preflight checks readiness without signing or uploading; missing prerequisites must remain a failure, not an unsigned fallback.
 
