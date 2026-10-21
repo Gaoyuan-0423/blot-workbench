@@ -75,11 +75,16 @@ function validateProfile(profile, target, identity, now = new Date()) {
   requireThat(Number.isFinite(new Date(profile.ExpirationDate).getTime()) && new Date(profile.ExpirationDate) > now, 'Provisioning profile is expired or has no valid expiry.');
   requireThat(Number.isFinite(new Date(profile.CreationDate).getTime()) && new Date(profile.CreationDate) <= now, 'Provisioning profile creation date is invalid or in the future.');
   requireThat(!profile.ProvisionsAllDevices, 'Developer ID / all-device profiles are not MAS profiles.');
-  const debug = entitlements['get-task-allow'] ?? entitlements['com.apple.security.get-task-allow'];
+  const debugValues = ['get-task-allow', 'com.apple.security.get-task-allow']
+    .filter((key) => Object.hasOwn(entitlements, key)).map((key) => entitlements[key]);
+  requireThat(debugValues.every((value) => typeof value === 'boolean') && new Set(debugValues).size <= 1, 'Provisioning profile has invalid or conflicting debug entitlements.');
   if (target === 'mas-dev') {
-    requireThat(debug === true && Array.isArray(profile.ProvisionedDevices) && profile.ProvisionedDevices.length > 0, 'mas-dev requires a development profile with registered test devices and get-task-allow.');
+    // Apple-issued macOS development profiles may omit both debug keys.
+    // Development certificate membership and registered devices establish the
+    // purpose; permission to attach a debugger is not a required capability.
+    requireThat(/^(Apple Development|Mac Developer):/.test(identity.name) && Array.isArray(profile.ProvisionedDevices) && profile.ProvisionedDevices.length > 0, 'mas-dev requires a development signing certificate and a profile with registered test devices.');
   } else {
-    requireThat((debug === false || debug === undefined) && !profile.ProvisionedDevices, 'mas requires a Mac App Store distribution profile without device restrictions or get-task-allow.');
+    requireThat(/^(Apple Distribution|3rd Party Mac Developer Application):/.test(identity.name) && !debugValues.includes(true) && !profile.ProvisionedDevices, 'mas requires a Mac App Store distribution certificate and profile without device restrictions or get-task-allow.');
   }
   requireThat(Array.isArray(profile.DeveloperCertificates) && profileCertificateHashes(profile).includes(identity.sha1), 'The selected app signing certificate is not included in the provisioning profile.');
   // Team-prefixed macOS application groups are authorized by the signing team,

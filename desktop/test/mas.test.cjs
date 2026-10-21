@@ -10,6 +10,7 @@ const { createConfiguration } = require('../mas/config.cjs');
 const { targetArgument } = require('../scripts/mas-preflight.cjs');
 const certificate = Buffer.from('Synthetic certificate bytes for membership validation only');
 const identity = { name: `Apple Distribution: Example (${TEAM_ID})`, teamId: TEAM_ID, sha1: crypto.createHash('sha1').update(certificate).digest('hex').toUpperCase() };
+const developmentIdentity = { ...identity, name: 'Apple Development: Yuan Gao (Y24V367CCV)' };
 const now = new Date('2026-10-21T00:00:00Z');
 function profile() {
   return { UUID: 'synthetic', TeamIdentifier: [TEAM_ID], Platform: ['OSX'], CreationDate: '2026-10-01T00:00:00Z', ExpirationDate: '2027-10-01T00:00:00Z', DeveloperCertificates: [certificate], Entitlements: { 'com.apple.application-identifier': APP_IDENTIFIER, 'com.apple.developer.team-identifier': TEAM_ID, 'get-task-allow': false } };
@@ -83,8 +84,26 @@ test('profiles reject wrong team/bundle/certificate, expiry and wrong distributi
     (p) => { p.Entitlements['get-task-allow'] = true; },
   ]) { const p = profile(); mutate(p); assert.throws(() => validateProfile(p, 'mas', identity, now)); }
   const development = profile(); development.ProvisionedDevices = ['device']; development.Entitlements['get-task-allow'] = true;
-  assert.doesNotThrow(() => validateProfile(development, 'mas-dev', identity, now));
+  assert.doesNotThrow(() => validateProfile(development, 'mas-dev', developmentIdentity, now));
   assert.throws(() => validateProfile(profile(), 'mas-dev', identity, now));
+});
+test('macOS development profiles may omit debug permission; certificate and devices establish purpose', () => {
+  const development = profile();
+  development.ProvisionedDevices = ['registered-provisioning-udid'];
+  delete development.Entitlements['get-task-allow'];
+  assert.doesNotThrow(() => validateProfile(development, 'mas-dev', developmentIdentity, now));
+  assert.throws(() => validateProfile(development, 'mas-dev', identity, now), /development signing certificate/);
+  assert.throws(() => validateProfile(profile(), 'mas', developmentIdentity, now), /distribution certificate/);
+  for (const key of ['get-task-allow', 'com.apple.security.get-task-allow']) {
+    for (const value of [true, false]) {
+      const p = { ...development, Entitlements: { ...development.Entitlements, [key]: value } };
+      assert.doesNotThrow(() => validateProfile(p, 'mas-dev', developmentIdentity, now));
+      if (value) assert.throws(() => validateProfile({ ...p, ProvisionedDevices: undefined }, 'mas', identity, now), /get-task-allow/);
+    }
+  }
+  for (const values of [{ 'get-task-allow': 'true' }, { 'get-task-allow': false, 'com.apple.security.get-task-allow': true }])
+    assert.throws(() => validateProfile({ ...development, Entitlements: { ...development.Entitlements, ...values } }, 'mas-dev', developmentIdentity, now), /invalid or conflicting/);
+  assert.throws(() => validateProfile({ ...development, ProvisionedDevices: [] }, 'mas-dev', developmentIdentity, now), /registered test devices/);
 });
 test('Apple Silicon provisioning UDID is not replaced by its hardware UUID', () => {
   assert.equal(provisioningDeviceId({ SPHardwareDataType: [{ chip_type: 'Apple M4', provisioning_UDID: 'provisioning', platform_UUID: 'hardware' }] }), 'provisioning');
