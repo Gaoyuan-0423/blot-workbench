@@ -346,9 +346,10 @@ class Release:
         folder.mkdir(exist_ok=True)
         sha = self.state["sources"]["wb"]["gitSha"]
         platform_files = ("platform/client.js", "platform/wisplab.js", "platform/wisplab.css", "platform/manifest.json")
-        for name in ("index.html", "styles.css", "favicon.svg", *platform_files, "locale.js"):
+        optional_files = ("locale.js", "support.html", "privacy.html")
+        for name in ("index.html", "styles.css", "favicon.svg", *platform_files, *optional_files):
             path = f"repos/{RELEASE_REPO}/contents/{PORTAL_SOURCE}/{name}?ref={sha}"
-            data = optional_api(path) if name == "locale.js" or name in platform_files else api(path)
+            data = optional_api(path) if name in optional_files else api(path)
             if data is None:
                 # Historical releases had no language module; keep them releasable.
                 (folder / name).unlink(missing_ok=True)
