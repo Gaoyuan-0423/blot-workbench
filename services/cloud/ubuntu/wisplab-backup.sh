@@ -10,8 +10,9 @@ systemctl stop wisplab-cloud
 tar -czf "$OUT" -C / var/lib/wisplab-cloud/pb_data opt/wisplab-cloud/current etc/wisplab-cloud/environment etc/caddy/wisplab-cloud/cloud.caddy
 systemctl start wisplab-cloud
 sha256sum "$OUT" > "${OUT}.sha256"
-ls -1t /var/backups/wisplab-platform/backup-*.tar.gz 2>/dev/null | tail -n +3 | xargs -r rm -f
-ls -1t /var/backups/wisplab-platform/backup-*.tar.gz.sha256 2>/dev/null | tail -n +3 | xargs -r rm -f
+# Archive names embed UTC timestamps, so lexicographic order is chronological.
+find /var/backups/wisplab-platform -name 'backup-*.tar.gz' -type f | sort -r | tail -n +3 | xargs -r rm -f
+find /var/backups/wisplab-platform -name 'backup-*.tar.gz.sha256' -type f | sort -r | tail -n +3 | xargs -r rm -f
 systemctl is-active --quiet wisplab-cloud
 curl -fsS http://127.0.0.1:8090/api/health >/dev/null
 echo "$(date -u +%FT%TZ) backup ok: $OUT"
