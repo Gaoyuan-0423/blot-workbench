@@ -65,7 +65,9 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual((folder / 'locale.js').read_bytes(), b'export const language = "en";')
         self.assertEqual(identity['gitSha'], '1' * 40)
         self.assertTrue(all(call.args[0].endswith('?ref=' + '1' * 40) for call in required.call_args_list))
-        self.assertTrue(optional.call_args.args[0].endswith('locale.js?ref=' + '1' * 40))
+        self.assertTrue(all(call.args[0].endswith('?ref=' + '1' * 40) for call in optional.call_args_list))
+        self.assertTrue(optional.call_args_list[-1].args[0].endswith('privacy.html?ref=' + '1' * 40))
+        self.assertTrue(any('locale.js?ref=' in call.args[0] for call in optional.call_args_list))
         # A retry of a historical source must not include a stale new module.
         with patch.object(r, 'api', return_value=core), patch.object(r, 'optional_api', return_value=None):
             release.portal()
