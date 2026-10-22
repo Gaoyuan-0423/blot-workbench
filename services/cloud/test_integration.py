@@ -122,6 +122,34 @@ class CloudIntegration(unittest.TestCase):
         self.alice, self.alice_user = self.backend.account("alice")
         self.bob, self.bob_user = self.backend.account("bob")
 
+    def test_account_deletion_requires_reauth_and_erases_only_owner(self):
+        b = self.backend
+        own = b.project(self.alice)
+        other = b.project(self.bob)
+        self.assertEqual(b.upload(self.alice, own)[0], 201)
+        self.assertEqual(b.upload(self.bob, other)[0], 201)
+        confirmation = {"password": PASSWORD, "confirmUsername": "alice"}
+        self.assertIn(b.request("POST", "/api/wisplab/delete-account", confirmation)[0], (401, 403))
+        self.assertEqual(b.request("POST", "/api/wisplab/delete-account", {**confirmation, "password": "wrong"}, self.alice)[0], 400)
+        self.assertEqual(b.request("POST", "/api/wisplab/delete-account", {**confirmation, "confirmUsername": "bob"}, self.alice)[0], 400)
+        self.assertEqual(b.request("POST", "/api/wisplab/delete-account", {**confirmation, "owner": self.bob_user["id"]}, self.alice)[0], 400)
+        self.assertEqual(b.request("POST", "/api/wisplab/delete-account", confirmation, self.alice)[0], 204)
+        self.assertNotEqual(b.request("POST", "/api/collections/users/auth-refresh", token=self.alice)[0], 200)
+        self.assertNotEqual(b.request("POST", "/api/collections/users/auth-with-password", {"identity": "alice", "password": PASSWORD})[0], 200)
+        self.assertEqual(b.request("POST", "/api/collections/users/auth-refresh", token=self.bob)[0], 200)
+        with sqlite3.connect(b.path / "data/data.db") as db:
+            for table in ("cloud_snapshots", "cloud_projects"):
+                self.assertEqual(db.execute(f"SELECT count(*) FROM {table} WHERE owner = ?", (self.alice_user["id"],)).fetchone()[0], 0)
+                self.assertEqual(db.execute(f"SELECT count(*) FROM {table} WHERE owner = ?", (self.bob_user["id"],)).fetchone()[0], 1)
+        # File deletion runs in PocketBase's after-success lifecycle.
+        self.assertEqual(len(list((b.path / "data/storage").rglob("*.zip"))), 1)
+
+    def test_account_deletion_works_with_local_only_service(self):
+        b = Backend(WISPLAB_PROJECT_STORAGE="local")
+        self.addCleanup(b.close)
+        token, _ = b.account("disposable")
+        self.assertEqual(b.request("POST", "/api/wisplab/delete-account", {"password": PASSWORD, "confirmUsername": "disposable"}, token)[0], 204)
+
     def test_headless_start_does_not_create_or_print_installer_credentials(self):
         b = self.backend
         with sqlite3.connect(b.path / "data" / "data.db") as database:

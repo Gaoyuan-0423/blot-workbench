@@ -96,3 +96,19 @@ The static website release process does not overwrite this service or its data. 
 - Snapshot SHA-256 is client-declared and verified again on download. The backend enforces ownership, exact uploaded byte size, MIME/type, count and aggregate quotas. It does not interpret scientific archives or assert their measurement correctness.
 - All archived versions consume quota. A future retention/purge workflow must include explicit user authorization and backups; this version never deletes history to make room.
 - The provided tests exercise the backend on the current local platform. Ubuntu systemd and production Caddy activation still require server-side acceptance, and cloud functions must remain disabled if that acceptance cannot be completed.
+
+
+## Account deletion candidate (2026-10-21)
+
+The shared account UI now supports password-confirmed permanent account deletion.
+The backend deletes only the authenticated owner's user, projects, snapshots and
+protected files in a transaction. A transient server-set record marker authorizes
+this narrowly scoped deletion; ordinary delete paths remain blocked. Local project
+files remain intact. Synthetic integration tests cover wrong credentials, target
+substitution, old-token invalidation, other-owner isolation and stored-file removal;
+bilingual browser tests cover cancel, failure, success and local project retention.
+
+This is source preparation only, not production deployment or a replacement for
+backup retention policy. Deploy the backend and reviewed accounts-only proxy
+before enabling the corresponding client build. Define backup expiry and a restore
+procedure that prevents deleted accounts from reappearing. See HTTP.md.

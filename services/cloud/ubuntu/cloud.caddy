@@ -1,7 +1,7 @@
 # FIRST RELEASE: accounts only. Import INSIDE the wisplab.top site block.
 # Project/file/usage APIs are deliberately unavailable, even to signed-in users.
 handle /api/* {
-  @wisplab_accounts path /api/wisplab/capabilities /api/wisplab/logout-all /api/collections/users/records /api/collections/users/auth-with-password /api/collections/users/auth-refresh
+  @wisplab_accounts path /api/wisplab/capabilities /api/wisplab/logout-all /api/wisplab/delete-account /api/collections/users/records /api/collections/users/auth-with-password /api/collections/users/auth-refresh
   handle @wisplab_accounts {
     request_body {
       max_size 16384

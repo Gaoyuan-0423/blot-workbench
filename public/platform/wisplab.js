@@ -19,7 +19,7 @@ document.body.append(root);
 const t = (zh, en) =>
   document.documentElement.lang.toLowerCase().startsWith("en") ? en : zh;
 const brand = () =>
-  t("WispLab实验数据分析平台", "WispLab Experimental Data Analysis Platform");
+  t("WispLab实验数据分析", "WispLab Experimental Data Analysis");
 const desktop = !!window.wispLabDesktop?.isDesktop;
 let adapter = null,
   binding = null,
@@ -371,7 +371,7 @@ function open(next, route = true, checked = false) {
     url.searchParams.delete("cloudProject");
     history.replaceState(history.state, "", url);
   }
-  if (next === "account" && !client.auth) next = "login";
+  if (["account", "delete-account"].includes(next) && !client.auth) next = "login";
   if (next === "register" && client.capabilities.registration !== "open")
     next = "login";
   restoreFocus = document.activeElement;
@@ -421,6 +421,7 @@ function open(next, route = true, checked = false) {
     heading(t("正在读取账号服务…", "Checking account service…"));
   else if (next === "login" || next === "register") renderAuth(next);
   else if (next === "account") renderAccount();
+  else if (next === "delete-account") renderDeleteAccount();
   else if (next === "local") renderLocal();
   else if (next === "projects") {
     renderProjectsFrame();
@@ -705,9 +706,53 @@ function renderAccount() {
     button(t("本地项目", "Local project"), () => open("local"), true),
   );
   appendAccountActions(actions);
-  content.append(actions);
+  content.append(actions, platformPolicyLinks());
+}
+function renderDeleteAccount() {
+  heading(t("删除 WispLab 账号", "Delete WispLab account"), t(
+    "将永久删除此账号及其服务器项目和文件，并使所有登录失效。此操作不可撤销；本机分析项目不会删除，请先导出需要的备份。服务器历史备份与安全日志的处理请查看隐私政策，或联系 gaoyuan1799@163.com。",
+    "Permanently delete this account and its server projects/files, revoking all sessions. This cannot be undone. Local analysis projects are retained; export any backups you need first. See the privacy policy or contact gaoyuan1799@163.com about historical server backups and security logs."));
+  const form = node("form");
+  const username = field(form, t("输入当前用户名以确认", "Confirm your current username"), "deleteUsername", "text", { required: true, autocomplete: "username" });
+  const password = field(form, t("当前密码", "Current password"), "deletePassword", "password", { required: true, autocomplete: "current-password" });
+  const submit = node("button", t("永久删除账号", "Permanently delete account"), { type: "submit" });
+  form.append(submit, button(t("取消", "Cancel"), () => open("account"), true));
+  form.onsubmit = (event) => {
+    event.preventDefault();
+    if (busy || !form.reportValidity()) return;
+    if (username.value !== client.auth?.record.username) {
+      msg(t("请输入当前登录的用户名。", "Enter the username of the signed-in account."), "error"); return;
+    }
+    if (!window.confirm(t("确认永久删除账号及服务器数据？本机项目保留。", "Permanently delete this account and its server data? Local projects are retained."))) return;
+    const secret = password.value;
+    password.value = "";
+    task(async () => {
+      try { await client.deleteAccount(secret, username.value); }
+      catch (error) {
+        msg(error.status === 400 ? t("用户名或密码不正确，未删除账号。", "Username or password did not match. Account not deleted.") : t("未能确认删除成功。请重新登录确认账号状态，或联系 gaoyuan1799@163.com；请勿将密码发送给支持人员。", "Deletion could not be confirmed. Sign in again to check account status or contact gaoyuan1799@163.com. Never send your password to support."), "error"); return;
+      }
+      binding = null;
+      transition(() => open("login", true, true));
+      msg(t("账号已删除，本机分析项目已保留。", "Account deleted. Local analysis projects have been retained."));
+    });
+  };
+  content.append(form, platformPolicyLinks());
+}
+function platformPolicyLinks() {
+  const line = node("p", null, { class: "policy-links" });
+  line.append(
+    node("a", t("隐私政策", "Privacy Policy"), {
+      href: "https://wisplab.top/privacy.html", target: "_blank", rel: "noreferrer",
+    }),
+    document.createTextNode(" · "),
+    node("a", t("技术支持", "Support"), {
+      href: "https://wisplab.top/support.html", target: "_blank", rel: "noreferrer",
+    }),
+  );
+  return line;
 }
 function appendAccountActions(actions) {
+  actions.append(button(t("删除账号", "Delete account"), () => open("delete-account"), true));
   actions.append(
     button(
       t("退出登录", "Sign out"),

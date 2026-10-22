@@ -250,6 +250,14 @@ export class CloudClient {
       if (this.generation === context.generation) this.logout();
     }
   }
+  async deleteAccount(password, confirmUsername) {
+    const context = this.context();
+    await this.request("/api/wisplab/delete-account", {
+      method: "POST", token: context.token, body: { password, confirmUsername },
+    });
+    this.assertContext(context);
+    this.logout();
+  }
   async list(tool, page = 1, archived = false) {
     const filter = `archived=${archived}` + (tool ? ` && tool="${tool}"` : "");
     return this.request(

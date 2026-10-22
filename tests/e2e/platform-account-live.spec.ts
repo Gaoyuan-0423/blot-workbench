@@ -183,3 +183,31 @@ test("real account-only deployment preserves local projects and never requests c
     await Promise.all(contexts.map((context) => context.close()));
   }
 });
+
+for (const language of ['zh', 'en']) {
+  test(`account deletion reauth, cancel and local project retention (${language})`, async ({ page }) => {
+    await page.goto(url);
+    const source = createQuickExample();
+    await page.getByLabel('导入单排条带图片', {exact: true}).setInputFiles({name: 'synthetic.png', mimeType: 'image/png', buffer: Buffer.from(source.original!.bytes)});
+    await expect(page.getByTestId(/^single-relative-/)).toHaveCount(6);
+    const before = await localPackage(page);
+    const username = 'delete_' + language + '_' + Date.now().toString(36);
+    await signIn(page, username, true);
+    if (language === 'en') await platform(page).getByRole('button', {name: 'EN', exact: true}).click();
+    await button(page, /^(删除账号|Delete account)$/).click();
+    await expect(platform(page).getByRole('heading', {name: /删除 WispLab 账号|Delete WispLab account/})).toBeVisible();
+    await button(page, /^(取消|Cancel)$/).click();
+    await button(page, /^(删除账号|Delete account)$/).click();
+    await platform(page).getByLabel(/输入当前用户名以确认|Confirm your current username/).fill(username);
+    await platform(page).getByLabel(/当前密码|Current password/).fill('incorrect-password');
+    page.once('dialog', d => d.accept());
+    await button(page, /^(永久删除账号|Permanently delete account)$/).click();
+    await expect(platform(page).getByRole('status')).toContainText(/用户名或密码不正确|Username or password did not match/);
+    await platform(page).getByLabel(/当前密码|Current password/).fill('synthetic-account-only-2026');
+    page.once('dialog', d => d.accept());
+    await button(page, /^(永久删除账号|Permanently delete account)$/).click();
+    await expect(platform(page).getByRole('status')).toContainText(/账号已删除|Account deleted/);
+    await button(page, /^(返回分析 ×|Back to analysis ×)$/).click();
+    expect((await localPackage(page)).project).toEqual(before.project);
+  });
+}

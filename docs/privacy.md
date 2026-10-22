@@ -32,9 +32,13 @@ Account authorization restricts access from other ordinary accounts. Server admi
 
 ## 账号、来源与本机存储 / Accounts, origins, and local storage
 
-账号使用用户名和密码；本版没有自动密码找回。密码仅用于主动注册或登录请求，不写入浏览器持久存储或项目包。默认登录在当前会话保存令牌；“记住登录”才持久保存令牌。普通退出清除本机令牌，“退出所有设备”撤销现有令牌；退出不会删除当前本机实验项目。
+账号使用用户名和密码；本版没有自动密码找回。密码用于用户主动发起的注册、登录或删除账号时的身份复核，不写入浏览器持久存储或项目包。默认登录在当前会话保存令牌；“记住登录”才持久保存令牌。普通退出清除本机令牌，“退出所有设备”撤销现有令牌；退出不会删除当前本机实验项目。
 
-Accounts use a username and password, with no automated password recovery in this edition. Passwords are used for explicit registration or sign-in requests and are not written to persistent browser storage or archives. Login tokens are session-only by default; **Remember me** makes the token persistent. Ordinary sign-out clears the local token; **Sign out all devices** revokes existing tokens. Signing out does not delete the current local experiment.
+Accounts use a username and password, with no automated password recovery in this edition. Passwords are used for explicit registration, sign-in, or account-deletion reauthentication and are not written to persistent browser storage or archives. Login tokens are session-only by default; **Remember me** makes the token persistent. Ordinary sign-out clears the local token; **Sign out all devices** revokes existing tokens. Signing out does not delete the current local experiment.
+
+2026-10-21 的本地候选版本已实现删除账号入口：再次验证当前密码后，删除该账号、关联服务器项目和文件并撤销登录，本机项目保留。该变更尚未部署，也未包含在已上传的 Mac 1.0.0 build 1 中。历史备份与系统日志的保留和删除流程仍待落实，不能将本地删除测试等同于历史备份已清除。技术支持与隐私请求联系：gaoyuan1799@163.com。
+
+The local candidate dated 2026-10-21 supports account deletion after password reauthentication, removing the account and associated server projects/files while retaining local projects. This change is not deployed or included in uploaded Mac 1.0.0 build 1. Historical-backup and system-log retention/deletion procedures remain unresolved; local deletion tests do not establish backup erasure. Technical support and privacy contact: gaoyuan1799@163.com.
 
 同一账号适用于各工具，但 GitHub Pages、自有域名及各子域名分别保存登录状态和本机项目，可能需要逐站登录。网页、本机服务与桌面来源的数据不会自动复制；首版跨电脑继续需导出／导入项目包；云保存／恢复尚未开放。清除站点数据、切换浏览器或删除桌面用户目录可能使本机项目不可用。浏览器存储不是加密保险箱或可靠备份，同一设备上有访问权限的人可能读取数据。
 
@@ -56,9 +60,9 @@ The vision address, model, and key remain in local-service memory only and are c
 
 ## 离线桌面实验版 / Experimental offline desktop
 
-桌面封装读取安装包内资源，核心分析与本地项目操作可离线使用；首版不开放云同步；联网仅用于可选账号登录。首版不包含 WB 本机视觉代理，远程 AI 不属于离线能力。工具使用单一 `app://wisplab/` 来源，存储键按工具区分；桌面不会自动导入网页浏览器的项目。
+桌面封装读取安装包内资源，核心分析与本地项目操作可离线使用；首版不开放云同步。可选账号操作与用户主动调用的远程 AI 需要联网。PCR AI 解读可能发送样本名、基因名、实验设置、质量提示与计算结果到用户所选服务，不应视为匿名数据。选择记住 AI 配置时，密钥保存在本机应用存储，不是加密保险箱，也不进入项目导出。第三方处理和保留规则由所选服务决定。首版不包含 WB 本机视觉代理，远程 AI 不属于离线能力。工具使用单一 `app://wisplab/` 来源，存储键按工具区分；桌面不会自动导入网页浏览器的项目。
 
-Desktop loads bundled resources, allowing core analysis and local project operations offline; cloud sync is disabled in this edition; optional account login requires connectivity. The first edition does not include the WB local vision proxy; remote AI is not an offline feature. Tools share one `app://wisplab/` origin with tool-specific storage keys. Desktop does not automatically import a web browser's projects.
+Desktop loads bundled resources, allowing core analysis and local project operations offline; cloud sync is disabled in this edition. Optional account operations and explicitly invoked remote AI require connectivity. PCR AI interpretation may send sample and gene names, experiment settings, quality flags and computed results to the selected provider; these are not necessarily anonymous data. Remembered AI keys are stored locally, not in an encrypted vault or project exports. The selected provider determines its processing and retention rules. The first edition does not include the WB local vision proxy; remote AI is not an offline feature. Tools share one `app://wisplab/` origin with tool-specific storage keys. Desktop does not automatically import a web browser's projects.
 
 默认桌面构建未签名、未经 Apple 公证或 Windows 发布者验证。没有自动更新器；网站更新不会自动替换已安装应用，需要明确打包、发布并手动安装新版本。回滚前先导出项目，旧版可能不支持新版数据格式。本机 Mac 测试通过不代表 Windows 安装验收完成。详见[桌面说明](../desktop/README.md)与[发布交接](platform-cloud-desktop.md)。
 

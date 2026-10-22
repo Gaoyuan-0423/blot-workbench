@@ -94,3 +94,20 @@ PocketBase errors have `{status,message,data}`. Custom errors use PocketBase's v
 Allowed production origins: `https://wisplab.top`, `https://wb.wisplab.top`, `https://pathology.wisplab.top`, `https://pcr.wisplab.top`, `https://gaoyuan-0423.github.io`, `app://wisplab`. Development additionally permits exactly localhost and 127.0.0.1 on ports 5173 and 5187. Origin checks do not replace bearer authentication or owner rules.
 
 If cloud storage is explicitly enabled in a future release, projects and source files are private through authorization and HTTPS. They are not end-to-end encrypted; the server administrator can read them. Do not claim encrypted-at-rest storage unless the deployment separately provides it. Never include localStorage dumps, auth tokens, BYOK API keys, or account passwords in any snapshot. In the first accounts-only release, the server stores account/authentication data and operational logs, not experiment packages.
+
+
+## Account deletion (candidate; deployment required)
+
+`POST /api/wisplab/delete-account` requires a current users bearer token and JSON
+`{"password":"current password","confirmUsername":"signed-in username"}`.
+Unknown fields are rejected. The current password is verified inside the same
+transaction that clears project current-revision references and deletes the
+account's snapshots, files, projects and user record. Returns 204 after success;
+wrong confirmation/password returns 400; unauthenticated requests are rejected.
+All old account tokens become invalid. Other accounts and device-local projects
+are unaffected. Ordinary collection DELETE operations remain forbidden.
+
+The accounts-only Caddy snippet must explicitly expose this endpoint when the
+backend is deployed. Historical external backups are not purged by this API;
+operators must define retention, deletion handling and restore procedures that do
+not resurrect deleted accounts. Do not describe this local candidate as deployed.
