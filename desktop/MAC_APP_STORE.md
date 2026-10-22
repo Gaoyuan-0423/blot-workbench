@@ -1,8 +1,8 @@
 # Mac App Store preparation / 商店版准备
 
-**Xcode、三类签名身份及开发/商店描述文件已准备好，两种目标的预检均已通过。下一步完成签名构建和真实沙箱验收；当前尚无已验证的签名构建，未上传或提审。**
+**2026-10-21：已完成签名开发版验收和商店包后验，1.0.0（build 1）已通过 Transporter 上传，日志显示 `UPLOAD SUCCEEDED with no errors`。上传成功不等于 TestFlight 可安装或审核通过。后续账号删除/PCR 导出修复尚未进入 build 1。**
 
-**Xcode, all three signing identities and development/store profiles are ready; both targets have passed preflight. Signed builds and real sandbox acceptance are next. No verified signed build, upload or submission is claimed.**
+**Signed development acceptance and store-package verification are recorded. Build 1 uploaded successfully; Apple processing, TestFlight installation and formal review are distinct steps. Subsequent account-deletion and PCR export fixes are not in build 1.**
 
 ## 已知状态 / Current handoff
 
@@ -107,7 +107,7 @@ Record each check on signed `mas-dev`, then repeat on the TestFlight installatio
 
 An authorized owner uploads the signed package with Transporter, checks processing results and then configures TestFlight testing. Upload success is not App Review approval; these scripts do not publish.
 
-- **账号删除尚未完成**：当前提供注册/登录，缺少已验收的应用内发起删除账号流程；需完成服务端删除及身份校验、用户确认、状态反馈，或先明确调整商店版本的账号范围。退出登录不等于删除账号。[Apple account deletion](https://developer.apple.com/help/app-review/guideline-reference/5-1-1-account-deletion)
+- **账号删除已在本地实现，尚未部署或进入安装包**：应用内入口、当前密码复核、不可撤销确认、服务端事务删除及令牌失效已通过本地验收；仍需同步到各工具、部署账号服务与代理、核对备份处置，并在新签名构建中验收。退出登录不等于删除账号。[Apple account deletion](https://developer.apple.com/help/app-review/guideline-reference/5-1-1-account-deletion)
 - **隐私材料待所有者核实**：准备公开隐私政策 URL、应用内入口、支持联系方式；依据实际账号服务、网络日志、第三方服务和 SDK 行为核对隐私披露及所需 privacy manifest。不要由“本地分析”推导“无数据收集”，也不要替所有者作未经核实的承诺。[Apple App Privacy](https://developer.apple.com/app-store/app-privacy-details/)
 - **商店材料待完成**：图标与真实 Mac 截图、中英描述、支持 URL、审核备注与需要时的测试账号；所有者确认内容权利、年龄分级、加密出口合规、定价和协议等问卷。按实际功能描述科研用途，不作未经验证的临床或准确性声明。
 

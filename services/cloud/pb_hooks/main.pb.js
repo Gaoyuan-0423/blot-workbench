@@ -37,7 +37,42 @@ onRecordCreateRequest((e) => {
 }, "users");
 
 onRecordUpdate((e) => { throw new ForbiddenError("Snapshots are immutable / 历史版本不可修改"); }, "cloud_snapshots");
-onRecordDelete((e) => { throw new ForbiddenError("Archive the project instead / 请归档项目，历史版本不永久删除"); }, "cloud_snapshots", "cloud_projects", "users");
+onRecordDelete((e) => {
+  // Transient, server-set marker: never exposed or persisted. Ordinary deletes
+  // remain forbidden; only the reauthenticated account-deletion route sets it.
+  const owner = e.record.collection().name === "users" ? e.record.id : e.record.getString("owner");
+  if (owner && e.record.getString("_wisplabAccountDeletionOwner") === owner) return e.next();
+  throw new ForbiddenError("Use account deletion to erase account data / 请使用删除账号流程清除账号数据");
+}, "cloud_snapshots", "cloud_projects", "users");
+
+routerAdd("POST", "/api/wisplab/delete-account", (e) => {
+  const body = e.requestInfo().body;
+  if (Object.keys(body).some((key) => !["password", "confirmUsername"].includes(key)) ||
+      typeof body.password !== "string" || !body.password || toBytes(body.password).length > 71 ||
+      typeof body.confirmUsername !== "string") throw new BadRequestError("Invalid confirmation / 请确认账号并输入当前密码");
+  e.app.runInTransaction((app) => {
+    const user = app.findRecordById("users", e.auth.id);
+    if (body.confirmUsername !== user.getString("username") || !user.validatePassword(body.password))
+      throw new BadRequestError("Account or password did not match / 账号或密码不正确");
+    const params = { owner: user.id };
+    // Break current-revision references before deleting snapshots. Use the
+    // framework's delete lifecycle so protected files are cleaned up as well.
+    for (const project of app.findAllRecords("cloud_projects", $dbx.hashExp(params))) {
+      project.set("currentRevision", ""); app.save(project);
+    }
+    for (const collection of ["cloud_snapshots", "cloud_projects"]) {
+      let batch;
+      do {
+        batch = app.findRecordsByFilter(collection, "owner = {:owner}", "id", 100, 0, params);
+        for (const record of batch) {
+          record.set("_wisplabAccountDeletionOwner", user.id); app.delete(record);
+        }
+      } while (batch.length);
+    }
+    user.set("_wisplabAccountDeletionOwner", user.id); app.delete(user);
+  });
+  return e.noContent(204);
+}, $apis.requireAuth("users"), $apis.bodyLimit(8192));
 
 routerAdd("GET", "/api/wisplab/capabilities", (e) => {
   const c = require(__hooks + "/cloud.js");

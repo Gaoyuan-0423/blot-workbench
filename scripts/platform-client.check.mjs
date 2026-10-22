@@ -508,3 +508,33 @@ test("an older capability response cannot re-enable cloud after a newer local re
   await older;
   assert.equal(client.capabilities.projectStorage, "local");
 });
+
+test("account deletion clears only auth after success and preserves a newer login", async () => {
+  const session = storage(), local = storage();
+  session.setItem("experiment", "keep"); local.setItem("project", "keep");
+  const client = new CloudClient({session, local, fetcher: async (_url, options) => {
+    assert.equal(options.method, "POST");
+    assert.deepEqual(JSON.parse(options.body), {password: "current-password", confirmUsername: "researcher"});
+    return new Response(null, {status: 204});
+  }});
+  client.save(auth, true);
+  await client.deleteAccount("current-password", "researcher");
+  assert.equal(client.auth, null);
+  assert.equal(local.getItem(TOKEN_KEY), null);
+  assert.equal(session.getItem("experiment"), "keep");
+  assert.equal(local.getItem("project"), "keep");
+  let complete;
+  client.save(auth);
+  client.fetcher = () => new Promise(resolve => { complete = resolve; });
+  const pending = client.deleteAccount("current-password", "researcher");
+  client.save({...auth, token: "new-login"});
+  complete(new Response(null, {status: 204}));
+  await assert.rejects(pending, /account_changed/);
+  assert.equal(client.auth.token, "new-login");
+});
+test("failed deletion retains the session for retry", async () => {
+  const client = new CloudClient({session: storage(), local: storage(), fetcher: async () => response({}, 400)});
+  client.save(auth);
+  await assert.rejects(client.deleteAccount("wrong", "researcher"));
+  assert.equal(client.auth.token, auth.token);
+});
