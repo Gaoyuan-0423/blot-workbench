@@ -14,5 +14,13 @@ sha256sum "$OUT" > "${OUT}.sha256"
 find /var/backups/wisplab-platform -name 'backup-*.tar.gz' -type f | sort -r | tail -n +3 | xargs -r rm -f
 find /var/backups/wisplab-platform -name 'backup-*.tar.gz.sha256' -type f | sort -r | tail -n +3 | xargs -r rm -f
 systemctl is-active --quiet wisplab-cloud
-curl -fsS http://127.0.0.1:8090/api/health >/dev/null
-echo "$(date -u +%FT%TZ) backup ok: $OUT"
+# systemctl start returns before PocketBase binds its port; poll until healthy.
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+  sleep 1
+  if curl -fsS http://127.0.0.1:8090/api/health >/dev/null 2>&1; then
+    echo "$(date -u +%FT%TZ) backup ok: $OUT"
+    exit 0
+  fi
+done
+echo "wisplab-backup: health check failed after restart" >&2
+exit 1
