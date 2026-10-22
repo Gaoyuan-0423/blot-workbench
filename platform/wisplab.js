@@ -19,7 +19,7 @@ document.body.append(root);
 const t = (zh, en) =>
   document.documentElement.lang.toLowerCase().startsWith("en") ? en : zh;
 const brand = () =>
-  t("WispLab实验数据分析平台", "WispLab Experimental Data Analysis Platform");
+  t("WispLab实验数据分析", "WispLab Experimental Data Analysis");
 const desktop = !!window.wispLabDesktop?.isDesktop;
 let adapter = null,
   binding = null,

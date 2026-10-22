@@ -4,7 +4,7 @@
   "sourceDirectory": "platform",
   "files": {
     "client.js": "671b6500be33f4563fe39a73595c5a5a7a879daf1e098c9654a9cd3f34616d20",
-    "wisplab.js": "0c8cc7f610da90732198ce6cb50cc0c09cb6be9fa63c9e12612019c6a8a5fa24",
+    "wisplab.js": "7001a166f22e57eb9c1ecad6dec0651e8f24a9a5e2c2aca0ad1530b58d0ac70a",
     "wisplab.css": "31b6fa47503450beb3e0b00aae076549c0b026b99f70549b66fe89862f10aa19"
   }
 }
