@@ -18,8 +18,8 @@ export const messages = {
     en: "WispLab home",
   },
   "brand.tagline": {
-    zh: "实验数据分析平台",
-    en: "Experimental Data Analysis Platform",
+    zh: "实验数据分析",
+    en: "Experimental Data Analysis",
   },
   "nav.account": { zh: "登录 / 注册", en: "Sign in / Register" },
   "nav.label": {
@@ -305,6 +305,14 @@ export const messages = {
   "footer.tagline": {
     zh: "让每一步分析，都更清楚。",
     en: "Clarity at every step of your analysis.",
+  },
+  "footer.support": {
+    zh: "技术支持",
+    en: "Support",
+  },
+  "footer.privacy": {
+    zh: "隐私政策",
+    en: "Privacy Policy",
   },
   "footer.top": {
     zh: "回到顶部",

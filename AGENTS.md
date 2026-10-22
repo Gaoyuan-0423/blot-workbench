@@ -4,13 +4,13 @@
 
 ## 唯一源码目录
 
-本仓库的正式编辑目录是 **`~/.codex/worktrees/wb-ui-release/WB分析`**（分支 `codex/wb-ui-release`）。`~/Downloads/WB分析` 是受保护的 main checkout，`~/.codex/worktrees/fbae/` 存放交接文档与软著资料——都不要当作开发目录，也不要互相覆盖。
+本仓库的正式编辑目录是 **`~/.codex/worktrees/wb-ui-release/WB分析`**。分支随工作推进变化（2026-10-22 为 `codex/wb-mas-distribution`），以 `git branch --show-current` 为准，不要为匹配本文档的旧分支名切分支或重置。`~/Downloads/WB分析` 是受保护的 main checkout，`~/.codex/worktrees/fbae/` 存放交接文档与软著资料——都不要当作开发目录，也不要互相覆盖。
 
 ## 结构
 
 - `src/real/` — **纯函数引擎**（无 DOM）：`model.ts`（项目/泳道/归一化/统计）、`pixels.ts`（TIFF/PNG 解码、`proposeRegions` 泳道提议、`measureRegion`）、`rolling-ball.ts`（ImageJ 兼容背景扣除）、`analysis-report.ts`、`figure-*`。无头调用：仓库内 `node_modules/.bin/tsx`。
 - `src/quick/`、`src/single/` — 快速多排 / 单条带工作区；`src/App.tsx` 挂 `#real/#demo/#guide`。
-- `portal/` — WispLab 总首页（`index.html/styles.css/favicon.svg/locale.js` 四文件）。
+- `deployment/wisplab/portal/` — WispLab 总首页（`index.html/styles.css/favicon.svg/locale.js`，另有 `platform/` 共享账号资源与待发布的 `support.html` 支持页）；桌面打包与网页发布共用此目录，文件集受 `package-release.py` 白名单约束。
 - `deployment/wisplab/` — 统一发布器（`release.py`，publish/rollback）；服务器更新器只读 **`wisplab-deploy-` 前缀**的 Release。
 
 ## 测量约定（不要偏离）

@@ -2,7 +2,7 @@
 
 This is an **experimental, unsigned** offline desktop distribution. The renderer loads installed application files, never the live website. / 这是**未签名实验版**：应用读取安装包内的真实资源，启动与核心分析不依赖在线网站。
 
-Mac App Store 准备使用独立流程，见 [商店版交接 / MAS handoff](MAC_APP_STORE.md)：Xcode 账号、证书与 profile、沙箱迁移验收、TestFlight 和提审待办。该流程目前不代表已经签名、上传或可发布。 / The separate MAS handoff covers signing prerequisites and acceptance; it does not claim a signed or submission-ready release.
+Mac App Store 准备使用独立流程，见 [商店版交接 / MAS handoff](MAC_APP_STORE.md)：Xcode 账号、证书与 profile、沙箱迁移验收、TestFlight 和提审待办。当前状态（2026-10-22）：1.0.0 (build 1) 已上传并经 TestFlight 内测安装；账号删除等修复已进入签名 mas-dev 1.0.0 (build 2) 本机验收，商店包与提审仍待完成。 / The separate MAS handoff covers signing prerequisites and acceptance; it does not claim a signed or submission-ready release. Status 2026-10-22: 1.0.0 (build 1) is uploaded and installed through TestFlight internal testing; account-deletion fixes are in signed mas-dev 1.0.0 (build 2) local acceptance, while the store package and submission remain outstanding.
 
 **First release: optional accounts and local project files only.** Signing in does not upload images, tables, results or project archives, and does not synchronize experiments between computers. Export a project file on one device and import it on the other. Cloud project storage remains disabled; retained cloud code is for a separately reviewed future opt-in.
 

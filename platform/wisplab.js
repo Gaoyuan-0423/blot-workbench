@@ -706,7 +706,7 @@ function renderAccount() {
     button(t("本地项目", "Local project"), () => open("local"), true),
   );
   appendAccountActions(actions);
-  content.append(actions);
+  content.append(actions, platformPolicyLinks());
 }
 function renderDeleteAccount() {
   heading(t("删除 WispLab 账号", "Delete WispLab account"), t(
@@ -736,7 +736,20 @@ function renderDeleteAccount() {
       msg(t("账号已删除，本机分析项目已保留。", "Account deleted. Local analysis projects have been retained."));
     });
   };
-  content.append(form);
+  content.append(form, platformPolicyLinks());
+}
+function platformPolicyLinks() {
+  const line = node("p", null, { class: "policy-links" });
+  line.append(
+    node("a", t("隐私政策", "Privacy Policy"), {
+      href: "https://wisplab.top/privacy.html", target: "_blank", rel: "noreferrer",
+    }),
+    document.createTextNode(" · "),
+    node("a", t("技术支持", "Support"), {
+      href: "https://wisplab.top/support.html", target: "_blank", rel: "noreferrer",
+    }),
+  );
+  return line;
 }
 function appendAccountActions(actions) {
   actions.append(button(t("删除账号", "Delete account"), () => open("delete-account"), true));
