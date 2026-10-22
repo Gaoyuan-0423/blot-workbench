@@ -1,0 +1,6 @@
+[Unit]
+Description=WispLab weekly account-service backup
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/wisplab-backup.sh

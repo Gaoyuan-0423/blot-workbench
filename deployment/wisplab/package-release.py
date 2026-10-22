@@ -35,7 +35,7 @@ REPOSITORIES = {
     "pcr": "Gaoyuan-0423/pcr-workbench",
 }
 PORTAL_FILES = {"index.html", "styles.css", "favicon.svg"}
-PORTAL_OPTIONAL_FILES = {"locale.js", "support.html", "platform/client.js", "platform/wisplab.js", "platform/wisplab.css", "platform/manifest.json"}
+PORTAL_OPTIONAL_FILES = {"locale.js", "support.html", "privacy.html", "platform/client.js", "platform/wisplab.js", "platform/wisplab.css", "platform/manifest.json"}
 PLATFORM_FILES = {"platform/client.js", "platform/wisplab.js", "platform/wisplab.css", "platform/manifest.json"}
 ORT_FILES = {"ort-wasm-simd-threaded.wasm", "ort-wasm-simd-threaded.mjs"}
 FORBIDDEN_COMPONENTS = {
