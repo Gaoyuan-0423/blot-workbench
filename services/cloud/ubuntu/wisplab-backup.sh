@@ -37,10 +37,11 @@ trap 'exit 143' TERM
 systemctl is-active --quiet wisplab-cloud
 source_root=$(readlink -f -- "$source_root")
 release=$(readlink -f -- "${source_root%/}/opt/wisplab-cloud/current")
-case "$release" in
-  "${source_root%/}"/opt/wisplab-cloud/releases/*) ;;
-  *) echo 'wisplab-backup: current release is outside releases directory' >&2; exit 1 ;;
-esac
+release_prefix="${source_root%/}/opt/wisplab-cloud/releases/"
+if [[ "$release" != "$release_prefix"* ]]; then
+  echo 'wisplab-backup: current release is outside releases directory' >&2
+  exit 1
+fi
 [[ -d "$release" ]] || exit 1
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
 name="backup-${STAMP}.tar.gz"
