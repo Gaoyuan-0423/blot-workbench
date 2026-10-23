@@ -5,7 +5,10 @@
 set -euo pipefail
 source_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 install -m 750 "$source_dir/wisplab-backup.sh" /usr/local/sbin/wisplab-backup.sh
+install -m 750 "$source_dir/wisplab-backup-cleanup.py" /usr/local/sbin/wisplab-backup-cleanup.py
 install -m 644 "$source_dir/wisplab-backup.service" "$source_dir/wisplab-backup.timer" /etc/systemd/system/
+install -m 644 "$source_dir/wisplab-backup-cleanup.service" "$source_dir/wisplab-backup-cleanup.timer" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now wisplab-backup.timer
-systemctl list-timers wisplab-backup.timer --no-pager
+systemctl enable --now wisplab-backup-cleanup.timer
+systemctl list-timers 'wisplab-backup*' --no-pager

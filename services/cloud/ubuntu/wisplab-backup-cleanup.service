@@ -1,0 +1,7 @@
+[Unit]
+Description=Expire WispLab automatic backups independently of backup success
+
+[Service]
+Type=oneshot
+UMask=0077
+ExecStart=/usr/bin/python3 /usr/local/sbin/wisplab-backup-cleanup.py

@@ -1,0 +1,9 @@
+[Unit]
+Description=Check WispLab automatic backup expiry daily
+
+[Timer]
+OnCalendar=*-*-* 18:30:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target
