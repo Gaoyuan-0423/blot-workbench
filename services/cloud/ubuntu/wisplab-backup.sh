@@ -36,7 +36,7 @@ trap 'exit 143' TERM
 # Do not start a service which the operator deliberately stopped.
 systemctl is-active --quiet wisplab-cloud
 source_root=$(readlink -f -- "$source_root")
-release=$(readlink -f -- "$source_root/opt/wisplab-cloud/current")
+release=$(readlink -f -- "${source_root%/}/opt/wisplab-cloud/current")
 case "$release" in
   "${source_root%/}"/opt/wisplab-cloud/releases/*) ;;
   *) echo 'wisplab-backup: current release is outside releases directory' >&2; exit 1 ;;
