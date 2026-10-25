@@ -1,7 +1,7 @@
 {
   "name": "wisplab-desktop",
   "productName": "WispLab Experimental",
-  "version": "0.1.0-experimental.1",
+  "version": "0.1.0-experimental.2",
   "private": true,
   "description": "Offline WispLab tools — experimental unsigned desktop build",
   "author": "WispLab",

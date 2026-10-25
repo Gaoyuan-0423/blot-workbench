@@ -1,5 +1,5 @@
 import { detectBands, type Polarity, type QuickBand } from "../quick/analysis";
-import type { QuickImage } from "../quick/image";
+import { imageMaximum, type QuickImage } from "../quick/image";
 
 export type SinglePolarity = "auto" | "dark" | "light";
 
@@ -21,7 +21,7 @@ function inferPolarity(image: QuickImage): Polarity {
     border.length % 2
       ? border[middle]
       : (border[middle - 1] + border[middle]) / 2;
-  return median >= 127.5 ? "dark" : "light";
+  return median >= imageMaximum(image) / 2 ? "dark" : "light";
 }
 
 /** This entry point handles one strip only; multirow images are never split. */
@@ -39,6 +39,7 @@ export function recognizeSingle(
     image.height,
     polarity,
     count,
+    imageMaximum(image),
   );
   return {
     ...result,

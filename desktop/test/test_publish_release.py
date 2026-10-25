@@ -14,7 +14,7 @@ spec = importlib.util.spec_from_file_location(
 publisher = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(publisher)
 Error = publisher.release.ReleaseError
-VERSION = '0.1.0-experimental.1'
+VERSION = '0.1.0-experimental.2'
 TAG = 'wisplab-desktop-' + VERSION
 SHAS = {'wb': 'a' * 40, 'pathology': 'b' * 40, 'pcr': 'c' * 40}
 SHELL_SHA = 'd' * 40  # Deliberately different from the bundled WB tool.

@@ -44,14 +44,21 @@ import {
   type QuickBand,
   type Rect,
 } from "./analysis";
-import { createQuickExample, loadQuickImage, type QuickImage } from "./image";
+import {
+  createQuickExample,
+  loadQuickImage,
+  imageMaximum,
+  allocateGray,
+  type GrayPixels,
+  type QuickImage,
+} from "./image";
 import { relativeSignals, resultCsv } from "./results";
 import "./quick.css";
 
 type Polarity = "dark" | "light";
 type Row = {
   bounds: Rect;
-  gray: Uint8Array;
+  gray: GrayPixels;
   bands: QuickBand[];
   warnings: string[];
   label: string;
@@ -77,9 +84,15 @@ const palette = [
 ];
 
 function analyze(image: QuickImage, polarity: Polarity): Loaded {
-  const detected = detectRows(image.gray, image.width, image.height, polarity);
+  const detected = detectRows(
+    image.gray,
+    image.width,
+    image.height,
+    polarity,
+    imageMaximum(image),
+  );
   const rows = detected.rows.map((bounds, i) => {
-    const gray = new Uint8Array(bounds.width * bounds.height);
+    const gray = allocateGray(image.gray, bounds.width * bounds.height);
     for (let y = 0; y < bounds.height; y++)
       gray.set(
         image.gray.subarray(
@@ -91,7 +104,14 @@ function analyze(image: QuickImage, polarity: Polarity): Loaded {
     return {
       bounds,
       gray,
-      ...detectBands(gray, bounds.width, bounds.height, polarity),
+      ...detectBands(
+        gray,
+        bounds.width,
+        bounds.height,
+        polarity,
+        undefined,
+        imageMaximum(image),
+      ),
       label:
         detected.rows.length === 1 ? image.name.replace(/\.[^.]+$/, "") : "",
       automaticLabel: detected.rows.length > 1 ? i + 1 : undefined,
@@ -215,7 +235,7 @@ function Plot({
         );
       })}
       <text x="52" y="317" fill="#667085" fontSize="10">
-        {tr("Blot Workbench · 8-bit 像素估计 · 自动草稿，取样框待核对")}{" "}
+        {tr("Blot Workbench · 原始位深像素估计 · 自动草稿，取样框待核对")}{" "}
       </text>
     </svg>
   );
@@ -387,6 +407,7 @@ export default function QuickApp() {
             row.bounds.height,
             row.bands,
             data.polarity,
+            imageMaximum(data.image),
           )
         : [],
     [row, data],
@@ -400,6 +421,7 @@ export default function QuickApp() {
             refRow.bounds.height,
             refRow.bands,
             refSource.polarity,
+            imageMaximum(refSource.image),
           )
         : null,
     [refRow, refSource],
@@ -585,6 +607,7 @@ export default function QuickApp() {
         displayRow.bounds.height,
         displayData?.polarity ?? polarity,
         manual ? n : undefined,
+        imageMaximum(displayData?.image ?? {}),
       );
       updateDisplayedRow((r) => ({ ...r, ...result }));
       setSelected(0);
@@ -646,6 +669,8 @@ export default function QuickApp() {
             file: data.image.name,
             protein: rowLabel(row),
             polarity: data.polarity,
+            bitDepth: data.image.bitDepth ?? 8,
+            referenceBitDepth: refSource?.image.bitDepth ?? 8,
             labels: laneLabels,
             control,
             bands: row.bands,
@@ -750,7 +775,7 @@ export default function QuickApp() {
           ref={input}
           className="quick-file"
           type="file"
-          accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+          accept="image/tiff,image/png,image/jpeg,.tif,.tiff,.png,.jpg,.jpeg"
           aria-label={tr("导入条带图片")}
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -762,7 +787,7 @@ export default function QuickApp() {
           ref={referenceInput}
           className="quick-file"
           type="file"
-          accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+          accept="image/tiff,image/png,image/jpeg,.tif,.tiff,.png,.jpg,.jpeg"
           aria-label={tr("添加内参图片")}
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -844,7 +869,9 @@ export default function QuickApp() {
                   <Plus size={17} />
                   {tr("选择条带图片")}{" "}
                 </button>
-                <small>{tr("8-bit PNG / JPG · 最大 15 MB")}</small>
+                <small>
+                  {tr("8/16-bit TIFF（64 MB）· 8-bit PNG / JPG（15 MB）")}
+                </small>
                 <div className="quick-drop-divider">
                   <span />
                   {tr("还没有准备好图片？")} <span />
@@ -1497,7 +1524,7 @@ export default function QuickApp() {
           </span>
           <span>
             {tr(
-              "8-bit 像素估计 · 自动取样需核对 · 原始 TIFF / 16-bit 请保留原始定量流程",
+              "原始位深像素估计 · 自动取样需核对 · TIFF 保留 8/16-bit 测量值",
             )}{" "}
           </span>
           <a href={languageUrl("?mode=project")}>

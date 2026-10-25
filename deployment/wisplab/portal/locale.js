@@ -21,7 +21,6 @@ export const messages = {
     zh: "实验数据分析",
     en: "Experimental Data Analysis",
   },
-  "nav.account": { zh: "登录 / 注册", en: "Sign in / Register" },
   "nav.label": {
     zh: "页面导航",
     en: "Page navigation",
@@ -191,8 +190,8 @@ export const messages = {
     en: "Just need results from one strip?",
   },
   "quick.description": {
-    zh: "导入裁好的 8-bit PNG / JPG，自动取样、扣背景，再核对结果。",
-    en: "Import a cropped 8-bit PNG or JPG for automatic sampling and background correction, then review the results.",
+    zh: "导入裁好的 8/16-bit TIFF 或 8-bit PNG / JPG，自动取样、扣背景，再核对结果。",
+    en: "Import a cropped 8/16-bit TIFF or 8-bit PNG/JPG for automatic sampling and background correction, then review the results.",
   },
   "quick.open": {
     zh: "打开单条带识别",
@@ -214,6 +213,14 @@ export const messages = {
     zh: "最新记录",
     en: "Latest update",
   },
+  "updates.accountfree.title": {
+    zh: "免账号使用与 WB 简易模式 TIFF",
+    en: "Account-free tools and TIFF in simple WB modes",
+  },
+  "updates.accountfree.description": {
+    zh: "首页与三个工具移除登录、注册入口，保留本地项目导入、导出。WB 单条带和快速分析支持 8/16 位 TIFF，测量保留原始位深；图像预览与定量分开处理。",
+    en: "The homepage and all three tools remove sign-in and registration while keeping local project import/export. Single-strip and quick WB modes accept 8/16-bit TIFF with source-depth measurements independent of the preview.",
+  },
   "updates.publication.title": {
     zh: "WB 图版与原始数据导出",
     en: "WB figures and source-data export",
@@ -227,8 +234,8 @@ export const messages = {
     en: "Optional accounts and local projects across WispLab",
   },
   "updates.platform.description": {
-    zh: "可选用户名和密码登录；游客也可下载、打开本地项目。实验数据保存在本机，通过项目文件在电脑间转移，首版不开放数据上传或云同步。首页与三个工具统一使用 WispLab 品牌标识。",
-    en: "Sign in optionally with a username and password, or download and open local projects as a guest. Experimental data stays on your device; transfer project files between computers. Data uploads and cloud sync are not enabled in this first edition. The homepage and all three tools share WispLab branding.",
+    zh: "当时版本加入可选账号与本地项目管理，实验数据不上传或云同步。账号入口已在 2026-10-25 的免账号版本移除，本地项目功能继续保留。",
+    en: "That release introduced optional accounts and local project management without experimental uploads or cloud sync. The account-free release of October 25, 2026 removes account controls and retains local projects.",
   },
   "updates.wb.title": {
     zh: "单条带校直、曝光挑选与识别引导",

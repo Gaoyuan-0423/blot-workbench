@@ -1,3 +1,4 @@
+import { quickBandsTiff } from "../fixtures/quick-tiff";
 import { test, expect, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { zlibSync } from "fflate";
@@ -329,4 +330,75 @@ test("single-strip results remain readable on mobile without horizontal page ove
     path: testInfo.outputPath("single-mobile-results.png"),
     fullPage: true,
   });
+});
+
+for (const depth of [8, 16] as const) {
+  test(`single-strip ${depth}-bit TIFF measures original values and survives a local project round trip`, async ({
+    page,
+  }) => {
+    await ready(page);
+    await page.getByLabel("导入单排条带图片", { exact: true }).setInputFiles({
+      name: "known-single.tiff",
+      mimeType: "image/tiff",
+      buffer: Buffer.from(quickBandsTiff(depth)),
+    });
+    await expect(page.getByTestId(/^single-relative-/)).toHaveCount(6);
+    const before = await csvResults(page);
+    for (const [i, row] of before.entries()) {
+      expect(Number(row.net_signal)).toBe(
+        384 * (depth === 16 ? 10001 + i * 5000 : 40 + i * 20),
+      );
+      expect(row.method).toContain(`${depth}-bit decoded source pixels`);
+      expect(JSON.parse(row.preparation).measurement).toBe(
+        `original-${depth}-bit-pixel-centers`,
+      );
+    }
+    const platform = page.locator("wisplab-platform");
+    await platform
+      .getByRole("button", { name: "本地项目", exact: true })
+      .click();
+    const downloadEvent = page.waitForEvent("download");
+    await platform
+      .getByRole("button", { name: "下载当前项目", exact: true })
+      .click();
+    const download = await downloadEvent,
+      bytes = await readFile((await download.path())!);
+    await page.reload();
+    await expect(page.getByTestId(/^single-relative-/)).toHaveCount(0);
+    // Reload preserves ?project=local and reopens the dialog automatically.
+    await expect(platform.getByRole("dialog")).toBeVisible();
+    page.once("dialog", (dialog) => dialog.accept());
+    await platform.getByLabel("选择本地项目", { exact: true }).setInputFiles({
+      name: "restored.zip",
+      mimeType: "application/zip",
+      buffer: bytes,
+    });
+    await expect(platform.getByRole("status")).toContainText("项目已打开");
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId(/^single-relative-/)).toHaveCount(6);
+    const after = await csvResults(page);
+    expect(after.map((row) => row.net_signal)).toEqual(
+      before.map((row) => row.net_signal),
+    );
+    expect(after.map((row) => row.preparation)).toEqual(
+      before.map((row) => row.preparation),
+    );
+  });
+}
+
+test("16-bit light TIFF retains exact signal with automatic polarity", async ({
+  page,
+}) => {
+  await ready(page);
+  await page.getByLabel("导入单排条带图片", { exact: true }).setInputFiles({
+    name: "light.tif",
+    mimeType: "image/tiff",
+    buffer: Buffer.from(quickBandsTiff(16, true)),
+  });
+  await expect(page.getByTestId(/^single-relative-/)).toHaveCount(6);
+  const rows = await csvResults(page);
+  expect(rows.map((row) => row.polarity)).toEqual(Array(6).fill("light"));
+  expect(rows.map((row) => Number(row.net_signal))).toEqual(
+    Array.from({ length: 6 }, (_, i) => 384 * (10001 + i * 5000)),
+  );
 });

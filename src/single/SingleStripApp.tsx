@@ -489,6 +489,7 @@ export default function SingleStripApp() {
         [
           resultCsv({
             file: strip.image.name,
+            bitDepth: strip.prepared.source.bitDepth ?? 8,
             protein: strip.image.name.replace(/\.[^.]+$/, ""),
             polarity: strip.polarity,
             labels: signals.map((_, i) => f("泳道 {0}", i + 1)),
@@ -597,7 +598,7 @@ export default function SingleStripApp() {
           hidden
           type="file"
           multiple
-          accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+          accept="image/tiff,image/png,image/jpeg,.tif,.tiff,.png,.jpg,.jpeg"
           aria-label={tr("导入单排条带图片")}
           onChange={(e) => {
             const files = Array.from(e.target.files ?? []);
@@ -610,7 +611,7 @@ export default function SingleStripApp() {
           hidden
           type="file"
           multiple
-          accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+          accept="image/tiff,image/png,image/jpeg,.tif,.tiff,.png,.jpg,.jpeg"
           aria-label={t("添加曝光图片", "Add exposure images")}
           onChange={(e) => {
             const files = Array.from(e.target.files ?? []);
@@ -674,8 +675,8 @@ export default function SingleStripApp() {
               </button>
               <small>
                 {t(
-                  "8-bit PNG / JPG · 每张最大 15 MB · 可同时选择多张曝光图",
-                  "8-bit PNG / JPG · Up to 15 MB each · Select several exposures together",
+                  "8/16-bit TIFF（64 MB）· 8-bit PNG / JPG（15 MB）· 可同时选择多张曝光图",
+                  "8/16-bit TIFF (64 MB) · 8-bit PNG / JPG (15 MB) · Select several exposures together",
                 )}
               </small>
               <div className="single-example-line">
@@ -1114,7 +1115,7 @@ export default function SingleStripApp() {
                             fontSize="11"
                           >
                             {tr(
-                              "8-bit 像素估计 · 自动取样待核对 · 未做内参归一化",
+                              "原始位深像素估计 · 自动取样待核对 · 未做内参归一化",
                             )}{" "}
                           </text>
                           <text

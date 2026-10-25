@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { encode } from "fast-png";
+import { quickBandsTiff } from "../tests/fixtures/quick-tiff";
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import {
   createQuickExample,
+  loadQuickImage,
   createQuickReferenceExample,
   type QuickImage,
+  imageMaximum,
+  allocateGray,
 } from "./quick/image";
 import { detectBands, detectRows, measureBands } from "./quick/analysis";
 import { recognizeSingle } from "./single/model";
@@ -26,13 +30,16 @@ function preview(prepared: ReturnType<typeof prepareRaster>): QuickImage {
     width: prepared.width,
     height: prepared.height,
     gray: prepared.gray,
+    ...(prepared.source.bitDepth ? { bitDepth: prepared.source.bitDepth } : {}),
     dataUrl:
       "data:image/png;base64," +
       Buffer.from(
         encode({
           width: prepared.width,
           height: prepared.height,
-          data: prepared.gray,
+          data: Uint8Array.from(prepared.gray, (value) =>
+            Math.round((value * 255) / imageMaximum(prepared.source)),
+          ),
           channels: 1,
           depth: 8,
         }),
@@ -83,9 +90,15 @@ function single(): SingleProject {
   };
 }
 function loaded(image: QuickImage): QuickLoaded {
-  const result = detectRows(image.gray, image.width, image.height, "dark");
+  const result = detectRows(
+    image.gray,
+    image.width,
+    image.height,
+    "dark",
+    imageMaximum(image),
+  );
   const rows = result.rows.map((bounds) => {
-    const gray = new Uint8Array(bounds.width * bounds.height);
+    const gray = allocateGray(image.gray, bounds.width * bounds.height);
     for (let y = 0; y < bounds.height; y++)
       gray.set(
         image.gray.subarray(
@@ -97,7 +110,14 @@ function loaded(image: QuickImage): QuickLoaded {
     return {
       bounds,
       gray,
-      ...detectBands(gray, bounds.width, bounds.height, "dark"),
+      ...detectBands(
+        gray,
+        bounds.width,
+        bounds.height,
+        "dark",
+        undefined,
+        imageMaximum(image),
+      ),
       label: "Target protein",
     };
   });
@@ -264,4 +284,95 @@ describe("WB recoverable projects", () => {
       importQuickProject((await exportSingleProject(single())).blob),
     ).rejects.toThrow();
   });
+});
+
+describe("TIFF project round trips", () => {
+  it("preserves exact 16-bit source samples, preparation, measurements and original bytes", async () => {
+    const bytes = quickBandsTiff();
+    const source = await loadQuickImage(
+      new File([bytes.buffer as ArrayBuffer], "source.tiff"),
+    );
+    const prepared = prepareRaster(source),
+      image = preview(prepared),
+      detected = recognizeSingle(image);
+    const project: SingleProject = {
+      strips: [
+        {
+          id: "tiff",
+          image,
+          prepared,
+          config: {},
+          appearance: { brightness: 100, contrast: 100 },
+          mode: "auto",
+          control: 0,
+          count: 6,
+          selected: 0,
+          ...detected,
+        },
+      ],
+      activeId: "tiff",
+      editing: false,
+      kind: "rect",
+    };
+    const expected = measurePreparedBands(prepared, detected.bands, "dark");
+    expect(expected.map((row) => row.net)).toEqual(
+      Array.from({ length: 6 }, (_, i) => 384 * (10001 + i * 5000)),
+    );
+    const restored = (
+      await importSingleProject((await exportSingleProject(project)).blob)
+    ).project.strips[0];
+    expect(restored.prepared.source.original!.bytes).toEqual(bytes);
+    expect(restored.image.bitDepth).toBe(16);
+    expect(restored.image.gray).toEqual(image.gray);
+    expect(restored.prepared.metadata.measurement).toBe(
+      "original-16-bit-pixel-centers",
+    );
+    expect(
+      measurePreparedBands(restored.prepared, restored.bands, "dark"),
+    ).toEqual(expected);
+  });
+  it("round-trips target and reference rows without truncating high-depth values", async () => {
+    const bytes = quickBandsTiff();
+    const image = await loadQuickImage(
+      new File([bytes.buffer as ArrayBuffer], "source.tif"),
+    );
+    const project = quick();
+    project.data = loaded(image);
+    project.external = loaded(image);
+    const restored = (
+      await importQuickProject((await exportQuickProject(project)).blob)
+    ).project;
+    expect(restored.data!.image.gray).toEqual(image.gray);
+    expect(restored.data!.rows[0].gray).toEqual(image.gray);
+    expect(restored.external!.rows[0].gray).toEqual(image.gray);
+    expect(restored.data!.image.bitDepth).toBe(16);
+    expect(
+      measureBands(
+        restored.data!.rows[0].gray,
+        image.width,
+        image.height,
+        restored.data!.rows[0].bands,
+        "dark",
+        65535,
+      ).map((row) => row.net),
+    ).toEqual(Array.from({ length: 6 }, (_, i) => 384 * (10001 + i * 5000)));
+  });
+});
+
+describe("invalid high-depth archive samples", () => {
+  for (const value of [NaN, Infinity, -1, 65536]) {
+    it(`rejects a Float64 archive containing ${value} before restoring it`, async () => {
+      const bytes = quickBandsTiff();
+      const image = await loadQuickImage(
+        new File([bytes.buffer as ArrayBuffer], "source.tif"),
+      );
+      const project = quick();
+      project.data = loaded(image);
+      image.gray[0] = value;
+      const archive = await exportQuickProject(project);
+      await expect(importQuickProject(archive.blob)).rejects.toThrow(
+        /Invalid|项目包/,
+      );
+    });
+  }
 });

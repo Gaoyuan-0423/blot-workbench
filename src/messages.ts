@@ -1,5 +1,22 @@
 /** Interface and system-message catalog. Keys are stable Chinese source messages. */
 export const messages: Record<string, string> = {
+  "8/16-bit TIFF（64 MB）· 8-bit PNG / JPG（15 MB）":
+    "8/16-bit TIFF (64 MB) · 8-bit PNG / JPG (15 MB)",
+  "原始位深像素估计 · 自动取样待核对 · 未做内参归一化":
+    "Original-depth pixel estimate · Review automatic regions · No reference normalization",
+  "Blot Workbench · 原始位深像素估计 · 自动草稿，取样框待核对":
+    "Blot Workbench · Original-depth pixel estimate · Automatic draft; review sampling regions",
+  "原始位深像素估计 · 自动取样需核对 · TIFF 保留 8/16-bit 测量值":
+    "Original-depth pixel estimate · Review automatic regions · TIFF retains 8/16-bit measurement values",
+  "请选择有效的 8/16-bit TIFF 或 8-bit PNG/JPEG 图片。":
+    "Choose a valid 8/16-bit TIFF or 8-bit PNG/JPEG image.",
+  "TIFF 超过 64 MB，请先裁出需要分析的条带。":
+    "TIFF exceeds 64 MB. Crop to the strip you need to analyze.",
+  "文件扩展名与 TIFF 内容不一致。":
+    "The file extension does not match TIFF contents.",
+  "像素位深无效。": "Invalid pixel bit depth.",
+  "像素值超出原始位深范围。": "Pixel values exceed the source bit-depth range.",
+
   "阿里云百炼 DashScope（国内）": "Alibaba Cloud DashScope (China)",
   "DashScope（国际）": "DashScope (International)",
   "硅基流动 SiliconFlow": "SiliconFlow",

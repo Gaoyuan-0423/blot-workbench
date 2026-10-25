@@ -45,6 +45,8 @@ export function resultCsv(input: {
   file: string;
   protein: string;
   polarity: string;
+  bitDepth?: 8 | 16;
+  referenceBitDepth?: 8 | 16;
   labels: string[];
   control: number;
   bands: QuickBand[];
@@ -176,8 +178,8 @@ export function resultCsv(input: {
       b.rect.height,
       bg ? JSON.stringify(bg) : "",
       input.preparation
-        ? "single-preparation-v1; 8-bit decoded source pixels; original pixel center integration; local mean background subtraction; relative to selected control"
-        : "quick-v1; 8-bit pixels; local mean background subtraction; optional reference ratio; relative to selected control",
+        ? `single-preparation-v1; ${input.bitDepth ?? 8}-bit decoded source pixels; original pixel center integration; local mean background subtraction; relative to selected control`
+        : `quick-v1; ${input.bitDepth ?? 8}-bit pixels; local mean background subtraction; optional reference ratio; relative to selected control${input.reference ? `; reference ${input.referenceBitDepth ?? 8}-bit pixels` : ""}`,
       "UNREVIEWED_PIXEL_ESTIMATE",
       note,
       reference?.raw,

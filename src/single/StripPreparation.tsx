@@ -1,7 +1,7 @@
 import { useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { Crop, RotateCcw, ScanLine, SlidersHorizontal } from "lucide-react";
 import { translate as t, translateMessage as tr } from "../i18n";
-import type { QuickImage } from "../quick/image";
+import { imageMaximum, type QuickImage } from "../quick/image";
 import type { Rect } from "../quick/analysis";
 import type { Point, PreparedRaster, PreparationConfig } from "./preparation";
 
@@ -28,7 +28,7 @@ export function rasterPreview(prepared: PreparedRaster): QuickImage {
     pixels.data[i * 4] =
       pixels.data[i * 4 + 1] =
       pixels.data[i * 4 + 2] =
-        prepared.gray[i];
+        Math.round((prepared.gray[i] * 255) / imageMaximum(prepared.source));
     pixels.data[i * 4 + 3] = 255;
   }
   context.putImageData(pixels, 0, 0);
@@ -36,6 +36,7 @@ export function rasterPreview(prepared: PreparedRaster): QuickImage {
     name: prepared.source.name,
     dataUrl: canvas.toDataURL("image/png"),
     gray: prepared.gray,
+    ...(prepared.source.bitDepth ? { bitDepth: prepared.source.bitDepth } : {}),
     width: prepared.width,
     height: prepared.height,
   };

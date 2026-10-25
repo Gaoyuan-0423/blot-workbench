@@ -29,16 +29,6 @@ export default defineConfig({
       },
     },
     react(),
-    {
-      name: "wisplab-local-cloud-csp",
-      apply: "serve",
-      transformIndexHtml(html) {
-        return html.replace(
-          "connect-src 'self'",
-          "connect-src 'self' http://127.0.0.1:8090",
-        );
-      },
-    },
   ],
   build: { sourcemap: false },
 });

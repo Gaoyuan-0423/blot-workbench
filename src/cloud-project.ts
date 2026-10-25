@@ -14,6 +14,8 @@ import {
 } from "./project-archive";
 import {
   inspectQuickImage,
+  imageMaximum,
+  type GrayPixels,
   QUICK_IMAGE_LIMITS,
   type QuickImage,
 } from "./quick/image";
@@ -48,7 +50,7 @@ export interface SingleProject {
 }
 export interface QuickRow {
   bounds: Rect;
-  gray: Uint8Array;
+  gray: GrayPixels;
   bands: QuickBand[];
   warnings: string[];
   label: string;
@@ -108,7 +110,10 @@ const sizeCheck = object({
 const metadataCheck = object({
   version: oneOf("single-preparation-v1"),
   coordinateSpace: oneOf("prepared-view-pixels"),
-  measurement: oneOf("original-8-bit-pixel-centers"),
+  measurement: oneOf(
+    "original-8-bit-pixel-centers",
+    "original-16-bit-pixel-centers",
+  ),
   order: oneOf("rotation-column-shift-crop"),
   sourceSize: sizeCheck,
   fullSize: sizeCheck,
@@ -130,21 +135,32 @@ interface ImageRef {
   height: number;
   gray: number;
   preview: number;
-  original: { mime: "image/png" | "image/jpeg"; file: number } | null;
+  original: {
+    mime: "image/png" | "image/jpeg" | "image/tiff";
+    file: number;
+  } | null;
   synthetic: boolean;
+  bitDepth?: 8 | 16;
+  grayEncoding?: "float64-le";
 }
 const fileIndex = integer(0, 2999);
-const imageCheck = object({
-  name: string,
-  width: integer(1, 16000),
-  height: integer(1, 16000),
-  gray: fileIndex,
-  preview: fileIndex,
-  original: nullable(
-    object({ mime: oneOf("image/png", "image/jpeg"), file: fileIndex }),
-  ),
-  synthetic: bool,
-});
+const imageCheck = object(
+  {
+    name: string,
+    width: integer(1, 16000),
+    height: integer(1, 16000),
+    gray: fileIndex,
+    preview: fileIndex,
+    original: nullable(
+      object({
+        mime: oneOf("image/png", "image/jpeg", "image/tiff"),
+        file: fileIndex,
+      }),
+    ),
+    synthetic: bool,
+  },
+  { bitDepth: oneOf(8, 16), grayEncoding: oneOf("float64-le") },
+);
 type PreparedRef = Omit<PreparedRaster, "source" | "gray" | "valid"> & {
   source: ImageRef;
   gray: number;
@@ -270,18 +286,24 @@ function checkPreview(bytes: Uint8Array, width: number, height: number): void {
 }
 class PackageWriter {
   files: File[] = [];
-  private arrays = new Map<Uint8Array, number>();
+  private arrays = new Map<GrayPixels, number>();
   private images = new Map<QuickImage, ImageRef>();
   binary(
-    bytes: Uint8Array,
+    bytes: GrayPixels,
     name: string,
     type = "application/octet-stream",
   ): number {
     const previous = this.arrays.get(bytes);
     if (previous !== undefined) return previous;
+    const encoded =
+      bytes instanceof Float64Array ? new Uint8Array(bytes.length * 8) : bytes;
+    if (bytes instanceof Float64Array) {
+      const view = new DataView(encoded.buffer);
+      bytes.forEach((value, i) => view.setFloat64(i * 8, value, true));
+    }
     const i =
       this.files.push(
-        new File([Uint8Array.from(bytes).buffer], name, {
+        new File([Uint8Array.from(encoded).buffer], name, {
           type,
           lastModified: 0,
         }),
@@ -296,6 +318,10 @@ class PackageWriter {
     checkPreview(preview, image.width, image.height);
     const ref: ImageRef = {
       name: image.name,
+      ...(image.bitDepth ? { bitDepth: image.bitDepth } : {}),
+      ...(image.gray instanceof Float64Array
+        ? { grayEncoding: "float64-le" as const }
+        : {}),
       width: image.width,
       height: image.height,
       gray: this.binary(image.gray, "measurement-gray.bin"),
@@ -349,9 +375,26 @@ class PackageReader {
     this.bytes.set(i, result);
     return result;
   }
+  async pixels(i: number, count: number, image: ImageRef): Promise<GrayPixels> {
+    const bytes = await this.binary(i);
+    if (image.grayEncoding !== "float64-le") {
+      if (bytes.length !== count || image.bitDepth === 16) invalid();
+      return bytes;
+    }
+    if (bytes.length !== count * 8) invalid();
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const pixels = new Float64Array(count),
+      max = imageMaximum(image);
+    for (let p = 0; p < count; p++) {
+      const value = view.getFloat64(p * 8, true);
+      if (!Number.isFinite(value) || value < 0 || value > max) invalid();
+      pixels[p] = value;
+    }
+    return pixels;
+  }
   async image(ref: ImageRef): Promise<QuickImage> {
     if (ref.width * ref.height > QUICK_IMAGE_LIMITS.maxPixels) invalid();
-    const gray = await this.binary(ref.gray);
+    const gray = await this.pixels(ref.gray, ref.width * ref.height, ref);
     if (gray.length !== ref.width * ref.height) invalid();
     const preview = await this.binary(ref.preview);
     checkPreview(preview, ref.width, ref.height);
@@ -363,12 +406,14 @@ class PackageReader {
       if (
         header.width !== ref.width ||
         header.height !== ref.height ||
-        header.mime !== original.mime
+        header.mime !== original.mime ||
+        (header.bitDepth ?? 8) !== (ref.bitDepth ?? 8)
       )
         invalid();
     }
     return {
       name: ref.name,
+      ...(ref.bitDepth ? { bitDepth: ref.bitDepth } : {}),
       width: ref.width,
       height: ref.height,
       gray,
@@ -382,7 +427,7 @@ class PackageReader {
     config: PreparationConfig,
   ): Promise<PreparedRaster> {
     const source = await this.image(ref.source),
-      gray = await this.binary(ref.gray),
+      gray = await this.pixels(ref.gray, ref.width * ref.height, ref.source),
       valid = await this.binary(ref.valid);
     if (
       ref.width * ref.height > QUICK_IMAGE_LIMITS.maxPixels ||
@@ -417,7 +462,11 @@ class PackageReader {
     const rows: QuickRow[] = [];
     for (const row of ref.rows) {
       checkRect(row.bounds, image.width, image.height);
-      const gray = await this.binary(row.gray);
+      const gray = await this.pixels(
+        row.gray,
+        row.bounds.width * row.bounds.height,
+        ref.image,
+      );
       if (gray.length !== row.bounds.width * row.bounds.height) invalid();
       for (let y = 0; y < row.bounds.height; y++)
         for (let x = 0; x < row.bounds.width; x++) {
@@ -436,7 +485,7 @@ class PackageReader {
     if (this.used.size !== this.files.length) invalid();
   }
 }
-function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
+function sameBytes(a: GrayPixels, b: GrayPixels): boolean {
   return a.length === b.length && a.every((v, i) => v === b[i]);
 }
 function sameMetadata(a: PreparationMetadata, b: PreparationMetadata): boolean {
@@ -523,6 +572,7 @@ export async function importSingleProject(
     if (
       image.width !== prepared.width ||
       image.height !== prepared.height ||
+      (image.bitDepth ?? 8) !== (prepared.source.bitDepth ?? 8) ||
       !sameBytes(image.gray, prepared.gray)
     )
       invalid();

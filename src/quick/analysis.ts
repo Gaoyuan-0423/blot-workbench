@@ -1,4 +1,4 @@
-/** Deterministic 8-bit image measurements. Coordinates are original-image pixels. */
+/** Deterministic original-depth image measurements. Coordinates are original-image pixels. */
 export type Rect = { x: number; y: number; width: number; height: number };
 export type Polarity = "dark" | "light";
 export type QuickBand = { id: string; rect: Rect; background: Rect | null };
@@ -17,6 +17,7 @@ function assertImage(
   width: number,
   height: number,
   polarity: Polarity,
+  max: number,
 ): void {
   if (
     !Number.isInteger(width) ||
@@ -28,13 +29,14 @@ function assertImage(
     throw new Error("图片尺寸与像素不一致。");
   if (polarity !== "dark" && polarity !== "light")
     throw new Error("请选择深色或浅色条带。");
+  if (max !== 255 && max !== 65535) throw new Error("像素位深无效。");
   for (let i = 0; i < gray.length; i++)
-    if (!Number.isFinite(gray[i]) || gray[i] < 0 || gray[i] > 255)
-      throw new Error("仅支持 0–255 灰度像素。");
+    if (!Number.isFinite(gray[i]) || gray[i] < 0 || gray[i] > max)
+      throw new Error("像素值超出原始位深范围。");
 }
 
-function signal(value: number, polarity: Polarity): number {
-  return polarity === "dark" ? 255 - value : value;
+function signal(value: number, polarity: Polarity, max: number): number {
+  return polarity === "dark" ? max - value : value;
 }
 
 function quantile(values: number[], fraction: number): number {
@@ -81,12 +83,14 @@ function rowSpans(
   width: number,
   height: number,
   polarity: Polarity,
+  max: number,
 ): Span[] {
   const projection = Array<number>(height).fill(0);
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++)
-      projection[y] += signal(gray[y * width + x], polarity);
+      projection[y] += signal(gray[y * width + x], polarity, max);
     projection[y] /= width;
+    projection[y] *= 255 / max;
   }
   return segments(projection, Math.min(3, Math.floor(height / 160)), 2);
 }
@@ -97,9 +101,10 @@ export function detectRows(
   width: number,
   height: number,
   polarity: Polarity,
+  max = 255,
 ): { rows: Rect[]; warnings: string[] } {
-  assertImage(gray, width, height, polarity);
-  const spans = rowSpans(gray, width, height, polarity);
+  assertImage(gray, width, height, polarity, max);
+  const spans = rowSpans(gray, width, height, polarity, max);
   if (!spans.length || spans.length > 16)
     return {
       rows: [{ x: 0, y: 0, width, height }],
@@ -173,8 +178,9 @@ export function detectBands(
   height: number,
   polarity: Polarity,
   count?: number,
+  max = 255,
 ): { bands: QuickBand[]; warnings: string[] } {
-  assertImage(gray, width, height, polarity);
+  assertImage(gray, width, height, polarity, max);
   if (
     count !== undefined &&
     (!Number.isInteger(count) || count < 1 || count > 32 || width / count < 3)
@@ -183,7 +189,7 @@ export function detectBands(
   const failure = (warning: string) => ({ bands: [], warnings: [warning] });
   if (width < 8 || height < 8)
     return failure("图片过小，请导入清晰的单排条带图。");
-  const rows = rowSpans(gray, width, height, polarity);
+  const rows = rowSpans(gray, width, height, polarity, max);
   if (!rows.length)
     return failure(
       "未找到明确条带，请检查深浅色模式，或裁剪到单排条带并保留空白背景。",
@@ -198,8 +204,9 @@ export function detectBands(
   const projection = Array<number>(width).fill(0);
   for (let x = 0; x < width; x++) {
     for (let y = row.start; y <= row.end; y++)
-      projection[x] += signal(gray[y * width + x], polarity);
+      projection[x] += signal(gray[y * width + x], polarity, max);
     projection[x] /= row.end - row.start + 1;
+    projection[x] *= 255 / max;
   }
   const spans = segments(
     projection,
@@ -276,16 +283,17 @@ function stats(
   width: number,
   rect: Rect,
   polarity: Polarity,
+  max: number,
 ) {
   let sum = 0,
     squares = 0,
     saturated = 0;
   for (let y = rect.y; y < rect.y + rect.height; y++)
     for (let x = rect.x; x < rect.x + rect.width; x++) {
-      const value = signal(gray[y * width + x], polarity);
+      const value = signal(gray[y * width + x], polarity, max);
       sum += value;
       squares += value * value;
-      if (value >= 254) saturated++;
+      if (value >= max * (254 / 255)) saturated++;
     }
   const area = rect.width * rect.height,
     mean = sum / area;
@@ -305,14 +313,15 @@ export function measureBands(
   height: number,
   bands: QuickBand[],
   polarity: Polarity,
+  max = 255,
 ): QuickMeasurement[] {
-  assertImage(gray, width, height, polarity);
+  assertImage(gray, width, height, polarity, max);
   if (new Set(bands.map((band) => band.id)).size !== bands.length)
     throw new Error("条带 ID 重复。");
   if (bands.some((band) => !validRect(band.rect, width, height)))
     throw new Error("条带取样框越界或坐标不是整数。");
   return bands.map((band) => {
-    const measured = stats(gray, width, band.rect, polarity);
+    const measured = stats(gray, width, band.rect, polarity, max);
     const result: QuickMeasurement = {
       id: band.id,
       raw: measured.sum,
@@ -327,10 +336,10 @@ export function measureBands(
       return { ...result, warning: "缺少有效背景，无法计算净信号。" };
     if (bands.some((other) => overlaps(band.background!, other.rect)))
       return { ...result, warning: "背景框与条带重叠，无法计算净信号。" };
-    const background = stats(gray, width, band.background, polarity);
+    const background = stats(gray, width, band.background, polarity, max);
     if (background.area < Math.max(4, measured.area * 0.1))
       return { ...result, warning: "背景面积不足，无法计算净信号。" };
-    if (background.sd > 20)
+    if (background.sd > (20 / 255) * max)
       return {
         ...result,
         warning: "背景变化较大，可能包含其他条带、文字或边框，请重新裁剪。",

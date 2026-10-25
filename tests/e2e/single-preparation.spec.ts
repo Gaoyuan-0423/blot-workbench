@@ -407,17 +407,15 @@ test("a mixed valid and invalid import keeps usable exposures and retranslates e
 }) => {
   await ready(page);
   const damagedName = "损坏曝光.png";
-  await page
-    .getByLabel("导入单排条带图片", { exact: true })
-    .setInputFiles([
-      {
-        name: damagedName,
-        mimeType: "image/png",
-        buffer: Buffer.from("invalid image bytes"),
-      },
-      file("有效曝光-A.png"),
-      file("有效曝光-B.png", "flat", 6),
-    ]);
+  await page.getByLabel("导入单排条带图片", { exact: true }).setInputFiles([
+    {
+      name: damagedName,
+      mimeType: "image/png",
+      buffer: Buffer.from("invalid image bytes"),
+    },
+    file("有效曝光-A.png"),
+    file("有效曝光-B.png", "flat", 6),
+  ]);
   await expect(page.getByRole("tab")).toHaveCount(2);
   await expect(
     page.getByRole("tab", { name: "有效曝光-A.png", exact: true }),
@@ -425,11 +423,15 @@ test("a mixed valid and invalid import keeps usable exposures and retranslates e
   await expect(page.getByTestId(/^single-relative-/)).toHaveCount(6);
   const alert = page.getByRole("alert");
   await expect(alert).toContainText(damagedName);
-  await expect(alert).toContainText("请选择有效的 8-bit PNG 或 JPEG 图片。");
+  await expect(alert).toContainText(
+    "请选择有效的 8/16-bit TIFF 或 8-bit PNG/JPEG 图片。",
+  );
   const values = await page.getByTestId(/^single-relative-/).allTextContents();
   await page.getByRole("button", { name: "切换到英文", exact: true }).click();
   await expect(alert).toContainText(damagedName);
-  await expect(alert).toContainText("Choose a valid 8-bit PNG or JPEG image.");
+  await expect(alert).toContainText(
+    "Choose a valid 8/16-bit TIFF or 8-bit PNG/JPEG image.",
+  );
   expect((await alert.innerText()).replace(damagedName, "")).not.toMatch(
     /[\u3400-\u9fff]/,
   );
@@ -440,7 +442,9 @@ test("a mixed valid and invalid import keeps usable exposures and retranslates e
   await page
     .getByRole("button", { name: "Switch to Chinese", exact: true })
     .click();
-  await expect(alert).toContainText("请选择有效的 8-bit PNG 或 JPEG 图片。");
+  await expect(alert).toContainText(
+    "请选择有效的 8/16-bit TIFF 或 8-bit PNG/JPEG 图片。",
+  );
   await page.getByRole("tab", { name: "有效曝光-B.png", exact: true }).click();
   await expect(page.getByTestId(/^single-relative-/)).toHaveCount(6);
   expect((await csv(page))[0].source).toBe("有效曝光-B.png");

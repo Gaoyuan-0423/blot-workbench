@@ -1,25 +1,45 @@
-import { translateMessage } from "../i18n";
+import { translateMessage, translate } from "../i18n";
 import { zlibSync } from "fflate";
+import { decodeRaster, rasterPreview } from "../real/pixels";
+
+export type GrayPixels = Uint8Array | Float64Array;
 
 export interface QuickImage {
   name: string;
   dataUrl: string;
   width: number;
   height: number;
-  gray: Uint8Array;
+  gray: GrayPixels;
+  /** Absent in legacy PNG/JPEG projects; their pixels are 8-bit. */
+  bitDepth?: 8 | 16;
   /** Original upload bytes, independent of the browser preview and measurement pixels. */
-  original?: { mime: "image/png" | "image/jpeg"; bytes: Uint8Array };
+  original?: {
+    mime: "image/png" | "image/jpeg" | "image/tiff";
+    bytes: Uint8Array;
+  };
   synthetic?: boolean;
 }
 
 export const QUICK_IMAGE_LIMITS = {
   maxBytes: 15 * 1024 * 1024,
+  maxTiffBytes: 64 * 1024 * 1024,
   maxPixels: 20_000_000,
   maxSide: 16_000,
 } as const;
 
+export function imageMaximum(image: Pick<QuickImage, "bitDepth">): number {
+  return image.bitDepth === 16 ? 65535 : 255;
+}
+
+export function allocateGray(source: GrayPixels, length: number): GrayPixels {
+  return source instanceof Float64Array
+    ? new Float64Array(length)
+    : new Uint8Array(length);
+}
+
 interface ImageHeader {
-  mime: "image/png" | "image/jpeg";
+  bitDepth?: 8 | 16;
+  mime: "image/png" | "image/jpeg" | "image/tiff";
   width: number;
   height: number;
 }
@@ -166,38 +186,97 @@ function inspectJpeg(bytes: Uint8Array): ImageHeader {
   throw new Error("JPEG 缺少完整的尺寸或像素信息。");
 }
 
+function decodeQuickTiff(bytes: Uint8Array, name: string) {
+  try {
+    return decodeRaster(bytes, name);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "TIFF decoding failed.";
+    const known: Record<string, string> = {
+      "Only classic TIFF is supported; BigTIFF is not supported.":
+        "支持标准 TIFF，暂不支持 BigTIFF。",
+      "Multi-page TIFF is not supported.":
+        "暂不支持多页 TIFF，请提供单页原图。",
+      "Image file must be 8 bytes to 64 MiB.": "TIFF 文件不完整或超过 64 MB。",
+      "Image dimensions exceed the supported limit (16384 per side, 8388608 pixels).":
+        "TIFF 最多支持 8388608 像素，请先裁出需要分析的条带。",
+      "Image extension does not match TIFF/PNG contents.":
+        "文件扩展名与 TIFF 内容不一致，请使用 .tif 或 .tiff。",
+    };
+    throw new Error(
+      translate(
+        known[message] ??
+          "TIFF 文件无效或编码暂不支持；请使用单页 8/16-bit 无符号整数 TIFF 原图。",
+        known[message]
+          ? message
+          : "Invalid or unsupported TIFF. Use a single-page unsigned 8/16-bit TIFF original.",
+      ),
+    );
+  }
+}
+
+function isTiff(bytes: Uint8Array): boolean {
+  return (
+    (bytes[0] === 73 && bytes[1] === 73) || (bytes[0] === 77 && bytes[1] === 77)
+  );
+}
+
 /** Inspect original bytes before browser decoding can reduce source bit depth. */
 export function inspectQuickImage(bytes: Uint8Array): ImageHeader {
+  if (isTiff(bytes)) {
+    const raster = decodeQuickTiff(bytes, "source.tiff");
+    return {
+      mime: "image/tiff",
+      width: raster.width,
+      height: raster.height,
+      bitDepth: raster.bitDepth,
+    };
+  }
   if (bytes.length > QUICK_IMAGE_LIMITS.maxBytes)
     throw new Error("图片超过 15 MB，请先裁出需要分析的条带。");
   if (PNG_SIGNATURE.every((byte, index) => bytes[index] === byte))
     return inspectPng(bytes);
   if (bytes[0] === 0xff && bytes[1] === 0xd8) return inspectJpeg(bytes);
-  if (
-    (bytes[0] === 0x49 &&
-      bytes[1] === 0x49 &&
-      [42, 43].includes(bytes[2]) &&
-      bytes[3] === 0) ||
-    (bytes[0] === 0x4d &&
-      bytes[1] === 0x4d &&
-      bytes[2] === 0 &&
-      [42, 43].includes(bytes[3]))
-  )
-    throw new Error(
-      "此简易模式暂不支持 TIFF，请导出 8-bit PNG 副本并保留原始 TIFF。",
-    );
-  throw new Error("请选择有效的 8-bit PNG 或 JPEG 图片。");
+  throw new Error("请选择有效的 8/16-bit TIFF 或 8-bit PNG/JPEG 图片。");
 }
 
 export async function loadQuickImage(file: File): Promise<QuickImage> {
-  if (file.size > QUICK_IMAGE_LIMITS.maxBytes)
-    throw new Error("图片超过 15 MB，请先裁出需要分析的条带。");
+  const tiffName = /\.tiff?$/i.test(file.name ?? "");
+  if (
+    file.size >
+    (tiffName ? QUICK_IMAGE_LIMITS.maxTiffBytes : QUICK_IMAGE_LIMITS.maxBytes)
+  )
+    throw new Error(
+      tiffName
+        ? "TIFF 超过 64 MB，请先裁出需要分析的条带。"
+        : "图片超过 15 MB，请先裁出需要分析的条带。",
+    );
   let bytes: Uint8Array;
   try {
     bytes = new Uint8Array(await file.arrayBuffer());
   } catch {
     throw new Error("无法读取图片文件，请重新选择。");
   }
+  if (isTiff(bytes)) {
+    const raster = decodeQuickTiff(bytes, file.name);
+    checkDimensions(raster.width, raster.height);
+    const preview = rasterPreview(raster);
+    let binary = "";
+    for (let offset = 0; offset < preview.length; offset += 0x8000)
+      binary += String.fromCharCode(
+        ...preview.subarray(offset, offset + 0x8000),
+      );
+    return {
+      name: file.name,
+      width: raster.width,
+      height: raster.height,
+      bitDepth: raster.bitDepth,
+      gray: raster.pixels,
+      dataUrl: `data:image/png;base64,${btoa(binary)}`,
+      original: { mime: "image/tiff", bytes },
+    };
+  }
+  if (tiffName) throw new Error("文件扩展名与 TIFF 内容不一致。");
   const header = inspectQuickImage(bytes);
   const url = URL.createObjectURL(
     new Blob([new Uint8Array(bytes).buffer], { type: header.mime }),
