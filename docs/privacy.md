@@ -1,8 +1,8 @@
 # 数据与隐私 / Data and privacy
 
-**当前范围（2026-10-25）：公开版本无需账号，不提供登录、注册或云端项目。分析与项目文件保存在本机，跨设备通过导出／导入继续。**
+**当前范围（2026-10-25）：公开版本无需账号，不提供登录、注册或云端项目。默认分析与项目文件保存在本机，跨设备通过导出／导入继续；用户主动调用的可选 AI 数据传输见下文。**
 
-**Current scope (2026-10-25): the public edition has no accounts, sign-in, registration or cloud projects. Analysis and project files stay on the device; transfer work through export/import.**
+**Current scope (2026-10-25): the public edition has no accounts, sign-in, registration or cloud projects. Default analysis and project files stay on the device; transfer work through export/import. Data sent by explicitly invoked optional AI features is described below.**
 
 ## 本机分析与本地项目 / Local analysis and local projects
 
@@ -34,19 +34,23 @@ GitHub Pages, custom domains, subdomains, local servers and desktop have separat
 
 Websites request static pages, scripts, and examples; hosting providers may process ordinary connection logs. Local startup serves files locally, while dependency installation accesses package registries. Local computation is not a zero-network promise and does not make an unloaded website available offline.
 
-WB 可选本机视觉 API 测试与云项目保存是不同的数据流。打开设置读取本机服务配置；保存配置不调用模型。只有主动点击“发送合成图并测试”，才发送固定合成 PNG 和提示词到用户配置的服务；当前实验图像、样本名、泳道文字和分析结果不进入该测试请求。服务可能计费，本机超时或取消不能保证已送达的请求未被处理或计费。
+WB 完整工作区的“视觉服务（自带 API）”使用用户自行配置的服务地址、模型与 API Key，由网页或桌面应用直接请求所选服务，不经 WispLab 账号服务器。打开设置或保存配置不调用模型。主动发起视觉候选请求时，会发送当前图像的降采样预览（8 位灰度 PNG）、泳道标签、数量和信号极性；批量请求逐张处理所选图像。图片和标签可能包含实验信息，不能视为匿名数字摘要。默认本地取样和像素测量不依赖此功能；视觉候选仍需人工复核，定量继续使用本机原始像素。
 
-The optional local WB vision API test is separate from cloud saving. Opening settings reads local-service configuration; saving it does not call a model. Only **Send synthetic image & test** sends a fixed synthetic PNG and prompt to the configured provider. Current experimental images, sample names, lane labels, and results are excluded from this test request. Providers may charge; local timeout or cancellation cannot guarantee that a delivered request was not processed or billed.
+The full WB workspace's **Vision service (your own API)** uses a service address, model and API key configured by the user. Requests go directly from the website or desktop app to the selected provider, without passing through a WispLab account server. Opening settings or saving configuration does not call a model. An explicitly invoked vision-candidate request sends a downscaled preview of the current image (8-bit grayscale PNG), lane labels, lane count and signal polarity; batch requests process selected images individually. Images and labels may contain experimental information and are not merely anonymous numeric summaries. Default local region proposals and pixel measurements do not require this feature. Vision candidates still need manual review, and measurements continue using local original pixels.
 
-视觉服务地址、模型名和密钥仅保留在本机服务运行期间的内存中，重启即清除；密钥不回传、不进入浏览器持久存储、日志、项目包或 GitHub。服务仅监听 `127.0.0.1` 并检查请求来源。托管网页没有该本机配置接口。WB 合成图测试的限制不代表其他工具或用户自配远程 AI 的统一数据政策。
+“发送合成图测试”是单独的连接测试，只发送内置合成小图和测试提示，不发送当前实验图像、样本名、泳道标签或分析结果。它的限制不适用于正式视觉候选请求。所选供应商的数据处理、保留与计费受其政策和用户与其的约定约束；本机超时或取消不能保证已送达的请求未被处理或计费。
 
-The vision address, model, and key remain in local-service memory only and are cleared on restart. Keys are not returned or written to persistent browser storage, logs, archives, or GitHub. The service listens only on `127.0.0.1` and checks request origins. Hosted pages do not expose this local configuration interface. These WB synthetic-test limits do not establish a blanket policy for other tools or user-configured remote AI.
+**Send synthetic test** is a separate connectivity test. It sends only a built-in synthetic image and test prompt, excluding current experimental images, sample names, lane labels and results. Those limits do not apply to actual vision-candidate requests. The provider's processing, retention and billing follow its policies and the user's agreement with it. Local timeout or cancellation cannot guarantee that a delivered request was not processed or billed.
+
+WB 视觉服务地址、模型名和密钥默认只保存在当前页面内存，刷新即清；明确选择“在此设备记住”时才以明文写入本机 `localStorage`。已记住的副本会持续保留，需点击“清除已保存”同时删除持久副本和内存配置；仅取消勾选并保存不会删除已有副本。请求使用该密钥向所选服务认证，项目导出不包含密钥。本机存储不是加密保险箱，请勿在共用设备上记住密钥。
+
+WB vision settings and keys stay in current-page memory by default and clear on refresh. Explicitly selecting **Remember on this device** stores the service address, model and key as plaintext in local `localStorage`. An existing remembered copy remains until **Clear saved** deletes both the persistent copy and in-memory configuration; unchecking the option and saving does not remove an earlier copy. Requests use the key to authenticate with the selected provider; project exports exclude it. Local storage is not an encrypted vault. Do not remember keys on shared devices.
 
 ## 离线桌面实验版 / Experimental offline desktop
 
-桌面封装读取安装包内资源，核心分析与本地项目操作可离线使用；不提供账号或云同步。用户主动调用的远程 AI 需要联网。PCR AI 解读可能发送样本名、基因名、实验设置、质量提示与计算结果到用户所选服务，不应视为匿名数据。选择记住 AI 配置时，密钥保存在本机应用存储，不是加密保险箱，也不进入项目导出。第三方处理和保留规则由所选服务决定。首版不包含 WB 本机视觉代理，远程 AI 不属于离线能力。工具使用单一 `app://wisplab/` 来源，存储键按工具区分；桌面不会自动导入网页浏览器的项目。
+桌面封装读取安装包内资源，核心分析与本地项目操作可离线使用；不提供账号或云同步。用户主动调用的远程 AI 需要联网；WB 直接视觉请求及密钥存储规则同上。PCR AI 解读可能发送样本名、基因名、实验设置、质量提示与计算结果到用户所选服务，不应视为匿名数据。选择记住 AI 配置时，密钥保存在本机应用存储，不是加密保险箱，也不进入项目导出。第三方处理和保留规则由所选服务决定。首版不包含 WB 本机视觉代理，远程 AI 不属于离线能力。工具使用单一 `app://wisplab/` 来源，存储键按工具区分；桌面不会自动导入网页浏览器的项目。
 
-Desktop loads bundled resources, allowing core analysis and local project operations offline; accounts and cloud sync are unavailable. Explicitly invoked remote AI requires connectivity. PCR AI interpretation may send sample and gene names, experiment settings, quality flags and computed results to the selected provider; these are not necessarily anonymous data. Remembered AI keys are stored locally, not in an encrypted vault or project exports. The selected provider determines its processing and retention rules. The first edition does not include the WB local vision proxy; remote AI is not an offline feature. Tools share one `app://wisplab/` origin with tool-specific storage keys. Desktop does not automatically import a web browser's projects.
+Desktop loads bundled resources, allowing core analysis and local project operations offline; accounts and cloud sync are unavailable. Explicitly invoked remote AI requires connectivity; the WB direct-request and key-storage rules above also apply. PCR AI interpretation may send sample and gene names, experiment settings, quality flags and computed results to the selected provider; these are not necessarily anonymous data. Remembered AI keys are stored locally, not in an encrypted vault or project exports. The selected provider determines its processing and retention rules. The first edition does not include the WB local vision proxy; remote AI is not an offline feature. Tools share one `app://wisplab/` origin with tool-specific storage keys. Desktop does not automatically import a web browser's projects.
 
 默认桌面构建未签名、未经 Apple 公证或 Windows 发布者验证。没有自动更新器；网站更新不会自动替换已安装应用，需要明确打包、发布并手动安装新版本。回滚前先导出项目，旧版可能不支持新版数据格式。本机 Mac 测试通过不代表 Windows 安装验收完成。详见[桌面说明](../desktop/README.md)与[发布交接](platform-cloud-desktop.md)。
 
