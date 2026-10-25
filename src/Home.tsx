@@ -21,9 +21,9 @@ const cards = [
     zhTitle: "多排与内参",
     enTitle: "Multiple rows & reference",
     zhText:
-      "分析多排条带，或添加内参图片。核对取样与泳道配对，再导出相对强度。",
+      "导入 8/16 位 TIFF 或 8 位 PNG/JPEG，分析多排条带或添加内参。核对取样与泳道配对，再导出相对强度。",
     enText:
-      "Analyze multiple rows or add a reference image. Review the regions and lane pairing, then export relative intensity.",
+      "Import 8/16-bit TIFF or 8-bit PNG/JPEG for multiple rows or a reference image. Review regions and lane pairing, then export relative intensity.",
     zhCta: "进入快速分析",
     enCta: "Open quick analysis",
   },
@@ -112,7 +112,10 @@ export default function Home() {
             <div className="home-single-features">
               <span>
                 <Check size={14} aria-hidden="true" />
-                8-bit PNG / JPG
+                {t(
+                  "8/16 位 TIFF · 8 位 PNG / JPEG",
+                  "8/16-bit TIFF · 8-bit PNG / JPEG",
+                )}
               </span>
               <span>
                 <ShieldCheck size={14} aria-hidden="true" />

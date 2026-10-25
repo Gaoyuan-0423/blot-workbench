@@ -168,12 +168,12 @@ export default function UserGuide({
   const faqs = [
     {
       question: t(
-        "为什么不能拖入真实 TIFF 或 PNG？",
-        "Why can't I drop in real TIFF or PNG images?",
+        "为什么合成示例不能拖入真实 TIFF 或 PNG？",
+        "Why can't I drop real TIFF or PNG images into the synthetic demo?",
       ),
       answer: t(
-        "这个旧入口用于合成示例。真实 TIFF/PNG 请从侧栏“真实图像分析”进入独立工作区：导入、设置泳道、批量候选、手动复核并导出统计图。它仍是实验性预览，项目包与合成示例分开。",
-        "This legacy entry is for synthetic examples. Choose Analyze real images in the sidebar for the separate workspace: import, map lanes, run batch proposals, review manually, and export descriptive plots. It remains experimental and uses separate archives.",
+        "这个旧入口只演示固定合成图像和预设结果。单排条带或多排/内参测量可从首页进入“单条带识别”或“多排与内参”，支持 8/16 位 TIFF 与 8 位 PNG/JPEG。批量原图、实验配对与统计请进入“真实图像分析”：导入 TIFF/PNG、设置泳道、复核候选并导出统计图。自动取样需要人工复核，各工作区的项目包与合成示例分开。",
+        "This legacy entry demonstrates fixed synthetic images and preset results. For a single strip or multiple rows with a reference, open Single-strip analysis or Multiple rows & reference from the homepage; both support 8/16-bit TIFF and 8-bit PNG/JPEG. For original-image batches, experimental pairing, and statistics, choose Analyze real images: import TIFF/PNG, map lanes, review proposals, and export plots. Review automatic regions manually. These workspaces use archives separate from the synthetic demo.",
       ),
     },
     {
