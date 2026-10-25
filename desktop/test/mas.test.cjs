@@ -19,7 +19,7 @@ function profile() {
 test('MAS configuration is independent, requires signing, and validates version/target input', async () => {
   const original = require('../package.json');
   assert.equal(original.build.mac.identity, null);
-  assert.equal(original.version, '0.1.0-experimental.1');
+  assert.equal(original.version, '0.1.0-experimental.2');
   assert.equal(original.build.appId, 'top.wisplab.desktop.experimental');
   for (const target of ['mas', 'mas-dev']) {
     const opts = options({ WISPLAB_MAS_VERSION: '1.2.3', WISPLAB_MAS_BUILD_NUMBER: '42' }, target);

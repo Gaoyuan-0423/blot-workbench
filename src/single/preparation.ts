@@ -5,7 +5,13 @@ import {
   type QuickMeasurement,
   type Rect,
 } from "../quick/analysis";
-import { QUICK_IMAGE_LIMITS, type QuickImage } from "../quick/image";
+import {
+  QUICK_IMAGE_LIMITS,
+  imageMaximum,
+  allocateGray,
+  type GrayPixels,
+  type QuickImage,
+} from "../quick/image";
 
 export type Point = { x: number; y: number };
 export type PreparationConfig = {
@@ -19,7 +25,7 @@ export type PreparationConfig = {
 export type PreparationMetadata = {
   version: "single-preparation-v1";
   coordinateSpace: "prepared-view-pixels";
-  measurement: "original-8-bit-pixel-centers";
+  measurement: "original-8-bit-pixel-centers" | "original-16-bit-pixel-centers";
   order: "rotation-column-shift-crop";
   sourceSize: { width: number; height: number };
   fullSize: { width: number; height: number };
@@ -38,7 +44,7 @@ export type PreparationMetadata = {
 };
 export type PreparedRaster = {
   source: QuickImage;
-  gray: Uint8Array;
+  gray: GrayPixels;
   /** 1 only where a preview pixel samples an original-image pixel. */
   valid: Uint8Array;
   width: number;
@@ -102,12 +108,9 @@ function checkPoint(point: Point, width: number, height: number): void {
 function borderMedian(
   source: Pick<QuickImage, "width" | "height" | "gray">,
 ): number {
-  const histogram = new Uint32Array(256);
-  let count = 0;
-  const add = (x: number, y: number) => {
-    histogram[source.gray[y * source.width + x]]++;
-    count++;
-  };
+  const border: number[] = [];
+  const add = (x: number, y: number) =>
+    border.push(source.gray[y * source.width + x]);
   for (let x = 0; x < source.width; x++) {
     add(x, 0);
     if (source.height > 1) add(x, source.height - 1);
@@ -116,15 +119,12 @@ function borderMedian(
     add(0, y);
     if (source.width > 1) add(source.width - 1, y);
   }
-  const at = (index: number) => {
-    let seen = 0;
-    for (let value = 0; value < histogram.length; value++) {
-      seen += histogram[value];
-      if (seen > index) return value;
-    }
-    return 0;
-  };
-  return (at(Math.floor((count - 1) / 2)) + at(Math.floor(count / 2))) / 2;
+  border.sort((a, b) => a - b);
+  return (
+    (border[Math.floor((border.length - 1) / 2)] +
+      border[Math.floor(border.length / 2)]) /
+    2
+  );
 }
 
 function baselineAt(metadata: PreparationMetadata, x: number): number {
@@ -210,7 +210,9 @@ export function prepareRaster(
 ): PreparedRaster {
   checkedSize(source.width, source.height);
   if (
-    !(source.gray instanceof Uint8Array) ||
+    !(
+      source.gray instanceof Uint8Array || source.gray instanceof Float64Array
+    ) ||
     source.gray.length !== source.width * source.height
   )
     throw new Error("图片尺寸与像素不一致。");
@@ -259,7 +261,10 @@ export function prepareRaster(
   const metadata: PreparationMetadata = {
     version: "single-preparation-v1",
     coordinateSpace: "prepared-view-pixels",
-    measurement: "original-8-bit-pixel-centers",
+    measurement:
+      source.bitDepth === 16
+        ? "original-16-bit-pixel-centers"
+        : "original-8-bit-pixel-centers",
     order: "rotation-column-shift-crop",
     sourceSize: { width: source.width, height: source.height },
     fullSize: { width: fullWidth, height: 0 },
@@ -312,10 +317,12 @@ export function prepareRaster(
     throw new Error("裁剪范围须位于校直后的完整图片内，且坐标为整数。");
   metadata.fullSize = { width: fullWidth, height: fullHeight };
   metadata.crop = cloneRect(crop);
-  const gray = new Uint8Array(crop.width * crop.height);
+  const gray = allocateGray(source.gray, crop.width * crop.height);
   const valid = new Uint8Array(gray.length);
   const background = borderMedian(source);
-  gray.fill(Math.round(background));
+  gray.fill(
+    source.gray instanceof Uint8Array ? Math.round(background) : background,
+  );
   const prepared: PreparedRaster = {
     source,
     gray,
@@ -325,7 +332,7 @@ export function prepareRaster(
     fullWidth,
     fullHeight,
     crop,
-    polarity: background >= 127.5 ? "dark" : "light",
+    polarity: background >= imageMaximum(source) / 2 ? "dark" : "light",
     metadata,
   };
   for (let y = 0; y < prepared.height; y++) {
@@ -356,7 +363,8 @@ export function prepareRaster(
       height: prepared.height,
     })
   )
-    prepared.polarity = borderMedian(prepared) >= 127.5 ? "dark" : "light";
+    prepared.polarity =
+      borderMedian(prepared) >= imageMaximum(source) / 2 ? "dark" : "light";
   return prepared;
 }
 
@@ -422,6 +430,7 @@ function sourceStats(
     for (let y = r.top; y < r.bottom; y++)
       active.fill(1, y * columns + r.left, y * columns + r.right);
   const { source, metadata: m, crop } = prepared;
+  const max = imageMaximum(source);
   for (let y = 0; y < source.height; y++) {
     const sy = y + 0.5;
     for (let x = 0; x < source.width; x++) {
@@ -443,11 +452,11 @@ function sourceStats(
       const index = yi * columns + xi;
       if (!active[index]) continue;
       const pixel = source.gray[y * source.width + x];
-      const signal = polarity === "dark" ? 255 - pixel : pixel;
+      const signal = polarity === "dark" ? max - pixel : pixel;
       sums[index] += signal;
       squares[index] += signal * signal;
       areas[index]++;
-      if (signal >= 254) saturated[index]++;
+      if (signal >= max * (254 / 255)) saturated[index]++;
     }
   }
   const result = new Map<Rect, Stats>();
@@ -505,6 +514,7 @@ export function measurePreparedBands(
       prepared.source.height,
       shifted,
       polarity,
+      imageMaximum(prepared.source),
     ).map((measurement, i) => ({
       ...measurement,
       sourceArea: bands[i].rect.width * bands[i].rect.height,
@@ -546,7 +556,10 @@ export function measurePreparedBands(
     if (bg.area < Math.max(4, measured.area * 0.1))
       return warn("背景面积不足，无法计算净信号。");
     const mean = bg.sum / bg.area;
-    if (Math.sqrt(Math.max(0, bg.squares / bg.area - mean * mean)) > 20)
+    if (
+      Math.sqrt(Math.max(0, bg.squares / bg.area - mean * mean)) >
+      (20 / 255) * imageMaximum(prepared.source)
+    )
       return warn("背景变化较大，可能包含其他条带、文字或边框，请重新裁剪。");
     result.background = mean * measured.area;
     const net = result.raw - result.background;

@@ -1,6 +1,6 @@
 # Blot Workbench / 印迹工作台
 
-> **首版范围 / First-edition scope (2026-10-20):** 保留可选注册、登录和本地项目保存；不开放实验数据上传或云同步。跨电脑请导出、导入项目文件。Optional accounts and local projects are available; experimental-data uploads and cloud sync are disabled. Transfer projects between computers using exported project files.
+> **当前版本免登录（2026-10-25） / Account-free edition:** 无注册、登录或云同步；分析与项目保存在本机，跨电脑通过项目文件导出／导入。No accounts or cloud sync; analysis and projects stay local. Transfer projects through export/import.
 
 [完整英文 / English README](README.en.md) · [在线演示 / Live demo](https://gaoyuan-0423.github.io/blot-workbench/) · [中文教程](docs/user-guide.md) · [English guide](docs/user-guide.en.md) · [Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
@@ -118,17 +118,13 @@ Browser tests require the matching Playwright browser environment. Listing comma
 
 ## 数据与隐私 / Data and privacy
 
-2026-10-20 开发版本加入可选账号与项目保存；本文说明代码的数据路径，不代表云服务已在生产环境启用。账号不是分析的前提：游客可以本机分析，并通过“本地项目”下载或打开可恢复项目包。新建、载入示例或确认打开另一个项目会替换对应模式的当前工作区；清除站点数据、换浏览器或换来源可能使本机保存不可用，浏览器保存不是备份。
+公开版本不再提供登录、注册或账号管理。所有用户都能本机分析，并通过“本地项目”下载或打开可恢复项目包。新建、载入示例或确认打开另一个项目会替换对应模式的工作区；清除站点数据、换浏览器或换来源可能使本机保存不可用，浏览器保存不是备份。
 
-The 2026-10-20 development edition adds optional accounts and project saving. This describes the code's data paths, not production activation. Accounts are not required for analysis: guests can analyze locally and download or open recoverable archives through **Local project**. Creating a project, loading an example, or confirming another project replaces the current workspace for that mode. Clearing site data or changing browsers/origins can make local work unavailable; browser storage is not a backup.
+The public edition has no sign-in, registration or account management. Everyone can analyze locally and use **Local project** to download or open recoverable archives. Creating a project, loading an example or confirming another project replaces the corresponding workspace. Browser storage is not a backup.
 
-以下云保存行为仅适用于未来明确启用该能力的部署；首版已关闭。云保存由用户主动确认，上传的项目包可包含原始实验图片或表格、文件名、样本标签、ROI、设置与结果。登录或打开版本列表不会自动上传或替换当前分析；选择“打开此版本”并确认后才恢复。云保存保留独立版本，不是持续后台备份。项目通过账号权限限制访问，但服务器管理员可以访问存储数据；没有端到端加密。项目包不包含账号令牌或本机 API 密钥。
+项目包可包含原图或原表格、文件名、样本标签、ROI、设置与结果，不包含账号令牌或本机 API 密钥。网页、本机服务和桌面不会自动同步；跨电脑通过项目文件导出／导入。启动时仅清理旧账号令牌，保留实验项目与偏好。带登录的源码版本已另行归档；公开版本没有账号或云端请求实现。
 
-The following cloud behavior applies only to a future deployment with this capability explicitly enabled; it is disabled in the first edition. Cloud saving requires explicit confirmation and uploads a project archive that can include original experimental images or tables, filenames, sample labels, ROIs, settings, and results. Signing in or viewing history does not automatically upload or replace analysis; restoring requires selecting **Open this version** and confirming. Cloud saves retain separate versions rather than providing continuous background backup. Account authorization restricts access, but server administrators can access stored data; this is not end-to-end encryption. Archives exclude account tokens and local API keys.
-
-同一账号可在各工具使用，但不同网页来源分别保存登录状态，可能需要逐站登录；桌面版使用单一应用来源。本版没有自动密码找回。默认登录仅保留会话令牌，“记住登录”才持久保存令牌，密码不写入浏览器存储或项目包。网页、本机服务和桌面版不会自动搬运彼此的数据，首版跨电脑继续需导出／导入本地项目包；云保存／恢复尚未开放。
-
-The same account works across tools, while each website origin stores its own login state and may require a separate sign-in; desktop uses one application origin. This edition has no automated password recovery. Login tokens are session-only by default; **Remember me** makes the token persistent. Passwords are not stored in browser storage or project archives. Websites, local servers, and desktop do not automatically move data between their stores; continue elsewhere through local archive export/import; cloud save/restore is disabled in this edition.
+Archives may contain original images or tables, filenames, labels, ROIs, settings and results; they exclude account tokens and local API keys. Transfer work using project export/import; there is no automatic synchronization. Startup removes only obsolete account tokens while retaining local experiments and preferences. The account-enabled source edition is archived separately; public assets contain no account or cloud request implementation.
 
 GitHub Pages 会提供静态页面和合成示例，因此访问网页仍有网络请求。开发版的可选 API 测试会把内置合成 PNG 和提示词发给你配置的服务，**不发送当前项目或实验图像**。密钥仅由本机服务保存在内存中，不回传、不进入浏览器持久存储或项目导出；重启服务后需重填。服务可能计费，本机超时或取消不保证停止远端计费。
 
@@ -138,13 +134,13 @@ GitHub Pages serves static assets and synthetic examples, so opening the site ma
 
 ## 离线桌面实验版 / Offline desktop experiment
 
-桌面封装与打包流程已准备，复用同一套网页构建，在 `app://wisplab/` 内载入安装包资源；核心 WB、病理及 PCR 分析和本地项目操作可离线运行。首版不开放云同步；可选账号登录需要网络，远程 AI 也受网络与服务配置限制；首版不捆绑 WB 本机视觉代理。当前默认安装包未签名、未经过 Apple 公证或 Windows 发布者验证，不能据此宣称各平台已验收或安装包已公开发布。
+桌面封装与打包流程已准备，复用同一套网页构建，在 `app://wisplab/` 内载入安装包资源；核心 WB、病理及 PCR 分析和本地项目操作可离线运行。无需账号且不开放云同步；远程 AI 受网络与服务配置限制；首版不捆绑 WB 本机视觉代理。当前默认安装包未签名、未经过 Apple 公证或 Windows 发布者验证，不能据此宣称各平台已验收或安装包已公开发布。
 
-The desktop shell and packaging workflow are prepared. They reuse the same web builds and load bundled resources under `app://wisplab/`; core WB, pathology, PCR analysis and local project operations work offline. Cloud sync is disabled in this edition; optional account login requires connectivity, and remote AI depends on network and service configuration; the first edition does not bundle the WB local vision proxy. Packages are unsigned by default, without Apple notarization or Windows publisher verification. This does not establish platform acceptance or a publicly released installer.
+The desktop shell and packaging workflow are prepared. They reuse the same web builds and load bundled resources under `app://wisplab/`; core WB, pathology, PCR analysis and local project operations work offline. This edition has no accounts or cloud sync; remote AI depends on network and service configuration; the first edition does not bundle the WB local vision proxy. Packages are unsigned by default, without Apple notarization or Windows publisher verification. This does not establish platform acceptance or a publicly released installer.
 
-桌面版没有自动更新器，网站更新也不会自动替换已安装应用。新桌面版本需要明确打包、发布并由用户安装；回滚前先导出项目，旧程序可能不支持新项目格式。详见[桌面说明](desktop/README.md)和[账号、同步与发布交接](docs/platform-cloud-desktop.md)。
+桌面版没有自动更新器，网站更新也不会自动替换已安装应用。新桌面版本需要明确打包、发布并由用户安装；回滚前先导出项目，旧程序可能不支持新项目格式。详见[桌面说明](desktop/README.md)和[免登录项目与发布交接](docs/platform-cloud-desktop.md)。
 
-Desktop has no automatic updater, and website updates do not replace an installed application. A new desktop version must be deliberately packaged, released, and installed. Export projects before rolling back, since older software may not support newer project formats. See the [desktop guide](desktop/README.md) and [account, sync, and release handoff](docs/platform-cloud-desktop.md).
+Desktop has no automatic updater, and website updates do not replace an installed application. A new desktop version must be deliberately packaged, released, and installed. Export projects before rolling back, since older software may not support newer project formats. See the [desktop guide](desktop/README.md) and [account-free project and release handoff](docs/platform-cloud-desktop.md).
 
 ## 参与与引用 / Contributing and citation
 

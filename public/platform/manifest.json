@@ -3,8 +3,8 @@
   "sourceRepository": "Gaoyuan-0423/blot-workbench",
   "sourceDirectory": "platform",
   "files": {
-    "client.js": "671b6500be33f4563fe39a73595c5a5a7a879daf1e098c9654a9cd3f34616d20",
-    "wisplab.js": "345fdf36d3e572250ac3f80c0230668a5b0605de566379e01690c307da4f3876",
+    "client.js": "fa37a53a191f66ecfa0046ed1dfaa19d3e16590062fe693e9dd7ba661f82ac1f",
+    "wisplab.js": "bc5b5610ca9bc6aa20992797a90a9cee8c7683c60aabd67215ea27da7a9b0758",
     "wisplab.css": "31b6fa47503450beb3e0b00aae076549c0b026b99f70549b66fe89862f10aa19"
   }
 }

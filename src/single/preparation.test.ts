@@ -364,7 +364,10 @@ describe("single-strip geometric preparation", () => {
     const source = image(31, 23);
     for (let i = 0; i < source.gray.length; i++)
       source.gray[i] = (i * 17) % 256;
-    const expectedRaw = source.gray.reduce((sum, value) => sum + value, 0);
+    const expectedRaw = Array.from(source.gray).reduce(
+      (sum, value) => sum + value,
+      0,
+    );
     for (const straighten of [
       [
         { x: 1, y: 2 },
@@ -545,5 +548,44 @@ describe("single-strip geometric preparation", () => {
         "dark",
       ),
     ).toThrow("越界");
+  });
+});
+
+describe("original-depth preparation", () => {
+  it("preserves 16-bit sub-preview differences after a 90 degree correction and crop", () => {
+    const source: QuickImage = {
+      name: "source.tif",
+      dataUrl: "",
+      width: 8,
+      height: 6,
+      bitDepth: 16,
+      gray: new Float64Array(48).fill(60003),
+    };
+    for (let y = 2; y < 4; y++)
+      for (let x = 2; x < 4; x++) source.gray[y * 8 + x] = 60002;
+    const prepared = prepareRaster(source, {
+      straighten: [
+        { x: 4, y: 0 },
+        { x: 4, y: 6 },
+      ],
+      crop: { x: 0, y: 2, width: 6, height: 6 },
+    });
+    expect(prepared.gray).toBeInstanceOf(Float64Array);
+    expect(prepared.metadata.measurement).toBe("original-16-bit-pixel-centers");
+    expect(prepared.polarity).toBe("dark");
+    const measured = measurePreparedBands(
+      prepared,
+      [
+        {
+          id: "low-contrast",
+          rect: { x: 2, y: 2, width: 2, height: 2 },
+          background: { x: 0, y: 2, width: 2, height: 2 },
+        },
+      ],
+      "dark",
+    );
+    expect(measured[0].sourceArea).toBe(4);
+    expect(measured[0].net).toBe(4);
+    expect(measured[0].raw).toBe(4 * (65535 - 60002));
   });
 });

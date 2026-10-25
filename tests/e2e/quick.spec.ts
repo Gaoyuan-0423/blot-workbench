@@ -1,3 +1,4 @@
+import { quickBandsTiff } from "../fixtures/quick-tiff";
 import { test, expect, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { unzlibSync, zlibSync } from "fflate";
@@ -157,7 +158,7 @@ test("demo generates six lanes and a chart beside the image without an analysis 
   await page.getByRole("button", { name: "导出 SVG", exact: true }).click();
   const svg = await readFile((await (await download).path())!, "utf8");
   expect(svg).toContain("<svg");
-  expect(svg).toContain("8-bit 像素估计");
+  expect(svg).toContain("原始位深像素估计");
   expect(svg).toContain("泳道 6");
   expect(errors).toEqual([]);
 });
@@ -465,4 +466,70 @@ test("reference polarity can differ without changing target pixels or control", 
   await expect(
     page.getByRole("combobox", { name: "图像类型", exact: true }),
   ).toHaveValue("dark");
+});
+
+for (const depth of [8, 16] as const) {
+  test(`quick ${depth}-bit TIFF supports exact target and external reference measurements`, async ({
+    page,
+  }) => {
+    await ready(page);
+    await page.getByLabel("导入条带图片", { exact: true }).setInputFiles({
+      name: "target.tif",
+      mimeType: "image/tiff",
+      buffer: Buffer.from(quickBandsTiff(depth)),
+    });
+    await expect(table(page).locator("tbody tr")).toHaveCount(6);
+    const target = await csvResults(page);
+    for (const [i, row] of target.entries()) {
+      expect(Number(row.net_signal)).toBe(
+        384 * (depth === 16 ? 10001 + i * 5000 : 40 + i * 20),
+      );
+      expect(row.method).toContain(`${depth}-bit pixels`);
+    }
+    await page.getByLabel("添加内参图片", { exact: true }).setInputFiles({
+      name: "reference.tiff",
+      mimeType: "image/tiff",
+      buffer: Buffer.from(quickBandsTiff(depth)),
+    });
+    for (let i = 1; i <= 6; i++)
+      await expect(page.getByTestId(`relative-${i}`)).toHaveText("1×");
+    const paired = await csvResults(page);
+    for (const row of paired) {
+      expect(row.reference_net_signal).toBe(row.net_signal);
+      expect(row.method).toContain(`reference ${depth}-bit pixels`);
+    }
+  });
+}
+
+test("16-bit TIFF target can normalize against an 8-bit TIFF external reference without rescaling raw signals", async ({
+  page,
+}) => {
+  await ready(page);
+  await page
+    .getByLabel("导入条带图片", { exact: true })
+    .setInputFiles({
+      name: "target16.tif",
+      mimeType: "image/tiff",
+      buffer: Buffer.from(quickBandsTiff(16)),
+    });
+  await expect(table(page).locator("tbody tr")).toHaveCount(6);
+  await page
+    .getByLabel("添加内参图片", { exact: true })
+    .setInputFiles({
+      name: "reference8.tif",
+      mimeType: "image/tiff",
+      buffer: Buffer.from(quickBandsTiff(8)),
+    });
+  const rows = await csvResults(page);
+  expect(rows).toHaveLength(6);
+  for (const [i, row] of rows.entries()) {
+    expect(Number(row.net_signal)).toBe(384 * (10001 + i * 5000));
+    expect(Number(row.reference_net_signal)).toBe(384 * (40 + i * 20));
+    expect(Number(row.relative_value)).toBeCloseTo(
+      (10001 + i * 5000) / (40 + i * 20) / (10001 / 40),
+      12,
+    );
+    expect(row.method).toContain("16-bit pixels");
+    expect(row.method).toContain("reference 8-bit pixels");
+  }
 });

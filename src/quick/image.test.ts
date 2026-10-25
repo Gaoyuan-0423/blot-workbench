@@ -1,11 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { unzlibSync } from "fflate";
+import { decode as decodePng } from "fast-png";
+import { quickTiff } from "../../tests/fixtures/quick-tiff";
 import {
   createQuickExample,
   createQuickReferenceExample,
   inspectQuickImage,
   loadQuickImage,
   QUICK_IMAGE_LIMITS,
+  imageMaximum,
 } from "./image";
 
 const png = () =>
@@ -86,7 +89,7 @@ describe("quick image source validation", () => {
     expect(imageConstructor).not.toHaveBeenCalled();
   });
 
-  it("rejects TIFF, forged MIME/extensions, truncated data and malformed chunk lengths", () => {
+  it("rejects truncated TIFF, forged MIME/extensions and malformed chunk lengths", () => {
     expect(() => inspectQuickImage(new Uint8Array([73, 73, 42, 0]))).toThrow(
       "TIFF",
     );
@@ -290,5 +293,83 @@ describe("synthetic quick examples", () => {
     expect(Math.max(...centers.slice(3))).toBeLessThan(
       Math.min(...centers.slice(0, 3)),
     );
+  });
+});
+
+describe("original-depth TIFF in simple mode", () => {
+  for (const depth of [8, 16] as const) {
+    for (const little of [true, false]) {
+      it(`decodes ${depth}-bit ${little ? "little" : "big"}-endian TIFF without browser quantization`, async () => {
+        const pixels =
+          depth === 16
+            ? [1000, 1001, 1002, 32767, 32768, 65535]
+            : [0, 1, 20, 127, 128, 255];
+        const bytes = quickTiff({ depth, little, pixels, deflate: true });
+        const imageConstructor = vi.fn();
+        vi.stubGlobal("Image", imageConstructor);
+        const image = await loadQuickImage(
+          new File([Uint8Array.from(bytes).buffer], "source.TIF", {
+            type: "application/octet-stream",
+          }),
+        );
+        expect([...image.gray]).toEqual(pixels);
+        expect(image.bitDepth).toBe(depth);
+        expect(imageMaximum(image)).toBe(2 ** depth - 1);
+        expect(image.original).toEqual({ mime: "image/tiff", bytes });
+        expect(imageConstructor).not.toHaveBeenCalled();
+        const png = decodePng(
+          Uint8Array.from(atob(image.dataUrl.split(",")[1]), (c) =>
+            c.charCodeAt(0),
+          ),
+        );
+        expect(png.depth).toBe(8);
+        expect([...png.data]).toEqual(
+          pixels.map((value) => Math.round((value * 255) / (2 ** depth - 1))),
+        );
+      });
+    }
+  }
+  it("preserves arithmetic RGB means including sub-unit differences", async () => {
+    const bytes = quickTiff({
+      width: 2,
+      height: 1,
+      channels: 3,
+      depth: 16,
+      pixels: [1000, 1001, 1001, 60000, 61000, 62001],
+    });
+    const image = await loadQuickImage(
+      new File([bytes.buffer as ArrayBuffer], "rgb.tiff"),
+    );
+    expect([...image.gray]).toEqual([3002 / 3, 183001 / 3]);
+    expect(inspectQuickImage(bytes)).toEqual({
+      mime: "image/tiff",
+      width: 2,
+      height: 1,
+      bitDepth: 16,
+    });
+  });
+  it("rejects multi-page TIFF, BigTIFF, damage and mismatched extensions", async () => {
+    const multipage = quickTiff({ next: 8 });
+    await expect(
+      loadQuickImage(
+        new File([multipage.buffer as ArrayBuffer], "multiple.tif"),
+      ),
+    ).rejects.toThrow(/多页|Multi-page/);
+    const big = quickTiff();
+    new DataView(big.buffer).setUint16(2, 43, true);
+    await expect(
+      loadQuickImage(new File([big.buffer as ArrayBuffer], "big.tif")),
+    ).rejects.toThrow("BigTIFF");
+    const truncated = quickTiff().slice(0, -2);
+    await expect(
+      loadQuickImage(new File([truncated.buffer], "truncated.tif")),
+    ).rejects.toThrow();
+    const bytes = quickTiff();
+    await expect(
+      loadQuickImage(new File([bytes.buffer as ArrayBuffer], "wrong.png")),
+    ).rejects.toThrow(/扩展名|extension/);
+    await expect(
+      loadQuickImage(new File([Uint8Array.from(png()).buffer], "wrong.tif")),
+    ).rejects.toThrow(/扩展名|extension/);
   });
 });

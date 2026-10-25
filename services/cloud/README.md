@@ -1,5 +1,9 @@
 # WispLab accounts and optional project cloud / 账号与可选项目云端
 
+> **2026-10-25: archived backend implementation.** The public edition is account-free. The production account service has been stopped and disabled, and the public `/api/*` handler returns 410 while static websites remain available. The database and a consistent pre-disable backup were preserved privately. Weekly new backups are disabled with the service; the independent expiry timer remains active. The historical instructions below do not authorize reopening accounts. Source-code archives may be retained independently of personal-data backup expiry.
+>
+> **2026-10-25：后端实现保留供以后维护。** 公开版改为免账号，线上账号服务已停止并禁用，`/api/*` 返回 410，静态网站继续运行。原数据库及停用前一致性备份私密保留；停止生成每周新备份，已有独立到期清理继续运行。恢复公开账号前仍须核对删除记录与数据保留约定。
+
 The first release provides optional username/password accounts and **local project files only**. `WISPLAB_PROJECT_STORAGE=local` is the safe default. Registration and login do not upload experiments or provide cross-device experiment synchronization. Users move projects between devices through local export/import. Guest/offline analysis remains available; no scientific algorithm changes.
 
 首版只开放账号，不上传原图、实验表格、项目包或结果；云项目接口同时由后端开关和公网代理禁用。账号数据库、密码哈希和运行日志仍占用少量服务器存储，并需要备份。完整云存储实现保留为后续明确启用的能力，不能因本地测试通过就对公网开放。接口见 [HTTP.md](HTTP.md)。

@@ -3,7 +3,6 @@ const path = require('node:path');
 
 const APP_ORIGIN = 'app://wisplab';
 const API_ORIGINS = [
-  'https://wisplab.top',
   'https://api.openai.com',
   'https://dashscope.aliyuncs.com',
   'https://dashscope-intl.aliyuncs.com',

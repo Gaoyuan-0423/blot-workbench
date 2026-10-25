@@ -6,12 +6,12 @@
 
 - 优先使用裁好的一排条带，保留条带上下及两侧的空白背景。
 - 多排膜图会尝试自动分行。点击“第 1 排”“第 2 排”等切换目标蛋白；行数和泳道数需要核对，文字、边框和弱条带可能影响识别。
-- 当前支持 **8-bit PNG / JPEG**，每张不超过 15 MB。TIFF 和 16-bit 原图不在此版本支持范围内。截图、JPEG 压缩和导出转换都可能改变像素，原始图像应另行保存。
+- 支持 **单页 8/16-bit 无符号整数 TIFF**（`.tif` / `.tiff`，最大 64 MB、8388608 像素、单边 16000 像素）和 **8-bit PNG / JPEG**（最大 15 MB、2000 万像素、单边 16000 像素）。BigTIFF、多页 TIFF 和解码器不支持的编码会明确拒绝。TIFF 保留原始位深测量，RGB 使用算术通道均值；PNG/JPEG 保留原有浏览器灰度转换。屏幕预览使用 8-bit，不改变 TIFF 测量值。截图、JPEG 压缩和先前图像处理丢失的信息不会恢复。
 - 深色条带使用默认的“浅底 · 深色条带”；浅色条带可改为“深底 · 浅色条带”。
 
-图片默认在当前浏览器中读取、计算，不会因导入或调整取样而自动上传，无需账号或 API。刷新或关闭前可通过“本地项目”下载可恢复项目包，并导出所需结果。代码提供可选云保存能力，但是否开放取决于实际部署；有账号入口不代表已启用图片上传。只有部署启用云保存、且用户主动确认上传时，包含原图和设置的项目包才会发送到服务端。详见[隐私说明](privacy.md)。
+图片在当前浏览器中读取、计算，不上传，无需账号或 API。刷新或关闭前通过“本地项目”下载可恢复项目包，并导出所需结果；项目包保留 TIFF 原文件、位深和精确测量数组。此公开版本不提供登录或云端同步。详见[隐私说明](privacy.md)。
 
-Images are read and measured in the current browser by default. Importing or adjusting regions does not automatically upload data, and analysis needs no account or API. Before refreshing or closing, download a recoverable archive through **Local project** and export any required results. Optional cloud-saving code is available, but deployment determines whether it is enabled; account access alone does not imply image uploads are enabled. Only when cloud saving is enabled and the user explicitly confirms an upload is the project archive, including original images and settings, sent to the service. See [privacy](privacy.md).
+Images are read and measured in the current browser without upload, account access or API configuration. Before refreshing or closing, download a recoverable archive through **Local project** and export any required results. Archives retain TIFF originals, bit depth and exact measurement arrays. This public edition has no sign-in or cloud synchronization. See [privacy](privacy.md).
 
 ## 查看和调整
 
@@ -37,7 +37,7 @@ Images are read and measured in the current browser by default. Importing or adj
 
 “导出 PNG / SVG”保存当前图表；“导出 CSV”保存当前所选蛋白行的原始积分、背景扣除量、净信号、内参、对照、相对值、取样坐标和计算方法。多排行需要分别选择、分别导出。CSV 使用 `UNREVIEWED_PIXEL_ESTIMATE` 标记结果，保留无效值为空以及相关说明。
 
-这些结果是 **尚未经真实实验图像验证的 8-bit 像素估计**。自动取样是待核对的初稿，不能证明曝光在线性范围内、跨膜可比或已经完成科研定量验证。“试用示例”和自动化测试使用合成像素，只用于检查计算和操作流程，不代表真实 WB 图像的识别准确率。完整的多批次预置流程仍可从“项目演示”进入，与简易版的即时像素测量分开使用。
+这些结果是 **尚未经真实实验图像验证的像素估计**。自动取样是待核对的初稿，不能证明曝光在线性范围内、跨膜可比或已经完成科研定量验证。“试用示例”和自动化测试使用合成像素，只用于检查计算和操作流程，不代表真实 WB 图像的识别准确率。完整的多批次预置流程仍可从“项目演示”进入，与简易版的即时像素测量分开使用。
 
 ## 验证范围
 
@@ -46,3 +46,7 @@ Images are read and measured in the current browser by default. Importing or adj
 下图来自本机浏览器测试，画面为合成示例。
 
 ![简易版合成示例结果](screenshots/quick-mode-results.png)
+
+## TIFF support (English)
+
+Single-page unsigned 8/16-bit TIFF (`.tif` / `.tiff`) is supported in both simple single-strip and quick multirow modes. TIFF limits are 64 MB, 8,388,608 pixels and 16,000 pixels per side. BigTIFF, multipage containers and unsupported encodings are rejected explicitly. TIFF measurements retain original-depth values (arithmetic mean for RGB); only the display preview is reduced to 8-bit. Existing 8-bit PNG/JPEG behavior and its 15 MB / 20-million-pixel limits are unchanged. Local project files preserve original TIFF bytes, measurement values and bit depth. CSV method descriptions include target and reference bit depths. Automatic sampling remains a draft requiring review; decoder and synthetic measurement tests do not validate recognition on experimental blots.

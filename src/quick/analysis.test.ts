@@ -209,3 +209,30 @@ describe("quick projection detection", () => {
     ).toMatchObject({ rows: [{ x: 0, y: 0, width, height }] });
   });
 });
+
+describe("original-depth quick measurements", () => {
+  it("retains differences below one display level in both polarities", () => {
+    const gray = new Float64Array(8 * 8).fill(60003);
+    const band = {
+      id: "fine",
+      rect: { x: 2, y: 3, width: 2, height: 2 },
+      background: { x: 2, y: 0, width: 2, height: 2 },
+    };
+    for (let y = 3; y < 5; y++)
+      for (let x = 2; x < 4; x++) gray[y * 8 + x] = 60002;
+    expect(measureBands(gray, 8, 8, [band], "dark", 65535)[0].net).toBe(4);
+    expect(
+      measureBands(
+        gray.map((v) => 65535 - v),
+        8,
+        8,
+        [band],
+        "light",
+        65535,
+      )[0].net,
+    ).toBe(4);
+    expect(() => measureBands(gray, 8, 8, [band], "dark")).toThrow();
+    gray[0] = NaN;
+    expect(() => measureBands(gray, 8, 8, [band], "dark", 65535)).toThrow();
+  });
+});
