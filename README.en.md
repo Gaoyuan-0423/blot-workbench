@@ -1,6 +1,6 @@
 # Blot Workbench / 印迹工作台
 
-> **首版范围 / First-edition scope (2026-10-20):** 保留可选注册、登录和本地项目保存；不开放实验数据上传或云同步。跨电脑请导出、导入项目文件。Optional accounts and local projects are available; experimental-data uploads and cloud sync are disabled. Transfer projects between computers using exported project files.
+> **当前版本免登录（2026-10-25） / Account-free edition:** 无注册、登录或云同步；分析与项目保存在本机，跨电脑通过项目文件导出／导入。No accounts or cloud sync; analysis and projects stay local. Transfer projects through export/import.
 
 [中英首页 / Bilingual home](README.md) · [Live demo](https://gaoyuan-0423.github.io/blot-workbench/) · [User guide](docs/user-guide.en.md) · [Vision API guide](https://github.com/Gaoyuan-0423/blot-workbench/blob/codex/configurable-vision-api/docs/vision-api.en.md) · [Issues](https://github.com/Gaoyuan-0423/blot-workbench/issues)
 
@@ -8,8 +8,8 @@ A Western blot project workbench for laboratories. The first step is to make ima
 
 ## Workspaces and boundaries
 
-- [Single-strip recognition](https://gaoyuan-0423.github.io/blot-workbench/?mode=single): import a cropped 8-bit PNG/JPEG strip, review automatic regions, and view relative intensities alongside the image.
-- [Multiple rows and reference](https://gaoyuan-0423.github.io/blot-workbench/?mode=quick): choose a target row and reference row or independent reference image.
+- [Single-strip recognition](https://gaoyuan-0423.github.io/blot-workbench/?mode=single): import a single-page unsigned 8/16-bit TIFF or 8-bit PNG/JPEG strip, review automatic regions, and view relative intensities alongside the image. See the [guide and format limits](docs/single-strip.md).
+- [Multiple rows and reference](https://gaoyuan-0423.github.io/blot-workbench/?mode=quick): use the same TIFF/PNG/JPEG format range, then choose a target row and reference row or independent reference image. See the [guide](docs/quick-mode.md).
 - [Full WB analysis](https://gaoyuan-0423.github.io/blot-workbench/#real): original TIFF/PNG, precise ROIs, background correction, paired statistics, and figure export.
 - [Synthetic project demo](https://gaoyuan-0423.github.io/blot-workbench/#demo): the legacy workflow with fixed example values.
 

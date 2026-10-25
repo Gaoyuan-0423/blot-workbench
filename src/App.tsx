@@ -2175,8 +2175,8 @@ function App() {
                 </ol>
                 <div className="info-note">
                   {t(
-                    "真实 TIFF/PNG 解码、自动条带检测、统计检验、Wisp 和桌面 App 尚未提供。",
-                    "Real TIFF/PNG decoding, automatic band detection, statistical tests, Wisp, and desktop apps are not available yet.",
+                    "本页演示固定合成图像和预设结果。实际图像测量请进入“单条带识别”或“多排与内参”，支持 8/16 位 TIFF 与 8 位 PNG/JPEG；批量原图、实验配对和统计请进入“真实图像分析”。自动取样需要人工复核。",
+                    "This page demonstrates fixed synthetic images and preset results. For image measurements, use Single-strip analysis or Multiple rows & reference with 8/16-bit TIFF or 8-bit PNG/JPEG. Use Analyze real images for original-image batches, experimental pairing, and statistics. Review automatic sampling regions manually.",
                   )}
                 </div>
                 <div className="modal-actions">

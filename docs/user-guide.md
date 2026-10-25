@@ -1,6 +1,6 @@
 # 使用指南
 
-> 真实 TIFF/PNG 开发预览请使用 `#real`，参见[真实图像指南](real-images.md)。本页步骤仍针对旧合成示例；开发版的个体 N/T 配对、共同基准及可选检验见[统计说明](paired-statistics.md)。
+> 单页 8/16-bit TIFF 或 8-bit PNG/JPEG 的简易分析见[单条带指南](single-strip.md)与[多排／内参指南](quick-mode.md)。完整原图项目位于 `#real`，参见[真实图像指南](real-images.md)。本页步骤针对 `#demo` 的旧合成示例；个体 N/T 配对、共同基准及可选检验见[统计说明](paired-statistics.md)。
 
 [English guide](user-guide.en.md) · [本机视觉 API 指南](vision-api.md) · [文档目录](README.md)
 

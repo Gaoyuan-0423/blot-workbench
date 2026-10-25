@@ -10,8 +10,8 @@ A Western blot project workbench for laboratories: organize images and sample re
 
 ## 网页入口 / Workspaces
 
-- [单条带识别](https://gaoyuan-0423.github.io/blot-workbench/?mode=single)：导入一排 8-bit PNG/JPEG，自动生成取样与相对强度，图片和结果同屏。自动取样需核对；[说明](docs/single-strip.md)。
-- [多排与内参](https://gaoyuan-0423.github.io/blot-workbench/?mode=quick)：选择目标排或独立内参，查看归一化结果；[说明](docs/quick-mode.md)。
+- [单条带识别](https://gaoyuan-0423.github.io/blot-workbench/?mode=single)：导入单页 8/16-bit 无符号整数 TIFF 或 8-bit PNG/JPEG 条带图，自动生成取样与相对强度，图片和结果同屏。自动取样需核对；[说明](docs/single-strip.md)。
+- [多排与内参](https://gaoyuan-0423.github.io/blot-workbench/?mode=quick)：支持相同的 TIFF/PNG/JPEG 范围，选择目标排或独立内参，查看归一化结果；[说明](docs/quick-mode.md)。
 - [完整 WB 分析](https://gaoyuan-0423.github.io/blot-workbench/#real)：支持原始 TIFF/PNG、精细 ROI、背景校正、实验配对统计与图版导出。
 - [合成项目演示](https://gaoyuan-0423.github.io/blot-workbench/#demo)：原工作流演示，数值为固定示例。
 

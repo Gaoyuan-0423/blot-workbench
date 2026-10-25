@@ -1,8 +1,8 @@
 # 单条带识别 / Single-strip recognition
 
-入口 / Entry: `?mode=single`。网站首页优先提供这个栏目。多排与内参分析位于 `?mode=quick`；需要原始 TIFF/PNG、实验配对与统计的进阶项目位于 `#real`；合成演示位于 `#demo`（兼容 `?mode=project`）。
+入口 / Entry: `?mode=single`。网站首页优先提供这个栏目。单条带与多排模式均支持下述 TIFF/PNG/JPEG 格式；多排与内参分析位于 `?mode=quick`，多图项目、滚动球背景校正与实验配对统计位于 `#real`，合成演示位于 `#demo`（兼容 `?mode=project`）。
 
-The homepage prioritizes this independent workflow. Use `?mode=quick` for multiple rows and reference normalization, `#real` for advanced original-image projects and statistics, and `#demo` for the synthetic demonstration (`?mode=project` remains compatible).
+The homepage prioritizes this independent workflow. Both single-strip and quick modes support the TIFF/PNG/JPEG formats listed below. Use `?mode=quick` for multiple rows and reference normalization, `#real` for multi-image projects, rolling-ball background correction and paired statistics, and `#demo` for the synthetic demonstration (`?mode=project` remains compatible).
 
 ## 中文说明
 
