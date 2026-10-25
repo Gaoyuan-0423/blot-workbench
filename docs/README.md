@@ -1,19 +1,21 @@
 # 文档 / Documentation
 
-本目录同时记录在线演示 `0.1.0-alpha.1` 合成数据演示和 `0.3.0-alpha.1` 真实图像发布预览。后者提供真实像素测量、明确个体配对、可选配对检验、视觉 API 合成测试与中英教程；公开网页仍为 `0.1`，`0.3.0-alpha.1` 经 [GitHub Release 附件](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.3.0-alpha.1)分发。
+本目录包含当前工作区指南与历史版本记录。当前单条带与快速模式支持单页 8/16-bit 无符号整数 TIFF 和 8-bit PNG/JPEG；完整原图项目位于 `#real`，旧合成演示位于 `#demo`。具体格式限制见各工作区指南，历史版本范围见对应[发布记录](https://github.com/Gaoyuan-0423/blot-workbench/releases)。
 
-This directory covers both the published `0.1.0-alpha.1` synthetic-data demo and the `0.3.0-alpha.1` real-image released preview. The latter provides source-pixel measurements, explicit individual pairs, optional paired inference, synthetic vision API tests, and bilingual guides; the public website remains `0.1`, and `0.3.0-alpha.1` ships via [GitHub Release assets](https://github.com/Gaoyuan-0423/blot-workbench/releases/tag/v0.3.0-alpha.1).
+This directory contains current workspace guides and historical version records. Single-strip and quick modes support single-page unsigned 8/16-bit TIFF and 8-bit PNG/JPEG. Full original-image projects use `#real`; the legacy synthetic demonstration uses `#demo`. See each workspace guide for format limits and the corresponding [release notes](https://github.com/Gaoyuan-0423/blot-workbench/releases) for historical scope.
 
 [在线演示 / Published demo](https://gaoyuan-0423.github.io/blot-workbench/) · [源码 / Source](https://github.com/Gaoyuan-0423/blot-workbench) · [发布版本 / Releases](https://github.com/Gaoyuan-0423/blot-workbench/releases)
 
 ## 从这里开始 / Start here
 
-开发版侧栏 **使用教程 / User guide** 打开独立 `#guide` 页面，跟随右上角 **EN / 中文** 切换。这个新入口尚未加入公开 `0.1` 网页；仓库中的完整中英操作指南如下。
+侧栏 **使用教程 / User guide** 打开独立 `#guide` 页面，跟随右上角 **EN / 中文** 切换。单条带、多排与完整项目的操作指南如下。
 
-In the development version, **User guide / 使用教程** in the sidebar opens the standalone `#guide` page, following the top-right **EN / 中文** switch. This new entry is not yet in the published `0.1` site. Complete Chinese and English operating guides are available below.
+**User guide / 使用教程** in the sidebar opens the standalone `#guide` page, following the top-right **EN / 中文** switch. Guides for single-strip, multirow and full-project workflows are available below.
 
 | 指南 / Guide | 中文 | English |
 | --- | --- | --- |
+| 单条带识别 / Single-strip recognition | [单条带指南](single-strip.md) | [Single-strip guide](single-strip.md#english-guide) |
+| 多排与内参 / Multiple rows and reference | [简易模式指南](quick-mode.md) | [TIFF support and limits](quick-mode.md#tiff-support-english) |
 | 真实图像与统计图 / Real images and plots | [真实图像指南](real-images.md) | [Real-image guide](real-images.en.md) |
 | 项目与手动演示流程 / Projects and manual demo workflow | [使用指南](user-guide.md) | [User guide](user-guide.en.md) |
 | 本机 API 配置与合成图测试 / Local API setup and synthetic testing | [视觉 API 指南](vision-api.md) | [Vision API guide](vision-api.en.md) |
