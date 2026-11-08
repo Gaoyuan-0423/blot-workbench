@@ -1,8 +1,8 @@
 # WispLab 验证记录入口 / Validation evidence — 2026-11-08
 
-**这是 2026-11-08 原验证分支的公共文本快照。WB 本次只增加文档，不改变应用代码。** 各轮记录中的“当前”“未提交”和基线 HEAD 描述当时本机工作区，不代表后续 GitHub 主线、发布版本或跨仓库集成已通过检查。PCR 与 CLI 正移植到更晚主线，其最终集成结果必须另外记录，不能用这里的旧检查替代。
+**这是 2026-11-08 原验证分支的公共文本快照。WB 本次只增加文档，不改变应用代码。** 各轮记录中的“当前”“未提交”和基线 HEAD 描述当时本机工作区，不代表后续 GitHub 主线、发布版本或跨仓库集成已通过检查。PCR 与 CLI 已另行提交基于更晚主线的移植 PR，其最终集成结果必须另外记录，不能用这里的旧检查替代。
 
-**This is a public text snapshot of the original validation branch on 2026-11-08. This WB change is documentation only.** Historical references to a current or uncommitted working tree describe the original run, not a later GitHub revision or release. PCR and CLI changes are being ported to newer upstream branches. Their final integration checks must be recorded separately; these earlier checks do not certify those integrations.
+**This is a public text snapshot of the original validation branch on 2026-11-08. This WB change is documentation only.** Historical references to a current or uncommitted working tree describe the original run, not a later GitHub revision or release. PCR and CLI changes are submitted in separate PRs against newer upstream branches. Their final integration checks must be recorded separately; these earlier checks do not certify those integrations.
 
 代码跑通只代表流程执行完毕，结论有效性依然要实验者确认。这里没有新增独立实验数据、外部留出、盲评、用户收益研究或真实模型质量评价。
 
@@ -56,7 +56,7 @@ Key limits: the 288 unit tests and 28 browser cases belong to the original worki
 | [blot-workbench](https://github.com/Gaoyuan-0423/blot-workbench) | 此 PR 仅公开验证文档；WB 应用代码未改变 / This PR only publishes evidence documentation |
 | [pathology-workbench PR #6](https://github.com/Gaoyuan-0423/pathology-workbench/pull/6) | 病理与 IF 应用实现单独提交；按对应 PR 的代码与检查判断 / Application implementation and its own checks are separate |
 | [pcr-workbench PR #12](https://github.com/Gaoyuan-0423/pcr-workbench/pull/12) | 移植到更晚主线的实现；原验证摘要不是最终集成证明 / Implementation ported to newer main; earlier evidence does not certify the integration |
-| [wisplab-cli PRs](https://github.com/Gaoyuan-0423/wisplab-cli/pulls) | 桥接实现单独提交并重新验收 / Bridge implementation and integration validation are separate |
+| [wisplab-cli PR #34](https://github.com/Gaoyuan-0423/wisplab-cli/pull/34) | 桥接实现单独提交并重新验收 / Bridge implementation and integration validation are separate |
 
 历史源码身份应同时看记录中的基线、未提交文件哈希及归档哈希，不能只引用基线 HEAD。这个公共入口不是发布或部署，也不是完整独立仓库快照。
 
