@@ -1,0 +1,407 @@
+{
+  "captured_at_utc": "2026-11-08T12:07:02.683682+00:00",
+  "repository": "pathology-workbench",
+  "branch": "codex/validation-p0-20261108",
+  "baseline_head": "bb9c45c0fc81fe7ea0c449d209e9d63e6eb66a2e",
+  "scope": "Uncommitted P0 plus D04 source snapshot; baseline HEAD alone is not the tested version.",
+  "status": [
+    " M AGENTS.md",
+    " M README.md",
+    " M playwright.config.ts",
+    " M src/App.tsx",
+    " M src/core/ai/session.ts",
+    " M src/core/analysis-client.ts",
+    " M src/core/analysis.worker.ts",
+    " M src/core/analysis/statistics.test.ts",
+    " M src/core/analysis/statistics.ts",
+    " M src/core/api.ts",
+    " M src/core/chart.ts",
+    " M src/core/export.ts",
+    " M src/core/methods.test.ts",
+    " M src/core/methods.ts",
+    " M src/core/types.ts",
+    " M src/i18n/messages.ts",
+    " M src/project-io.test.ts",
+    " M src/project-io.ts",
+    " M src/styles.css",
+    " M src/ui/AdvisorPanel.tsx",
+    " M src/ui/SamplesPanel.tsx",
+    " M src/ui/localize-report.ts",
+    " M tests/e2e/language.spec.ts",
+    " M tests/e2e/smoke.spec.ts",
+    "?? docs/experimental-units.md",
+    "?? src/core/ai/session.test.ts",
+    "?? src/core/analysis-client.test.ts",
+    "?? src/core/analysis-validity.test.ts",
+    "?? src/core/analysis-validity.ts",
+    "?? src/core/analysis.worker.test.ts",
+    "?? src/core/chart-units.test.ts",
+    "?? src/core/experimental-units.test.ts",
+    "?? src/core/experimental-units.ts",
+    "?? src/core/sample-statistics.test.ts",
+    "?? src/core/sample-statistics.ts",
+    "?? src/core/source-identity.test.ts",
+    "?? src/core/source-identity.ts",
+    "?? src/i18n/unit-messages.ts",
+    "?? src/ui/ExperimentalUnitsPanel.tsx",
+    "?? src/ui/localize-report.test.ts",
+    "?? tests/e2e/analysis-validity.spec.ts",
+    "?? tests/e2e/experimental-units.spec.ts"
+  ],
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "d636b085e82acaa397ca3e08166fe44b7b2e0acaf4d77892d8f65bbfd429f410",
+      "size_bytes": 3199,
+      "pre_d04_basis": "git_head",
+      "pre_d04_sha256": "8fd3ea570e25e2219d6af65c126880d9a091377c6353f93532aa827bd1801249",
+      "changed_during_d04": true
+    },
+    {
+      "path": "README.md",
+      "sha256": "99be7df4acbd3e502162cadd7f474ef56b3928af13f7966ff6d817381fbaed28",
+      "size_bytes": 5270,
+      "pre_d04_basis": "git_head",
+      "pre_d04_sha256": "6476e02452ce72b5893b822f08ea59db21cfd2d42b782020543af90033406983",
+      "changed_during_d04": true
+    },
+    {
+      "path": "docs/experimental-units.md",
+      "sha256": "ddaf4bedd13eb8846d3a77e381f63d0d6d52ffb7af5b78e862c35235b9051cbf",
+      "size_bytes": 4900,
+      "pre_d04_basis": "absent_before_d04",
+      "pre_d04_sha256": null,
+      "changed_during_d04": true
+    },
+    {
+      "path": "playwright.config.ts",
+      "sha256": "25a16556723be679e6eb6a2a6f304514ed78a8e250aea55dceaadc8ef449f175",
+      "size_bytes": 564,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "25a16556723be679e6eb6a2a6f304514ed78a8e250aea55dceaadc8ef449f175",
+      "changed_during_d04": false
+    },
+    {
+      "path": "src/App.tsx",
+      "sha256": "a6edf9a18159f1e6ee7416a666e434b307462045da2525b15a983099cca380a7",
+      "size_bytes": 39430,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "f41f0a84fc912294f6bf81e6c8b0c6125704e94a262b56e827eb1a2c2c4f7613",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/ai/session.test.ts",
+      "sha256": "311ed180d2207fd82a6abf2acd6fec3a16c82edcd15fbd8f3400b506962c11a6",
+      "size_bytes": 2188,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "311ed180d2207fd82a6abf2acd6fec3a16c82edcd15fbd8f3400b506962c11a6",
+      "changed_during_d04": false
+    },
+    {
+      "path": "src/core/ai/session.ts",
+      "sha256": "292dee071655c94c7457d19447dacaab46466977d7919e16769ef58cc1666219",
+      "size_bytes": 4785,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "292dee071655c94c7457d19447dacaab46466977d7919e16769ef58cc1666219",
+      "changed_during_d04": false
+    },
+    {
+      "path": "src/core/analysis-client.test.ts",
+      "sha256": "f4790c26e464d8fbe8f2527ca12ca0f6337a3b067b2707a7e2bf6d20b6e956dd",
+      "size_bytes": 2803,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "f4790c26e464d8fbe8f2527ca12ca0f6337a3b067b2707a7e2bf6d20b6e956dd",
+      "changed_during_d04": false
+    },
+    {
+      "path": "src/core/analysis-client.ts",
+      "sha256": "bf58a5921f0846afb8c4bff55711280fd9f88b17bfae431f9d33ff0df87a7c0b",
+      "size_bytes": 2438,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "bf58a5921f0846afb8c4bff55711280fd9f88b17bfae431f9d33ff0df87a7c0b",
+      "changed_during_d04": false
+    },
+    {
+      "path": "src/core/analysis-validity.test.ts",
+      "sha256": "a9049abe45c66de373e935631b1bb03e5c22efe016006c8ef1477f26ea2d0252",
+      "size_bytes": 3983,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "a9049abe45c66de373e935631b1bb03e5c22efe016006c8ef1477f26ea2d0252",
+      "changed_during_d04": false
+    },
+    {
+      "path": "src/core/analysis-validity.ts",
+      "sha256": "5307911ae8b81e2762d9c6e88aa9d423d7e08647219cc8620ed98b59d97ed2d3",
+      "size_bytes": 2817,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "5307911ae8b81e2762d9c6e88aa9d423d7e08647219cc8620ed98b59d97ed2d3",
+      "changed_during_d04": false
+    },
+    {
+      "path": "src/core/analysis.worker.test.ts",
+      "sha256": "9806ff1b53c4809d24af3097521c9fc0c30d4758c42174f43e901d1e303af94c",
+      "size_bytes": 3520,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "9806ff1b53c4809d24af3097521c9fc0c30d4758c42174f43e901d1e303af94c",
+      "changed_during_d04": false
+    },
+    {
+      "path": "src/core/analysis.worker.ts",
+      "sha256": "55844303f019bc791d4626ed72cc8e3cc364a36950472b78efba6de847dbd114",
+      "size_bytes": 5045,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "55844303f019bc791d4626ed72cc8e3cc364a36950472b78efba6de847dbd114",
+      "changed_during_d04": false
+    },
+    {
+      "path": "src/core/analysis/statistics.test.ts",
+      "sha256": "f6580b9de097f8e4c6f0ae47f5a7617c138aa486f8e683a12b5b369fe6ff97a0",
+      "size_bytes": 7466,
+      "pre_d04_basis": "git_head",
+      "pre_d04_sha256": "e59d7da2bafe1ad09f4c3f8e8e8155b7dd5aa282791041d66832129c5b4c3d14",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/analysis/statistics.ts",
+      "sha256": "970b0d852b4d46f16ec5d380688538cd492f7f1ce56cb6731c7364ac3648f57f",
+      "size_bytes": 9665,
+      "pre_d04_basis": "git_head",
+      "pre_d04_sha256": "9401834b23da8cfd73b71bf874fa4477ba272de58d887b5f2393866647bfc648",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/api.ts",
+      "sha256": "06aa52a144a800817355f9b0d6eae2e3edcdaa17216f08b0cd3ebd8b704ff519",
+      "size_bytes": 5478,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "03906c4c9a29e76f335997f296e8e83418127c038bf2f8e9d604cf5fdb8e83ee",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/chart-units.test.ts",
+      "sha256": "35d9f8f126494df910b705b4867737d8ab115d55231cb350f8f9c3ea5ababe07",
+      "size_bytes": 1961,
+      "pre_d04_basis": "absent_before_d04",
+      "pre_d04_sha256": null,
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/chart.ts",
+      "sha256": "e4530dd3cff0813e0e6c4864cde15c27818820edd0e64e2bf1a889702ea7f67c",
+      "size_bytes": 6222,
+      "pre_d04_basis": "git_head",
+      "pre_d04_sha256": "34c6dbf061044b097e242a423a671c68667e4168ecd90b3490ad1de06aada58c",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/experimental-units.test.ts",
+      "sha256": "2619985ae8856da0c1ad44a8a477eaa2b20a8ef2d687358fdc92a269d951a8a7",
+      "size_bytes": 11453,
+      "pre_d04_basis": "absent_before_d04",
+      "pre_d04_sha256": null,
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/experimental-units.ts",
+      "sha256": "4e4d4556aaab75464ba90cb6c05da08721dcdc9340a839214bed9098dfa435ea",
+      "size_bytes": 10650,
+      "pre_d04_basis": "absent_before_d04",
+      "pre_d04_sha256": null,
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/export.ts",
+      "sha256": "ebeb038ef1f5843ee3b351401d2dac2e975941f6b9e55b2d388f7fe28bfd5eb2",
+      "size_bytes": 14081,
+      "pre_d04_basis": "git_head",
+      "pre_d04_sha256": "5dbbbde5d5a298d8cace00904b101593e4914eeb7d2010b0acb0c4cc686b5b59",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/methods.test.ts",
+      "sha256": "d9d3ffaf06e84f72546094d3ad5d02d0b24bb8bd87a4f4db707642250f56c285",
+      "size_bytes": 6565,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "d43180bc315f7a822ef37c00faf9ae29e863fb1fd4c9caaffdacda5e0e1d626d",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/methods.ts",
+      "sha256": "3c7bea765efb3942f25c56782d78d358912cb63178444f6c4edcc6d80b398e5c",
+      "size_bytes": 16617,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "3567f1573c5683103d6ef29fe17ba376dfc69bdfccd57bbb5e168d8fcba2c2bf",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/sample-statistics.test.ts",
+      "sha256": "b27e957245a37b17492702974ced31f6646b17a204502997121bc89b87b0d284",
+      "size_bytes": 12368,
+      "pre_d04_basis": "absent_before_d04",
+      "pre_d04_sha256": null,
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/sample-statistics.ts",
+      "sha256": "3edb1e88be840a35ae1e5542fcdea37998b4add4baaefbf51b6dbf962bb8b83a",
+      "size_bytes": 3551,
+      "pre_d04_basis": "absent_before_d04",
+      "pre_d04_sha256": null,
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/source-identity.test.ts",
+      "sha256": "254c6c5ef5ef68dcde59a3929446083aadddd6b9c4e295ced70594bcf5d3aadd",
+      "size_bytes": 595,
+      "pre_d04_basis": "absent_before_d04",
+      "pre_d04_sha256": null,
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/source-identity.ts",
+      "sha256": "af755022d9b1f1cc24232372310b174fb3158fd4c6868ad73464b7f82ff270ec",
+      "size_bytes": 599,
+      "pre_d04_basis": "absent_before_d04",
+      "pre_d04_sha256": null,
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/core/types.ts",
+      "sha256": "3b9162d5697f5effe5594546972d6df47b321154c570f5dbc0becfb825838967",
+      "size_bytes": 12058,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "870de40419387642ffc5872dad62286f3b61e3f6caf5e94e0ca0d87b21e2db64",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/i18n/messages.ts",
+      "sha256": "cb966cd9c85a0abc192eb52a8a45972c064cb582f0da48fb88f1534ce4e73d3b",
+      "size_bytes": 26903,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "8b1b95af671ee8ff95f64f3eaf25b10bb6ae31da3234c8d51560b391db087a15",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/i18n/unit-messages.ts",
+      "sha256": "c802d19922b8d4c3b255c7a24e9e17d3f9e73705d364f1fd51b7815de7883d5d",
+      "size_bytes": 19885,
+      "pre_d04_basis": "absent_before_d04",
+      "pre_d04_sha256": null,
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/project-io.test.ts",
+      "sha256": "04a1cd294bfa6bb46029e0ecb9dc32ec60873d9019fb7816d23a8b4e8b9de499",
+      "size_bytes": 13175,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "c654a7642a0084aff3cf760afe2657983fa844296c79a2764f785cbf6ac329f1",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/project-io.ts",
+      "sha256": "b8eaeb30fbca30874a36c7f537c83e0794122a169de2ca6ca57c2b99da2c9841",
+      "size_bytes": 11941,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "f2603dc8c236bba9a28bdfdd027d0a1b3fc70d7e195d1e278d45c88a45c5cffa",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/styles.css",
+      "sha256": "e6b061488d2d035ef6a6e63a3430aef3fc8499bd4585cbcc197b3d95738780c5",
+      "size_bytes": 24122,
+      "pre_d04_basis": "git_head",
+      "pre_d04_sha256": "82ce6b397ce7bc1153b15af1f2ef1bf580f1a77698a7a65b90dafde987e8c65d",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/ui/AdvisorPanel.tsx",
+      "sha256": "b9193a765952c7162720262738ed13222adff0fe28de5c649fed03f8de4cff4e",
+      "size_bytes": 5760,
+      "pre_d04_basis": "git_head",
+      "pre_d04_sha256": "11bee3dc60095cba3865ccbacbf572b4fb2a0056c0bf6c6bc8f793025d4b5b82",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/ui/ExperimentalUnitsPanel.tsx",
+      "sha256": "5a0b10cea143bc7b2158550a56e35bba4c072eeffc33688afbb30780692f8f60",
+      "size_bytes": 6142,
+      "pre_d04_basis": "absent_before_d04",
+      "pre_d04_sha256": null,
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/ui/SamplesPanel.tsx",
+      "sha256": "88d57a3a03cce1cfdd5ca5194f74035c79ce6e6a0443ca3cde22853cd6720b7d",
+      "size_bytes": 11286,
+      "pre_d04_basis": "git_head",
+      "pre_d04_sha256": "403f6a9ed4893737cf1e7abaeef1dc02978c6314504d680b27d308e1de295021",
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/ui/localize-report.test.ts",
+      "sha256": "5f991515fd6eceff599828e30e71af7b6bc72c03ca80e22a3fa92b2d43531896",
+      "size_bytes": 2649,
+      "pre_d04_basis": "absent_before_d04",
+      "pre_d04_sha256": null,
+      "changed_during_d04": true
+    },
+    {
+      "path": "src/ui/localize-report.ts",
+      "sha256": "934a576ddde3a6541efa9022890ebedac73c7dfee5b92d9cb174532d664b9d0a",
+      "size_bytes": 2170,
+      "pre_d04_basis": "git_head",
+      "pre_d04_sha256": "919cca8e8f0b0752b20265edce8f0522b42ca8ea003e3b7e48d72c40a286b844",
+      "changed_during_d04": true
+    },
+    {
+      "path": "tests/e2e/analysis-validity.spec.ts",
+      "sha256": "3e868b70844231d6862834c178372341ab3e2b907be4e14d0e69842becca95fa",
+      "size_bytes": 7244,
+      "pre_d04_basis": "pre_d04_uncommitted_snapshot",
+      "pre_d04_sha256": "8f0cbe43ff25388dc4abc4212356d7968264e6dc7e076da62a670276e2b12b2e",
+      "changed_during_d04": true
+    },
+    {
+      "path": "tests/e2e/experimental-units.spec.ts",
+      "sha256": "51cb02f5d9c05354958668a7628e2d0eeea4837b77335da174be9b9147d74f27",
+      "size_bytes": 20916,
+      "pre_d04_basis": "absent_before_d04",
+      "pre_d04_sha256": null,
+      "changed_during_d04": true
+    },
+    {
+      "path": "tests/e2e/language.spec.ts",
+      "sha256": "6b8e51cb812d05ee2982be197c9054cbbb51ab49fca7376c74572ef389f78190",
+      "size_bytes": 10766,
+      "pre_d04_basis": "git_head",
+      "pre_d04_sha256": "1883c8395e3a9701416c24b52e99b1e59ffa024893fdf893db887aed374081dd",
+      "changed_during_d04": true
+    },
+    {
+      "path": "tests/e2e/smoke.spec.ts",
+      "sha256": "0752243bfd7e758a69422485348d0b8c6b05c1ca3a279707bb4fd31ed01e0b46",
+      "size_bytes": 3959,
+      "pre_d04_basis": "git_head",
+      "pre_d04_sha256": "b6d87d70fd25e24929449b3a6b1eb5de67a25dc2bc87acc986d2a791c5c82bdb",
+      "changed_during_d04": true
+    }
+  ],
+  "file_count": 42,
+  "changed_during_d04": 33,
+  "archive": "working-tree-source.zip",
+  "archive_sha256": "98608896067e87faad172066c3be1b5aa7b7822f7fd85aceba8688b8830cc537",
+  "pre_d04_archive_sha256": "3a70926a02c21b29f72b2a404e3d5c1c6cf98480b5736b635574e8a828d50b29",
+  "independent_numerical_core_hash_matches": {
+    "src/core/experimental-units.ts": true,
+    "src/core/analysis/statistics.ts": true,
+    "src/core/stats.ts": true,
+    "src/core/types.ts": true
+  },
+  "limitations": "Local snapshot and unsigned hashes; no published release, biological adjudication or external holdout.",
+  "_public_export": {
+    "historical_snapshot": "2026-11-08",
+    "source_relative_path": "d04-implementation/source-state.json",
+    "original_sha256": "b4c7dbdd127dd54617f2533f48d58f33ed3feb424d203d4dc8c7982ec6ec4f12",
+    "scope": "Original validation branch, not later integration verification. Local filesystem paths are logical aliases; referenced binary artifacts are not included."
+  }
+}

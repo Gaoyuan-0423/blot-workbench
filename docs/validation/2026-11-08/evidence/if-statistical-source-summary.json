@@ -1,0 +1,27 @@
+{
+  "schema_version": "wisplab.d04-if-statistical-source-summary/v1",
+  "run_report": "validation-evidence/d04-if-implementation/independent-if-statistics-numerics-v2.json",
+  "run_report_sha256": "aa60440886543fc467fae5c2ab893d488561c7737070ae0d5d196325701f8b86",
+  "statistical_dependency_files": [
+    "src/core/if-statistics.ts",
+    "src/core/experimental-units.ts",
+    "src/core/sample-statistics.ts",
+    "src/core/analysis/statistics.ts",
+    "src/core/stats.ts",
+    "src/core/types.ts"
+  ],
+  "statistical_core_sha256": {
+    "src/core/if-statistics.ts": "8e36e3d020cb702861fba55fa8245d0294744caaa245da69639f41fd11c92036",
+    "src/core/experimental-units.ts": "df6ac2556b6e820da271e678026c424a6f886861e66dc854402da3f607b7b0f2",
+    "src/core/sample-statistics.ts": "3edb1e88be840a35ae1e5542fcdea37998b4add4baaefbf51b6dbf962bb8b83a",
+    "src/core/analysis/statistics.ts": "970b0d852b4d46f16ec5d380688538cd492f7f1ce56cb6731c7364ac3648f57f",
+    "src/core/stats.ts": "5f9c3d9d320af70920fecb7b172c85d30a2734ab0a97dd20891ad4f2f676b90e",
+    "src/core/types.ts": "356f553b1fbe5ceb08ebfb808364469759e3c935beb7f5046e475b44717e3807"
+  },
+  "_public_export": {
+    "historical_snapshot": "2026-11-08",
+    "source_relative_path": "d04-if-implementation/statistical-source-summary.json",
+    "original_sha256": "44c72edf3fa4d02f042b5108677922ef4233033788e9a022bd93eea6e59573f1",
+    "scope": "Original validation branch, not later integration verification. Local filesystem paths are logical aliases; referenced binary artifacts are not included."
+  }
+}

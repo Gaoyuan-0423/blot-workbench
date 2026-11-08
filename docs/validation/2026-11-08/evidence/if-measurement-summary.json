@@ -1,0 +1,88 @@
+{
+  "schema_version": "wisplab.d07-validation-run/v1",
+  "scope": "Software regression and independent fixed-array RGB arithmetic only; no new biological experiment or independent holdout.",
+  "runner_sha256": {
+    "run_d07_validation.py": "a7e48b96c38b676f06bd1a6098e621b0dc5e6de14252b4b705dfa58488619475",
+    "d07_harness.mjs": "9a475640bec5ceb75b80bb52e6d7897d2d70f55354026f50d0522cfbc54d61a4",
+    "if_reference.py": "a8888e9e05e85f43fa8ce8945eea704a418efceadf8041f5834b27824ab1c68f",
+    "if-fixed-fixtures.json": "299e0183f1005861e597b04cd5eb03ec913ce00bde031e7ae432b9a5e052bd85"
+  },
+  "failed_checks": [],
+  "maximum_recorded_absolute_error": null,
+  "finite_numeric_check_count": 0,
+  "status": "passed",
+  "started_utc": "2026-11-08T12:24:38.770729+00:00",
+  "finished_utc": "2026-11-08T12:24:42.750324+00:00",
+  "environment": {
+    "python": "3.9.6",
+    "platform": "macOS-27.0.1-arm64-arm-64bit",
+    "node": "v24.14.1",
+    "browser_channel": "chrome",
+    "packages": {
+      "vite": "8.3.4",
+      "playwright": "1.64.0",
+      "typescript": "6.0.3"
+    },
+    "browser_version": "156.0.8078.81"
+  },
+  "reference_self_check": {
+    "fixture_cases": 16,
+    "hand_calculated_anchors": 17,
+    "all_passed": true
+  },
+  "measurement_core_sha256": {
+    "package-lock.json": "b6ecd589a1729487ed057ed26be35f400b47cef7a2f9f6d052b860b8479a42aa",
+    "package.json": "468891b2d9ea91a561856227c82849db407af1e9f2410884da9da1759b4f24a1",
+    "src/core/analysis/colocalize.ts": "58546b97e69cef015c0f5e987c32669441c241b01b86893ee20196dc2bb146b4",
+    "src/core/analysis/engine.ts": "89169029e1909bc204e7f06b2e8dc4902639908222ec4b85da636165922571ae",
+    "src/core/analysis/metrics.ts": "5a18a639fcff6317474b310cfd715dd0683708834c5634cb331826d1ef048fa7",
+    "src/core/analysis/segment.ts": "f7d10c396f998df06379e2092c324b9f048c9e64f7827bdcff366cc4fcc1e40c",
+    "src/core/analysis/threshold.ts": "c82f076977e27d092a712a1addde83e18dea7855c326597e5d448780bd052ad5",
+    "src/core/image/color.ts": "1569c200b140dafb1c9cb1cb1f4d843f42661ef6e8960650fe6d381081193e8f",
+    "src/core/image/decode.ts": "d28a4c4aaac7bf3dd7240ed549fe0060fc548d735bf27a2ead2ab08c681a3fdc",
+    "src/core/image/tiff.ts": "057d43385011fb1484a15a881f50e658ff8977fee0aa562f241152ea2efe1cce",
+    "src/core/types.ts": "f41d385f3b15aca3d7592dcb92b41636f83e27755ba033100c56e97dc640c72d"
+  },
+  "source_claim_scope": "This captured measurement dependency graph only. UI/API integration may still change; a separate final application snapshot and full software suite are required.",
+  "protected_evidence_unchanged": true,
+  "input_hashes_unchanged_during_run": true,
+  "source_snapshot_sha256": "a4228715c1c73d7567705dcbcc1cbb91f8651b50b1db29c08ad1d12a42302631",
+  "if_reference": {
+    "schema_version": "wisplab.if-independent-reference/v1",
+    "scope": "Fixed synthetic RGB integer arrays. No biological samples, acquisition-channel validation, or external holdout.",
+    "tolerance": {
+      "absolute_finite_metrics": 1e-12,
+      "counts_background_thresholds": "exact",
+      "undefined": "null with matching reason identifiers"
+    },
+    "fixture_cases": 16,
+    "valid_cases": 12,
+    "expected_rejection_cases": 4,
+    "passed": 1224,
+    "failed": 0,
+    "maximum_absolute_error": 6.661338147750939e-16,
+    "all_passed": true,
+    "fixture_sha256": "299e0183f1005861e597b04cd5eb03ec913ce00bde031e7ae432b9a5e052bd85",
+    "reference_sha256": "a8888e9e05e85f43fa8ce8945eea704a418efceadf8041f5834b27824ab1c68f",
+    "app_results_sha256": "c1bcfd3fffe3bf2fc8cb11d369c789add1d9f2c9fbea454f648c2dce6e0926a3",
+    "source_snapshot_sha256": "a4228715c1c73d7567705dcbcc1cbb91f8651b50b1db29c08ad1d12a42302631"
+  },
+  "recorded_baseline_commit": "bb9c45c0fc81fe7ea0c449d209e9d63e6eb66a2e",
+  "recorded_branch": "codex/validation-p0-20261108",
+  "corpus": {
+    "scope": "Existing 35-image development corpus; legacy-field regression, not independent metric or biological validation.",
+    "images_requested": 35,
+    "images_completed": 35,
+    "images_failed": 0,
+    "checks_passed": 1226,
+    "checks_failed": 0,
+    "all_passed": true
+  },
+  "_public_export": {
+    "source_relative_path": "d07-implementation/engine-and-if-reference-2026-11-08-core/run-report.json",
+    "original_sha256": "870fc60ed0f1cc85c05ca4ca0e8165a9bebf5d87d2317e93db21592a968a17b7",
+    "historical_snapshot": "2026-11-08",
+    "complete_original_distributed": false,
+    "scope": "Selected original summary/identity fields only. This export does not rerun tests and does not certify later integrated PR commits."
+  }
+}

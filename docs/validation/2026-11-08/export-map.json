@@ -1,0 +1,482 @@
+{
+  "schema_version": "wisplab.public-validation-export/v1",
+  "historical_snapshot_date": "2026-11-08",
+  "export_repository_base": "fd867d89fab3602ad24a2d5cb973e54577595b4e",
+  "original_root": "validation-framework-2026-11-08 (local original preserved, not part of this repository)",
+  "originals_modified": false,
+  "historical_branch": "codex/validation-p0-20261108",
+  "later_integration_status": "PCR and CLI are being ported to later upstream main; those commits require separate integration checks. Application code is submitted in its own repositories.",
+  "path_aliases": {
+    "blot-workbench": "https://github.com/Gaoyuan-0423/blot-workbench",
+    "pcr-workbench": "https://github.com/Gaoyuan-0423/pcr-workbench",
+    "pathology-workbench": "https://github.com/Gaoyuan-0423/pathology-workbench",
+    "wisplab-cli": "https://github.com/Gaoyuan-0423/wisplab-cli",
+    "validation-evidence": "this historical source framework, not a runnable local path",
+    "local-only": "materials or runtime paths not distributed here"
+  },
+  "entries": [
+    {
+      "source_relative_path": "README.md",
+      "original_sha256": "475adae32548f5a23b5de6eac3192b880f8cbb02232058914b8c9996e6cddb92",
+      "original_bytes": 5985,
+      "exported_path": "FRAMEWORK-SNAPSHOT.md",
+      "exported_sha256": "92c10f5dc23c3158f934f2b8b93da3d58bfa938a0ffd5a4d2a10117160581205",
+      "exported_bytes": 6295,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "PLAN.md",
+      "original_sha256": "ee50f0d3d03afe74705f3ef6cc7289ffa6efab3c4ed82e20e3963687de3cbe7b",
+      "original_bytes": 12961,
+      "exported_path": "PLAN.md",
+      "exported_sha256": "7a144c414fa5c7d2987d589562ecb8b207a11dcf330e35dd438e91180d2bbc16",
+      "exported_bytes": 13530,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "SOURCE-AUDIT.md",
+      "original_sha256": "3f9895a47b3b55b85d992df265870f89d9975dd975fa6f37118fc8d78a0909be",
+      "original_bytes": 3835,
+      "exported_path": "SOURCE-AUDIT.md",
+      "exported_sha256": "1e52c01e9878b110e2e7ad9aaf36e01f80aec26b48b0e0c257efae83619e5ea4",
+      "exported_bytes": 4268,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "TEMPLATE-GUIDE.md",
+      "original_sha256": "fb18fdc3ca5123c68a57d729ba94f9a1010ad5f4673ae9b21c99f77587ed6b12",
+      "original_bytes": 5055,
+      "exported_path": "TEMPLATE-GUIDE.md",
+      "exported_sha256": "b7ac124d255b3173920c32ba549aefafee4fcd4e31996adc1b93cc580dbaaf2b",
+      "exported_bytes": 5639,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "development-backlog.csv",
+      "original_sha256": "0406f3dfe7f6c5ed04244b5dbf12703cb4c9655fe33b61c7fe30bf660ef32c2a",
+      "original_bytes": 5939,
+      "exported_path": "development-backlog.csv",
+      "exported_sha256": "c83ee9d9b5f106267deae5cd6d4960590ed76595072d59612e60718ad3a38d6f",
+      "exported_bytes": 5523,
+      "transformation": "Local path aliases and ANSI-free text only; no scientific values changed."
+    },
+    {
+      "source_relative_path": "challenge-cases.csv",
+      "original_sha256": "08ae4afaf44c69023b73321b947b06daac80a80910eb5c980b9ce21738777a3c",
+      "original_bytes": 9278,
+      "exported_path": "challenge-cases.csv",
+      "exported_sha256": "9b670b16376caf51a8df3b76f798deadfcd0b7c17da539fd42838734c772c7be",
+      "exported_bytes": 9252,
+      "transformation": "Local path aliases and ANSI-free text only; no scientific values changed."
+    },
+    {
+      "source_relative_path": "handoff-chatgpt-web-2026-11-08/01-交接清单.md",
+      "original_sha256": "fc88ad3fe906569991bd984c52d1dd939064f68e606b8956dd194e752e1d961e",
+      "original_bytes": 15752,
+      "exported_path": "handoff/01-checklist.md",
+      "exported_sha256": "cf11a5e1a92b26d177d09568a6586e7a152998eeb39f525b181cde12ffb8ab15",
+      "exported_bytes": 16084,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "templates/evaluation-log.csv",
+      "original_sha256": "ba71508b0a81a5def189e9ae6e5eea1bf6ab3760817d87e144b453cc12cae690",
+      "original_bytes": 301,
+      "exported_path": "templates/evaluation-log.csv",
+      "exported_sha256": "0e9d65763c3fe5f30e2f7ec1a5686e9d91ca5aaad1ad094232fd5d6aabded59f",
+      "exported_bytes": 297,
+      "transformation": "Local path aliases and ANSI-free text only; no scientific values changed."
+    },
+    {
+      "source_relative_path": "templates/experimental-units.csv",
+      "original_sha256": "29fbbdb259015c1553a056cdb55eac42a084544f571c948bb8395b9469888d14",
+      "original_bytes": 268,
+      "exported_path": "templates/experimental-units.csv",
+      "exported_sha256": "7d2d8ab1594ada0cead5dbe5b0e6dbeafee3d7baf7abd7250addc3216ff61c97",
+      "exported_bytes": 264,
+      "transformation": "Local path aliases and ANSI-free text only; no scientific values changed."
+    },
+    {
+      "source_relative_path": "templates/task-register.csv",
+      "original_sha256": "63d2f725b6b26f94849a66bb2e9e2797e5a4dc95571d368de599627142b1cfe6",
+      "original_bytes": 191,
+      "exported_path": "templates/task-register.csv",
+      "exported_sha256": "512cef89a73907d799d4d5e0c09e1d3503e6dd70bef4667eda0500de178399cb",
+      "exported_bytes": 187,
+      "transformation": "Local path aliases and ANSI-free text only; no scientific values changed."
+    },
+    {
+      "source_relative_path": "p0-implementation/IMPLEMENTATION.md",
+      "original_sha256": "dfff2b973d2eb6ccc630b51a4924e5287110d9bcc29f8e4efbf977e5078d80fb",
+      "original_bytes": 6944,
+      "exported_path": "snapshots/p0/IMPLEMENTATION.md",
+      "exported_sha256": "63fcbb81d7db5c899c92888178e7908e820254506504ca7ea548ddf03141b8c5",
+      "exported_bytes": 7558,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "p0-implementation/README-independent-numerics.md",
+      "original_sha256": "a1f069edc3efe719d9eaed59fd3fd49f3db1916329c66a6ff108de2d5ecf2400",
+      "original_bytes": 4978,
+      "exported_path": "snapshots/p0/README-independent-numerics.md",
+      "exported_sha256": "d39253983569425286a5653a1c3f9f70673e08e931d83b881e69e3b908d481d5",
+      "exported_bytes": 5412,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "p0-implementation/pathology-validation.md",
+      "original_sha256": "82afffbd58b4c90dc8a4dca67ec154dec7e695ce2b5c49df025590733fcfd102",
+      "original_bytes": 6981,
+      "exported_path": "snapshots/p0/pathology-validation.md",
+      "exported_sha256": "305f8ac60e2a534954db5ba14b5ef136047358fc01367e22c1a8342e3597298f",
+      "exported_bytes": 7574,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "d04-implementation/IMPLEMENTATION.md",
+      "original_sha256": "8b844fb22610d46fce4e4cc860d46942e9dd61136a633e7cf323748561a691af",
+      "original_bytes": 7865,
+      "exported_path": "snapshots/d04/IMPLEMENTATION.md",
+      "exported_sha256": "4a6018e152a3f8ac41c32c8eb841a78de2fba4f0720aa8ec6e7a3e416572d0e1",
+      "exported_bytes": 8480,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "d04-implementation/README-independent-numerics.md",
+      "original_sha256": "e6cd0d9efee02cbe19d80a6b87f892576a085ac6ed54a7b060f7bdadea5f8cc4",
+      "original_bytes": 5251,
+      "exported_path": "snapshots/d04/README-independent-numerics.md",
+      "exported_sha256": "7fe803ac4cd494e15200ce13f199f30027e561029612a26d8c5a34c84b62dc68",
+      "exported_bytes": 5713,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "d07-implementation/IMPLEMENTATION.md",
+      "original_sha256": "18d6d236f7cf39dab34f2b9fc3dffa3dfd6aed6b4c24c576ebb85101a762b051",
+      "original_bytes": 7858,
+      "exported_path": "snapshots/d07/IMPLEMENTATION.md",
+      "exported_sha256": "0e3ce77742521f121ce7dbdb03bf69b2f7fbb16f21f303718e2998134f5812f0",
+      "exported_bytes": 8497,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "d07-implementation/MEASUREMENT-RESULTS.md",
+      "original_sha256": "bca22878a89bcb66ae86b4a638380acf908999ce87e456ddbaec626f2d60cbb8",
+      "original_bytes": 4554,
+      "exported_path": "snapshots/d07/MEASUREMENT-RESULTS.md",
+      "exported_sha256": "4289bf771dde650f04e9202b0b10faca7b7577c512885b01d2c1871f7f15f3b1",
+      "exported_bytes": 5174,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "d07-implementation/VALIDATION-PLAN.md",
+      "original_sha256": "f1254699624a74eefd88fbc5768c97752f6d561c5bc500e2a6587fd1c8072a75",
+      "original_bytes": 7261,
+      "exported_path": "snapshots/d07/VALIDATION-PLAN.md",
+      "exported_sha256": "21abc566da5d973eed7844accc4b23a676a7a3e2cf9caef85e9cd886f74db747",
+      "exported_bytes": 7859,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "d07-implementation/README-RUNNERS.md",
+      "original_sha256": "f4896f661332a3b096793e97877751857bfb271a29b11d90e53ed439ec5c344a",
+      "original_bytes": 5038,
+      "exported_path": "snapshots/d07/README-RUNNERS.md",
+      "exported_sha256": "b8969c7d2e4a9a623cc8f9f24bfbdf544cf43dd60eed00bfbdebdf7b25b46c83",
+      "exported_bytes": 5590,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "d04-if-implementation/IMPLEMENTATION.md",
+      "original_sha256": "7e1c474df1312470ffa051db456744d85e3d790cedfafc407c333d9fdf7e0cff",
+      "original_bytes": 9033,
+      "exported_path": "snapshots/d04-if/IMPLEMENTATION.md",
+      "exported_sha256": "45f6fb947470f2977151519265430ce2dd3b8fd38c7c5902dde18cc911d36fa3",
+      "exported_bytes": 9652,
+      "transformation": "Historical banner; local paths aliased; links routed to published copies or explicit omission notice."
+    },
+    {
+      "source_relative_path": "d04-implementation/software-checks-final/results.json",
+      "original_sha256": "5b3c07d51c545dcfcd4b0f910671508e9c9490260e3cc615043f1d4d1b38ec47",
+      "original_bytes": 1556,
+      "exported_path": "checks/d04/results.json",
+      "exported_sha256": "8ca5655cb034611b7e29cb595ce8afedc0152cc5b9c7927415ae8ca0e1a7e102",
+      "exported_bytes": 1861,
+      "transformation": "Local paths aliased; original source hashes/values retained; historical export annotation added."
+    },
+    {
+      "source_relative_path": "d04-implementation/software-checks-final/unit-tests.log",
+      "original_sha256": "f8423354ce7239e44d8cc7ee4e1209f11c181b0786956437fe759dd927aca7da",
+      "original_bytes": 261,
+      "exported_path": "checks/d04/unit-tests.log",
+      "exported_sha256": "ae5d1f76ca95c114edc2ac9f41cd5e19dfce4aa44c60d0d7be4e9ce9b6a54829",
+      "exported_bytes": 233,
+      "transformation": "Local path aliases; ANSI codes, trailing whitespace and blank EOF lines removed; no scientific values changed."
+    },
+    {
+      "source_relative_path": "d04-implementation/software-checks-final/build.log",
+      "original_sha256": "4ae8783473f53ad6317fc62bd4315e84e0b7f7672d4964e7335310c5ac0d7389",
+      "original_bytes": 1012,
+      "exported_path": "checks/d04/build.log",
+      "exported_sha256": "8658348a2ddbeeb8f29155efbb9e9855842ee6360b1aea4e5626b3de29e7240e",
+      "exported_bytes": 1011,
+      "transformation": "Local path aliases; ANSI codes, trailing whitespace and blank EOF lines removed; no scientific values changed."
+    },
+    {
+      "source_relative_path": "d04-implementation/software-checks-final/lint.log",
+      "original_sha256": "317346435616b57990e36fc124662466583b83752e4d56034d7075077f598b63",
+      "original_bytes": 3540,
+      "exported_path": "checks/d04/lint.log",
+      "exported_sha256": "317346435616b57990e36fc124662466583b83752e4d56034d7075077f598b63",
+      "exported_bytes": 3540,
+      "transformation": "Local path aliases; ANSI codes, trailing whitespace and blank EOF lines removed; no scientific values changed."
+    },
+    {
+      "source_relative_path": "d04-implementation/software-checks-final/browser-tests.log",
+      "original_sha256": "f1181263050e5a9c06ffb9b9b88ffbee4a505d77088ce9ba6e95311afcb9986d",
+      "original_bytes": 3081,
+      "exported_path": "checks/d04/browser-tests.log",
+      "exported_sha256": "f1181263050e5a9c06ffb9b9b88ffbee4a505d77088ce9ba6e95311afcb9986d",
+      "exported_bytes": 3081,
+      "transformation": "Local path aliases; ANSI codes, trailing whitespace and blank EOF lines removed; no scientific values changed."
+    },
+    {
+      "source_relative_path": "d07-implementation/software-checks-final-reviewed/results.json",
+      "original_sha256": "3d63a87570bb387bce9e2cd05de4c613095f81e27b40989a4981a9be4110ad7c",
+      "original_bytes": 3170,
+      "exported_path": "checks/d07/results.json",
+      "exported_sha256": "b2a06f8a8a65f16a7d16203c0a1f1b78d941b7eefd113ea711cbfe144e796953",
+      "exported_bytes": 3375,
+      "transformation": "Local paths aliased; original source hashes/values retained; historical export annotation added."
+    },
+    {
+      "source_relative_path": "d07-implementation/software-checks-final-reviewed/unit-tests.log",
+      "original_sha256": "7f07e747d6a5e11b83a6438f9ad6e0d5135e3c744b1ec80cf401142f93bce4dd",
+      "original_bytes": 261,
+      "exported_path": "checks/d07/unit-tests.log",
+      "exported_sha256": "5dc8cae24d8c7f2cadaf659effe46e95558dee266224181341658d5fe103c372",
+      "exported_bytes": 233,
+      "transformation": "Local path aliases; ANSI codes, trailing whitespace and blank EOF lines removed; no scientific values changed."
+    },
+    {
+      "source_relative_path": "d07-implementation/software-checks-final-reviewed/build.log",
+      "original_sha256": "d3d0f553796ec48a50e373e6b674af216eac32ba4b2f97edd3c0406aaa94dcbc",
+      "original_bytes": 1012,
+      "exported_path": "checks/d07/build.log",
+      "exported_sha256": "f4ebac257c757dd8da7c5a2ed0796edaae2f9b9482045e35b0f9d82dd381f4f8",
+      "exported_bytes": 1011,
+      "transformation": "Local path aliases; ANSI codes, trailing whitespace and blank EOF lines removed; no scientific values changed."
+    },
+    {
+      "source_relative_path": "d07-implementation/software-checks-final-reviewed/lint.log",
+      "original_sha256": "0b2f1bbe25b21db84f476010e23324dcc0f03fe008b857b15f2a391e84a89189",
+      "original_bytes": 3540,
+      "exported_path": "checks/d07/lint.log",
+      "exported_sha256": "0b2f1bbe25b21db84f476010e23324dcc0f03fe008b857b15f2a391e84a89189",
+      "exported_bytes": 3540,
+      "transformation": "Local path aliases; ANSI codes, trailing whitespace and blank EOF lines removed; no scientific values changed."
+    },
+    {
+      "source_relative_path": "d07-implementation/software-checks-final-reviewed/browser-tests.log",
+      "original_sha256": "3af370969ae6212a2b20ed05e55a8226465ad8b443135476adfccc6e75a5010b",
+      "original_bytes": 3636,
+      "exported_path": "checks/d07/browser-tests.log",
+      "exported_sha256": "3af370969ae6212a2b20ed05e55a8226465ad8b443135476adfccc6e75a5010b",
+      "exported_bytes": 3636,
+      "transformation": "Local path aliases; ANSI codes, trailing whitespace and blank EOF lines removed; no scientific values changed."
+    },
+    {
+      "source_relative_path": "d04-if-implementation/software-checks-final-reviewed/results.json",
+      "original_sha256": "fab3ce5c16105a1e75635c1250101300236dd0114fc262d88df8296981d1801f",
+      "original_bytes": 3176,
+      "exported_path": "checks/d04-if/results.json",
+      "exported_sha256": "e4250f196ae9954e89694e625e79241261978d866b87dc51621d7a07bf2b1592",
+      "exported_bytes": 3384,
+      "transformation": "Local paths aliased; original source hashes/values retained; historical export annotation added."
+    },
+    {
+      "source_relative_path": "d04-if-implementation/software-checks-final-reviewed/unit-tests.log",
+      "original_sha256": "b1706760748724da102bf2b48f452265fecdad55dc02e121675b9329256430b9",
+      "original_bytes": 261,
+      "exported_path": "checks/d04-if/unit-tests.log",
+      "exported_sha256": "260166165b568238888cca67aac3db0cda591e3731931108087136cee523845b",
+      "exported_bytes": 233,
+      "transformation": "Local path aliases; ANSI codes, trailing whitespace and blank EOF lines removed; no scientific values changed."
+    },
+    {
+      "source_relative_path": "d04-if-implementation/software-checks-final-reviewed/build.log",
+      "original_sha256": "7106b9282874d10c0ec18f87f573c20b1e1871eb2af4fc7292cb7d491b0d70aa",
+      "original_bytes": 1012,
+      "exported_path": "checks/d04-if/build.log",
+      "exported_sha256": "b6c90dddfae7bcc4c9fc58d8a2203ec59e91cd2d2e20a5930bebd6c7cc9712b3",
+      "exported_bytes": 1011,
+      "transformation": "Local path aliases; ANSI codes, trailing whitespace and blank EOF lines removed; no scientific values changed."
+    },
+    {
+      "source_relative_path": "d04-if-implementation/software-checks-final-reviewed/lint.log",
+      "original_sha256": "c48d4cb4a37a36055b9bef4e5eea4806f6062595debb5e0c245c5d74f72a17fd",
+      "original_bytes": 3540,
+      "exported_path": "checks/d04-if/lint.log",
+      "exported_sha256": "c48d4cb4a37a36055b9bef4e5eea4806f6062595debb5e0c245c5d74f72a17fd",
+      "exported_bytes": 3540,
+      "transformation": "Local path aliases; ANSI codes, trailing whitespace and blank EOF lines removed; no scientific values changed."
+    },
+    {
+      "source_relative_path": "d04-if-implementation/software-checks-final-reviewed/browser-tests.log",
+      "original_sha256": "d315b6e975bb6c532bfaa79e97bd50cf1d487998d00baed4ebdd0ce458884f17",
+      "original_bytes": 4174,
+      "exported_path": "checks/d04-if/browser-tests.log",
+      "exported_sha256": "d315b6e975bb6c532bfaa79e97bd50cf1d487998d00baed4ebdd0ce458884f17",
+      "exported_bytes": 4174,
+      "transformation": "Local path aliases; ANSI codes, trailing whitespace and blank EOF lines removed; no scientific values changed."
+    },
+    {
+      "source_relative_path": "p0-implementation/source-state.json",
+      "original_sha256": "cd792f69703e015d30b85dd40cca64a3c1d1f654c160d616ada56c724214424c",
+      "original_bytes": 14871,
+      "exported_path": "evidence/p0-source-state.json",
+      "exported_sha256": "e604fb7494a9606194626c61c2e6f1916bf1d295fe63c2360ccdef55fc3b2f56",
+      "exported_bytes": 12885,
+      "transformation": "Local paths aliased; original source hashes/values retained; historical export annotation added."
+    },
+    {
+      "source_relative_path": "d04-implementation/source-state.json",
+      "original_sha256": "b4c7dbdd127dd54617f2533f48d58f33ed3feb424d203d4dc8c7982ec6ec4f12",
+      "original_bytes": 15914,
+      "exported_path": "evidence/d04-source-state.json",
+      "exported_sha256": "4f8eae7b34f2e4cd18029d912e15991d0985445e9b85361559e7130f1e1babe4",
+      "exported_bytes": 16283,
+      "transformation": "Local paths aliased; original source hashes/values retained; historical export annotation added."
+    },
+    {
+      "source_relative_path": "d07-implementation/source-state.json",
+      "original_sha256": "fec773db0c75ad8c5e0b685fb9b3bfe7052a9a6000fa02032b3fd75988fc688f",
+      "original_bytes": 28252,
+      "exported_path": "evidence/d07-source-state.json",
+      "exported_sha256": "00dd44917adf910f1bfcc96cc407fbc56f6852b8d2fdbf37ca0f43324c32e419",
+      "exported_bytes": 28539,
+      "transformation": "Local paths aliased; original source hashes/values retained; historical export annotation added."
+    },
+    {
+      "source_relative_path": "d04-if-implementation/source-state.json",
+      "original_sha256": "d7586498525c7236e45bf191dd8a4b66ca6f67a3104a15ba05244d699ccf757a",
+      "original_bytes": 31430,
+      "exported_path": "evidence/d04-if-source-state.json",
+      "exported_sha256": "24a525c450f6a4e81e525cc8182d83fc59424059de573d19575dca4efbf42f41",
+      "exported_bytes": 31720,
+      "transformation": "Local paths aliased; original source hashes/values retained; historical export annotation added."
+    },
+    {
+      "source_relative_path": "d07-implementation/measurement-source-summary.json",
+      "original_sha256": "13bcb3e041bc523480ebfb0041a0a92acce9eafc04748fdcecd899e153818927",
+      "original_bytes": 2865,
+      "exported_path": "evidence/d07-measurement-source-summary.json",
+      "exported_sha256": "c41556d334900da80119c54d2356b98ce568a2292019ae521a85b9788dad2641",
+      "exported_bytes": 3193,
+      "transformation": "Local paths aliased; original source hashes/values retained; historical export annotation added."
+    },
+    {
+      "source_relative_path": "d04-if-implementation/statistical-source-summary.json",
+      "original_sha256": "44c72edf3fa4d02f042b5108677922ef4233033788e9a022bd93eea6e59573f1",
+      "original_bytes": 1225,
+      "exported_path": "evidence/if-statistical-source-summary.json",
+      "exported_sha256": "5ec40bbd9a1931afe7caaffd1f2d03383b438d37fe6e315167447468609402b3",
+      "exported_bytes": 1556,
+      "transformation": "Local paths aliased; original source hashes/values retained; historical export annotation added."
+    },
+    {
+      "source_relative_path": "d04-if-implementation/final-consistency-audit.json",
+      "original_sha256": "75a944a5672062b85637722a6ef0eb417fe67f7cd415f9c688c38ff61556e64b",
+      "original_bytes": 1091,
+      "exported_path": "evidence/final-consistency-audit.json",
+      "exported_sha256": "18ac2474f0009a99ddb06c29dc51df213e82730693fcb83b854f9f1eab9ebe9c",
+      "exported_bytes": 1501,
+      "transformation": "Local paths aliased; original source hashes/values retained; historical export annotation added."
+    },
+    {
+      "source_relative_path": "p0-implementation/independent-qpcr-numerics-2026-11-08.json",
+      "original_sha256": "aa4e6370f75f26dc9d7555c101573f73bebfdadf8dcc3f00fff83a4be7ba9d8d",
+      "original_bytes": 114229,
+      "exported_path": "evidence/qpcr-numerics-summary.json",
+      "exported_sha256": "b66c7fa8b04109362b55b5546acbf1522f87e677528d05808d6f677773cbfc0d",
+      "exported_bytes": 2441,
+      "transformation": "Selected summary, tolerance, environment and source-identity fields; complete per-case report remains local; paths aliased."
+    },
+    {
+      "source_relative_path": "d04-implementation/independent-pathology-numerics-2026-11-08-final.json",
+      "original_sha256": "9093c6f393589879c3a4d7cb05fa664013f8cb27fa26e97a4fd728ade587017b",
+      "original_bytes": 99491,
+      "exported_path": "evidence/stain-d04-numerics-summary.json",
+      "exported_sha256": "42b33a0edea8cf31802d231ffef6820893e245564e54bbc6eeb72cb0bbfea568",
+      "exported_bytes": 2587,
+      "transformation": "Selected summary, tolerance, environment and source-identity fields; complete per-case report remains local; paths aliased."
+    },
+    {
+      "source_relative_path": "d04-if-implementation/independent-if-statistics-numerics-v2.json",
+      "original_sha256": "aa60440886543fc467fae5c2ab893d488561c7737070ae0d5d196325701f8b86",
+      "original_bytes": 2171495,
+      "exported_path": "evidence/if-statistics-summary.json",
+      "exported_sha256": "bb95fbf841400d94c7a4f6d2ca750743fcf7244a5e17cbe0fd823c3e94919ba3",
+      "exported_bytes": 6297,
+      "transformation": "Selected summary, tolerance, environment and source-identity fields; complete per-case report remains local; paths aliased."
+    },
+    {
+      "source_relative_path": "d04-if-implementation/independent-stain-statistics-regression.json",
+      "original_sha256": "950dc4dc134363e8a839092c931e8a3f60acc2d1ce4fe950acb8c0aa94ff88c4",
+      "original_bytes": 100488,
+      "exported_path": "evidence/stain-regression-summary.json",
+      "exported_sha256": "2df8acd7af0913bd128fd3347a53cf601d0247f52b49d62413c3baa81bda9263",
+      "exported_bytes": 2582,
+      "transformation": "Selected summary, tolerance, environment and source-identity fields; complete per-case report remains local; paths aliased."
+    },
+    {
+      "source_relative_path": "d07-implementation/engine-and-if-reference-2026-11-08-core/run-report.json",
+      "original_sha256": "870fc60ed0f1cc85c05ca4ca0e8165a9bebf5d87d2317e93db21592a968a17b7",
+      "original_bytes": 47924,
+      "exported_path": "evidence/if-measurement-summary.json",
+      "exported_sha256": "061c7bcfcf7c0c9f486e8bd74d23f7619e8aad997e1b261b3124826dea409121",
+      "exported_bytes": 4576,
+      "transformation": "Selected summary, tolerance, environment and source-identity fields; complete per-case report remains local; paths aliased."
+    },
+    {
+      "source_relative_path": "inventory-audit-after-d04-if.json",
+      "original_sha256": "6397cc7bd761b7d11974ea4eaacb51514469a3c2b3204588d8526ad709a1d69f",
+      "original_bytes": 76351,
+      "exported_path": "evidence/inventory-summary.json",
+      "exported_sha256": "34f3cbaeeb850f609cd3aa0548ebe1a6efd1d983c991d6f8f065e399e0bf20ac",
+      "exported_bytes": 2102,
+      "transformation": "Selected summary, tolerance, environment and source-identity fields; complete per-case report remains local; paths aliased."
+    }
+  ],
+  "selected_omitted_originals": [
+    {
+      "source_relative_path": "catalog.json",
+      "sha256": "3867123d8c81eff2bff9b023924d8faf6765793568748408d819421ccbb485a2",
+      "bytes": 68171,
+      "reason": "Not distributed: local inventory/checker requires withheld inputs, or consolidated evidence duplicates separately exported records."
+    },
+    {
+      "source_relative_path": "inventory.csv",
+      "sha256": "fa917c19b100aba53eccef15987eea4533c89eb514329b9f9e9ac287d86e4cdc",
+      "bytes": 54121,
+      "reason": "Not distributed: local inventory/checker requires withheld inputs, or consolidated evidence duplicates separately exported records."
+    },
+    {
+      "source_relative_path": "check_framework.py",
+      "sha256": "efa9d18d80d4d19a49a6d34d72153ba48167d41d69f2f8fa7edb76b40f20435a",
+      "bytes": 13984,
+      "reason": "Not distributed: local inventory/checker requires withheld inputs, or consolidated evidence duplicates separately exported records."
+    },
+    {
+      "source_relative_path": "handoff-chatgpt-web-2026-11-08/02-实现与验证证据.md",
+      "sha256": "17ef0b751226f6c4784bdef69598d9856d0e33cfc03c95a5607fb2e7f5bc4380",
+      "bytes": 84515,
+      "reason": "Not distributed: local inventory/checker requires withheld inputs, or consolidated evidence duplicates separately exported records."
+    }
+  ],
+  "limitations": [
+    "Original SHA-256 identifies local bytes, not biological truth or a signed attestation.",
+    "Exported copies differ where paths, links and historical notices were transformed.",
+    "Source archives, original images, credentials, third-party vendor material, screenshots, raw datasets, complete numerical reports and application runtime are not distributed."
+  ]
+}

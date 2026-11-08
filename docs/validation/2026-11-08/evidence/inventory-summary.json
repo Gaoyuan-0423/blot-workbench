@@ -1,0 +1,45 @@
+{
+  "schema_version": "wisplab.validation-framework-report/v1",
+  "checked_at_utc": "2026-11-08T13:25:33.182877+00:00",
+  "scope": "Manifest structure and raw file-byte SHA-256 checks only; no analysis engine is run and no scientific conclusion is validated.",
+  "limitations": [
+    "The catalog and its split/exposure declarations are not signed or authenticated; coordinated edits to them cannot be detected without an immutable baseline.",
+    "source_manifest is an evidence reference only; its split assignments are not inferred or compared.",
+    "Unknown source clusters remain unknown. File counts and duplicate hashes do not establish independent samples or biological replication.",
+    "duplicate_input_groups contains IDs sharing declared or observed SHA-256 values; a declaration alone is not proof of byte equality.",
+    "hash_basis is retained as declared metadata; this checker always hashes raw file bytes and does not reproduce image decoding or transformations."
+  ],
+  "summary": {
+    "input_count": 52,
+    "input_existing": 48,
+    "artifact_count": 42,
+    "artifact_existing": 42,
+    "hash_matches": 90,
+    "hash_mismatches": 0,
+    "expected_missing_inputs": 4,
+    "errors": 0,
+    "warnings": 5,
+    "duplicate_input_groups": [
+      [
+        "wb-synthetic-repeat-01",
+        "wb-synthetic-repeat-02"
+      ]
+    ]
+  },
+  "failed_checks": [],
+  "maximum_recorded_absolute_error": null,
+  "finite_numeric_check_count": 0,
+  "status": "passed_with_warnings",
+  "data_partition": {
+    "development_regression": 52,
+    "external_holdout": 0
+  },
+  "omission": "Per-input paths and third-party material inventory are not included in this public summary.",
+  "_public_export": {
+    "source_relative_path": "inventory-audit-after-d04-if.json",
+    "original_sha256": "6397cc7bd761b7d11974ea4eaacb51514469a3c2b3204588d8526ad709a1d69f",
+    "historical_snapshot": "2026-11-08",
+    "complete_original_distributed": false,
+    "scope": "Selected original summary/identity fields only. This export does not rerun tests and does not certify later integrated PR commits."
+  }
+}

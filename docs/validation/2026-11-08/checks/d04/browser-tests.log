@@ -1,0 +1,31 @@
+[WebServer] (node:45803) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 20 tests using 1 worker
+
+(node:45841) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/20] tests/e2e/analysis-validity.spec.ts:47:1 › parameter changes immediately withhold display, report, Methods, sample save and project result; late replies and failure stay unavailable
+[2/20] tests/e2e/analysis-validity.spec.ts:97:1 › same-name model replacements and AI toggles bind to content identity in the English UI
+[3/20] tests/e2e/experimental-units.spec.ts:61:1 › three units with five fields each report nBio=3, nImages=15 per group, export and restore the confirmed design and selected metric
+[4/20] tests/e2e/experimental-units.spec.ts:153:1 › section-equal aggregation collapses an exact repeated field, then rejects remapped duplicates and a unit spanning groups
+[5/20] tests/e2e/experimental-units.spec.ts:180:56 › h_eosin profile cannot enter inference; exclusion persists and a missing field reduces metric-specific nBio
+[6/20] tests/e2e/experimental-units.spec.ts:180:56 › unknown profile cannot enter inference; exclusion persists and a missing field reduces metric-specific nBio
+[7/20] tests/e2e/experimental-units.spec.ts:218:1 › legacy records remain descriptive without invented unit or source identities
+[8/20] tests/e2e/experimental-units.spec.ts:275:1 › changing AI while Add sample awaits source hashing discards the old result and does not report success
+[9/20] tests/e2e/experimental-units.spec.ts:297:1 › cancelling a batch during source hashing prevents the late hash from adding a sample
+[10/20] tests/e2e/language.spec.ts:15:1 › language URL priority, persistence, navigation and blocked storage
+[11/20] tests/e2e/language.spec.ts:54:1 › switching language retains image, ROI, calibration, numbers and user input
+[12/20] tests/e2e/language.spec.ts:124:1 › English errors and all scenes fit a 390px screen
+[13/20] tests/e2e/language.spec.ts:137:1 › English unconfirmed duplicate images stay descriptive and exports retain data and user names
+[14/20] tests/e2e/scenes.spec.ts:44:1 › 切换场景保留图像和 ROI，并能分析与导出
+[15/20] tests/e2e/scenes.spec.ts:92:1 › 特殊染色参数仍驱动计算，现有 v1 项目重载恢复场景和参数
+[16/20] tests/e2e/scenes.spec.ts:139:1 › 390px 屏幕可切换所有场景，分析后页面不横向溢出
+[17/20] tests/e2e/screenshots.spec.ts:11:1 › 采集 README 截图
+[18/20] tests/e2e/smoke.spec.ts:4:1 › 合成 IHC 图像全流程：导入 → 自动分析 → 指标可见 → 导出 Excel
+[19/20] tests/e2e/smoke.spec.ts:34:1 › 批处理：多张合成图逐张分析入样本库
+[20/20] tests/e2e/smoke.spec.ts:53:1 › IF reports preserve real colocalization without relabelling compatibility placeholders as stain measurements
+  20 passed (48.7s)

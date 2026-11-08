@@ -1,0 +1,12 @@
+
+> pathology-workbench@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.4 pathology-workbench
+
+
+ Test Files  28 passed (28)
+      Tests  288 passed (288)
+   Start at  21:26:46
+   Duration  708ms (tests 38%, import 38%, transform 21%, worker 4%)

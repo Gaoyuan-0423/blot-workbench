@@ -1,0 +1,99 @@
+{
+  "schema_version": "wisplab.d04-if-software-checks/v1",
+  "scope": "Software regression only; no external experimental data or biological adjudication.",
+  "started_at_utc": "2026-11-08T13:26:45.801551+00:00",
+  "finished_at_utc": "2026-11-08T13:28:03.440210+00:00",
+  "repository": "pathology-workbench",
+  "python": "3.9.6",
+  "browser_environment": {
+    "PLAYWRIGHT_CHANNEL": "chrome",
+    "PLAYWRIGHT_PORT": "5197"
+  },
+  "screenshot_directory": "validation-evidence/d04-if-implementation/software-checks-final-reviewed/screenshots",
+  "helper_sha256": "06b489d06087d36a745d63e672f5a0612cd9c57b91ebbbb16e62b8aff2a4c108",
+  "checks": [
+    {
+      "name": "unit-tests",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "cwd": "pathology-workbench",
+      "started_at_utc": "2026-11-08T13:26:45.802376+00:00",
+      "exit_code": 0,
+      "log": "unit-tests.log",
+      "duration_seconds": 1.163,
+      "passed": true
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "cwd": "pathology-workbench",
+      "started_at_utc": "2026-11-08T13:26:45.806628+00:00",
+      "exit_code": 0,
+      "log": "build.log",
+      "duration_seconds": 3.365,
+      "passed": true
+    },
+    {
+      "name": "lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "cwd": "pathology-workbench",
+      "started_at_utc": "2026-11-08T13:26:45.810726+00:00",
+      "exit_code": 0,
+      "log": "lint.log",
+      "duration_seconds": 0.326,
+      "passed": true
+    },
+    {
+      "name": "browser-tests",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "--workers=1",
+        "--reporter=line"
+      ],
+      "cwd": "pathology-workbench",
+      "started_at_utc": "2026-11-08T13:26:45.817698+00:00",
+      "exit_code": 0,
+      "log": "browser-tests.log",
+      "duration_seconds": 77.622,
+      "readme_image_restoration": [
+        {
+          "path": "docs/screenshots/app-analysis.png",
+          "original_sha256": "0773cc6bdf0c310d6f17e5d3d96d513ef99609b4171ecea54f5f1ed4f8851dee",
+          "generated_sha256": "55a05717898df262dc46a88f6f04f974ae90817e01b6f97f1946c55130a9493d",
+          "generated_evidence": "generated-app-analysis.png",
+          "restored_sha256": "0773cc6bdf0c310d6f17e5d3d96d513ef99609b4171ecea54f5f1ed4f8851dee",
+          "restored_exactly": true
+        },
+        {
+          "path": "docs/screenshots/app-coloc.png",
+          "original_sha256": "3ad04c8cd3b41bdf69b3b2b26aa61239ee1d8c88525ec7463ce2dd1fa7e26067",
+          "generated_sha256": "e54737d817fd4478bdd71d3fff14a4d2fb156473ce10d531be0edc775020fb53",
+          "generated_evidence": "generated-app-coloc.png",
+          "restored_sha256": "3ad04c8cd3b41bdf69b3b2b26aa61239ee1d8c88525ec7463ce2dd1fa7e26067",
+          "restored_exactly": true
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "all_exit_zero": true,
+  "all_passed": true,
+  "_public_export": {
+    "historical_snapshot": "2026-11-08",
+    "source_relative_path": "d04-if-implementation/software-checks-final-reviewed/results.json",
+    "original_sha256": "fab3ce5c16105a1e75635c1250101300236dd0114fc262d88df8296981d1801f",
+    "scope": "Original validation branch, not later integration verification. Local filesystem paths are logical aliases; referenced binary artifacts are not included."
+  }
+}

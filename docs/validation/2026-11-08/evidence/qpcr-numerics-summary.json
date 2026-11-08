@@ -1,0 +1,53 @@
+{
+  "schema_version": "wisplab.independent-qpcr-numerics/v1",
+  "checked_at_utc": "2026-11-08T10:15:34.507953+00:00",
+  "scope": "Fixed synthetic software validation only; not external data validation, biological replication, or evidence that scientific conclusions are correct.",
+  "limitations": [
+    "SciPy Dunnett uses randomized integration; the declared absolute tolerance is 0.0005 and five fixed seeds are reported.",
+    "The Dunnett cases have moderate p values and do not independently validate extreme-tail accuracy.",
+    "This validates current hashed working-tree sources, not an unmodified release commit.",
+    "It does not validate GUI behavior, real instrument files, or correctness of user-declared experimental independence."
+  ],
+  "versions": {
+    "python": "3.12.14",
+    "python_executable": "local-only/home/.cache/uv/builds-v0/.tmpIuJI64/bin/python",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "node": "v22.22.0",
+    "tsx": "4.23.15"
+  },
+  "tolerances": {
+    "aggregation_absolute": 1e-10,
+    "welch_anova_p_absolute": 1e-09,
+    "dunnett_p_absolute": 0.0005
+  },
+  "summary": {
+    "case_count": 3,
+    "checks": 306,
+    "passed": 306,
+    "failed": 0,
+    "status": "passed"
+  },
+  "engine": {
+    "directory": "pcr-workbench",
+    "git_head": "a0642a7b5eee6f576e3257f5c61efaabae1741ed",
+    "source_sha256": {
+      "src/core/analysis.ts": "ca1196291a2db586edd329edd23874a50e120c3302a7089d5d7c5cbb58e18a34",
+      "src/core/types.ts": "7e2e7596b6913a82758717662a5f45f4f3a90c8fca20adc82a8740ef08391266",
+      "src/core/stats.ts": "439b734df6443f5457c94179d493d86d9f667b1757e0b9ae76be5216156c5846",
+      "src/core/auto.ts": "3c26cd5814388f9f2cfbc046aeb4b1c59f45a79bae1f6ea04f91d9cd3bc83fda",
+      "src/core/qc.ts": "11c114bd28a72a6f9cdebe5fd4a388554b663eddbf6f7fb44c4d2d57490a1a9e"
+    }
+  },
+  "recorded_worktree_was_modified": true,
+  "failed_checks": [],
+  "maximum_recorded_absolute_error": 5.3064496262021296e-05,
+  "finite_numeric_check_count": 180,
+  "_public_export": {
+    "source_relative_path": "p0-implementation/independent-qpcr-numerics-2026-11-08.json",
+    "original_sha256": "aa4e6370f75f26dc9d7555c101573f73bebfdadf8dcc3f00fff83a4be7ba9d8d",
+    "historical_snapshot": "2026-11-08",
+    "complete_original_distributed": false,
+    "scope": "Selected original summary/identity fields only. This export does not rerun tests and does not certify later integrated PR commits."
+  }
+}

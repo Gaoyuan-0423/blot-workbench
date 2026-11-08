@@ -1,0 +1,69 @@
+{
+  "scope": "Software regression only; no external experimental data or biological adjudication.",
+  "browser_environment": {
+    "PLAYWRIGHT_CHANNEL": "chrome",
+    "PLAYWRIGHT_PORT": "5197"
+  },
+  "checks": [
+    {
+      "name": "lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "cwd": "pathology-workbench",
+      "started_at_utc": "2026-11-08T12:05:44.533898+00:00",
+      "duration_seconds": 0.24,
+      "exit_code": 0,
+      "log": "lint.log"
+    },
+    {
+      "name": "unit-tests",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "cwd": "pathology-workbench",
+      "started_at_utc": "2026-11-08T12:05:44.533470+00:00",
+      "duration_seconds": 0.882,
+      "exit_code": 0,
+      "log": "unit-tests.log"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "cwd": "pathology-workbench",
+      "started_at_utc": "2026-11-08T12:05:44.533796+00:00",
+      "duration_seconds": 2.781,
+      "exit_code": 0,
+      "log": "build.log"
+    },
+    {
+      "name": "browser-tests",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "--workers=1",
+        "--reporter=line"
+      ],
+      "cwd": "pathology-workbench",
+      "started_at_utc": "2026-11-08T12:05:44.535203+00:00",
+      "duration_seconds": 49.29,
+      "exit_code": 0,
+      "log": "browser-tests.log"
+    }
+  ],
+  "all_exit_zero": true,
+  "_public_export": {
+    "historical_snapshot": "2026-11-08",
+    "source_relative_path": "d04-implementation/software-checks-final/results.json",
+    "original_sha256": "5b3c07d51c545dcfcd4b0f910671508e9c9490260e3cc615043f1d4d1b38ec47",
+    "scope": "Original validation branch, not later integration verification. Local filesystem paths are logical aliases; referenced binary artifacts are not included."
+  }
+}

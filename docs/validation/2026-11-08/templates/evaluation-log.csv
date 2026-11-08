@@ -1,0 +1,1 @@
+run_id,task_id,base_task_id,participant_id,condition,started_at_utc,execution_status,outcome,error_present,error_detected,output_released,false_block,adjudication_status,adjudicator_ids,elapsed_seconds,intervention_count,engine_commit,config_sha256,result_sha256,review_status,evidence_path,notes

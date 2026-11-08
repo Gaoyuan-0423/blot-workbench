@@ -1,0 +1,39 @@
+[WebServer] (node:62482) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 28 tests using 1 worker
+
+(node:62515) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/28] tests/e2e/analysis-validity.spec.ts:47:1 › parameter changes immediately withhold display, report, Methods, sample save and project result; late replies and failure stay unavailable
+[2/28] tests/e2e/analysis-validity.spec.ts:97:1 › same-name model replacements and AI toggles bind to content identity in the English UI
+[3/28] tests/e2e/experimental-units.spec.ts:61:1 › three units with five fields each report nBio=3, nImages=15 per group, export and restore the confirmed design and selected metric
+[4/28] tests/e2e/experimental-units.spec.ts:153:1 › section-equal aggregation collapses an exact repeated field, then rejects remapped duplicates and a unit spanning groups
+[5/28] tests/e2e/experimental-units.spec.ts:180:56 › h_eosin profile cannot enter inference; exclusion persists and a missing field reduces metric-specific nBio
+[6/28] tests/e2e/experimental-units.spec.ts:180:56 › unknown profile cannot enter inference; exclusion persists and a missing field reduces metric-specific nBio
+[7/28] tests/e2e/experimental-units.spec.ts:218:1 › legacy records remain descriptive without invented unit or source identities
+[8/28] tests/e2e/experimental-units.spec.ts:275:1 › changing AI while Add sample awaits source hashing discards the old result and does not report success
+[9/28] tests/e2e/experimental-units.spec.ts:297:1 › cancelling a batch during source hashing prevents the late hash from adding a sample
+[10/28] tests/e2e/if-regions.spec.ts:108:1 › real IF Worker preserves whole-image thresholds across drawn ROIs, exports, archives and restores the saved configuration
+[11/28] tests/e2e/if-regions.spec.ts:195:1 › channel, threshold and ROI edits immediately withhold stale IF display, API and save with a real Worker
+[12/28] tests/e2e/if-regions.spec.ts:209:43 › zh 390px zero-signal IF shows undefined reasons without page overflow
+[13/28] tests/e2e/if-regions.spec.ts:209:43 › en 390px zero-signal IF shows undefined reasons without page overflow
+[14/28] tests/e2e/if-units.spec.ts:66:1 › IF 3 units x 5 fields uses 3 independent values, exports and restores the exact design
+[15/28] tests/e2e/if-units.spec.ts:113:1 › IF selected ROIs and duplicate records do not increase nBio; changing selection and identity revokes confirmation
+[16/28] tests/e2e/if-units.spec.ts:140:1 › IF exclusion, group and newly saved measurements revoke an existing confirmation
+[17/28] tests/e2e/if-units.spec.ts:160:1 › English IF design and summaries fit a 390px screen and use translated issues
+[18/28] tests/e2e/language.spec.ts:15:1 › language URL priority, persistence, navigation and blocked storage
+[19/28] tests/e2e/language.spec.ts:54:1 › switching language retains image, ROI, calibration, numbers and user input
+[20/28] tests/e2e/language.spec.ts:124:1 › English errors and all scenes fit a 390px screen
+[21/28] tests/e2e/language.spec.ts:137:1 › English unconfirmed duplicate images stay descriptive and exports retain data and user names
+[22/28] tests/e2e/scenes.spec.ts:44:1 › 切换场景保留图像和 ROI，并能分析与导出
+[23/28] tests/e2e/scenes.spec.ts:92:1 › 特殊染色参数仍驱动计算，现有 v1 项目重载恢复场景和参数
+[24/28] tests/e2e/scenes.spec.ts:139:1 › 390px 屏幕可切换所有场景，分析后页面不横向溢出
+[25/28] tests/e2e/screenshots.spec.ts:11:1 › 采集 README 截图
+[26/28] tests/e2e/smoke.spec.ts:4:1 › 合成 IHC 图像全流程：导入 → 自动分析 → 指标可见 → 导出 Excel
+[27/28] tests/e2e/smoke.spec.ts:34:1 › 批处理：多张合成图逐张分析入样本库
+[28/28] tests/e2e/smoke.spec.ts:53:1 › IF reports preserve real colocalization without relabelling compatibility placeholders as stain measurements
+  28 passed (1.3m)
