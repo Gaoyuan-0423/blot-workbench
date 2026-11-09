@@ -152,6 +152,8 @@ test("review notes, confirmation, CSV and project migration work across isolated
   await page.getByRole("button", { name: /导出示例 CSV/ }).click();
   const csv = await csvDownload;
   const csvText = await readFile((await csv.path())!, "utf8");
+  // A single BOM: the downloaded file must not gain a second one in the UI layer.
+  expect(csvText.startsWith('\ufeff"DEMO_ONLY_NOT_RESEARCH"')).toBe(true);
   expect(csvText).toContain("DEMO_ONLY_NOT_RESEARCH");
   expect(csvText).toContain("TRUE_SYNTHETIC_PRESET");
   expect(csvText.trim().split(/\r?\n/)).toHaveLength(7);

@@ -26,8 +26,17 @@ function findAnalysis(project: Project, imageId: string): Analysis {
   if (!analysis) throw new Error("Analysis not found / 找不到图像分析");
   return analysis;
 }
+/**
+ * 历史快照只保留最近 MAX_HISTORY 条，旧条目从最早处移除。
+ * 不修剪时，每次 ROI 微调都追加一条，超过 schema 上限（1000）或项目包
+ * manifest 大小上限后，自动保存和导出会同时失败，用户无法自救。
+ * 极端备注下项目包仍可能超过 manifest 上限，exportProject 会再丢弃最早的快照。
+ */
+export const MAX_HISTORY = 300;
 function checkpoint(project: Project, analysis: Analysis): void {
   project.history.push(clone(analysis));
+  if (project.history.length > MAX_HISTORY)
+    project.history.splice(0, project.history.length - MAX_HISTORY);
   analysis.revision += 1;
 }
 function invalidateDependents(

@@ -59,6 +59,7 @@ import {
   saveProject,
   loadProject,
   exportCsv,
+  MAX_HISTORY,
 } from "./core";
 import VisionSettings from "./vision/VisionSettings";
 import UserGuide from "./guide/UserGuide";
@@ -1650,18 +1651,10 @@ function App() {
                     </>,
                     () => {
                       try {
+                        // exportCsv 已带 UTF-8 BOM；没有可导出的行时它会抛错。
                         const csv = exportCsv(project);
-                        if (csv.trim().split("\n").length < 2) {
-                          setError(
-                            t(
-                              "请先确认一张目标图像和它配对的内参图像，再导出。",
-                              "Confirm a target image and its paired reference before exporting.",
-                            ),
-                          );
-                          return;
-                        }
                         download(
-                          new Blob(["\ufeff" + csv], {
+                          new Blob([csv], {
                             type: "text/csv;charset=utf-8",
                           }),
                           "DEMO-results.csv",
@@ -1673,7 +1666,7 @@ function App() {
                           ),
                         );
                       } catch (e) {
-                        setError(String(e));
+                        setError(e instanceof Error ? e.message : String(e));
                       }
                     },
                     "button primary full",
@@ -1796,8 +1789,8 @@ function App() {
                     <h3>{t("分析历史快照", "Analysis history")}</h3>
                     <p>
                       {t(
-                        "修改不会覆盖过去的区域与参数。",
-                        "Changes retain previous regions and parameters.",
+                        `修改不会覆盖过去的区域与参数；保留最近 ${MAX_HISTORY} 条快照。`,
+                        `Changes retain previous regions and parameters; the latest ${MAX_HISTORY} snapshots are kept.`,
                       )}
                     </p>
                   </div>

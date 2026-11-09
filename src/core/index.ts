@@ -9,6 +9,7 @@ export {
   restoreExampleAnalysis,
   updateSample,
   exportCsv,
+  MAX_HISTORY,
 } from "./domain";
 export {
   exportProject,

@@ -335,17 +335,27 @@ export async function exportProject(project: Project): Promise<Blob> {
     )!.png;
     return { ...metadata, path };
   });
-  entries["manifest.json"] = strToU8(
-    JSON.stringify(
-      {
-        format: "blot-workbench-demo",
-        archiveVersion: 1,
-        project: { ...validated, images },
-      },
-      null,
-      2,
-    ),
-  );
+  const manifest = (history: Project["history"]) =>
+    strToU8(
+      JSON.stringify(
+        {
+          format: "blot-workbench-demo",
+          archiveVersion: 1,
+          project: { ...validated, history, images },
+        },
+        null,
+        2,
+      ),
+    );
+  // 历史条数已在编辑时封顶，但备注只限长度不限字符（控制字符转义后膨胀为 6 字节），
+  // 极端情况下 manifest 仍可能超限。此时从最早的快照开始丢弃，保证项目总能导出，
+  // 而不是让当前分析也无法带走。
+  let history = validated.history;
+  entries["manifest.json"] = manifest(history);
+  while (entries["manifest.json"].length > MAX_MANIFEST_SIZE && history.length) {
+    history = history.slice(Math.max(1, Math.ceil(history.length / 4)));
+    entries["manifest.json"] = manifest(history);
+  }
   ensure(
     entries["manifest.json"].length <= MAX_MANIFEST_SIZE,
     "Project history exceeds alpha archive limit / 项目历史超出 Alpha 导出大小限制",

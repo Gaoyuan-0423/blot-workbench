@@ -11,6 +11,7 @@ import {
   exportProject,
   getMeasurements,
   importProject,
+  MAX_HISTORY,
   restoreExampleAnalysis,
   updateAnalysis,
   updateRoi,
@@ -295,6 +296,43 @@ describe("immutable versions and result invalidation", () => {
   });
 });
 
+describe("bounded analysis history", () => {
+  it("keeps only the latest snapshots so saving and export never lock up", async () => {
+    let project = fresh();
+    const edits = MAX_HISTORY + 25;
+    for (let i = 0; i < edits; i += 1)
+      project = updateRoi(project, "a-reference-1000", "band-1", {
+        x: 40 + (i % 2),
+        y: 108,
+        width: 72,
+        height: 36,
+      });
+    expect(project.history).toHaveLength(MAX_HISTORY);
+    const revisions = project.history
+      .filter((item) => item.imageId === "a-reference-1000")
+      .map((item) => item.revision);
+    // Oldest entries are dropped; the newest revisions remain, in order.
+    expect(revisions.at(-1)).toBe(analysis(project, "a-reference-1000").revision - 1);
+    expect(revisions).toEqual([...revisions].sort((a, b) => a - b));
+    const restored = await importProject(await exportProject(project));
+    expect(restored.history).toHaveLength(MAX_HISTORY);
+  });
+  it("still exports a worst-case history by dropping the oldest snapshots", async () => {
+    let project = fresh();
+    // Control characters expand sixfold in JSON (\u0001), the largest possible note.
+    for (let i = 0; i < MAX_HISTORY + 5; i += 1)
+      project = updateAnalysis(project, "a-target-1000", {
+        note: `${i % 10}${"\u0001".repeat(9999)}`,
+      });
+    expect(project.history).toHaveLength(MAX_HISTORY);
+    const restored = await importProject(await exportProject(project));
+    expect(restored.history.length).toBeGreaterThan(0);
+    expect(restored.history.length).toBeLessThan(MAX_HISTORY);
+    expect(restored.history).toEqual(project.history.slice(-restored.history.length));
+    expect(analysis(restored)).toEqual(analysis(project));
+  });
+});
+
 describe("portable project archives", () => {
   it("round trips actual images, hashes, history, original project ID and UI", async () => {
     const project = updateAnalysis(fresh(), "a-target-1000", {
@@ -417,6 +455,8 @@ describe("CSV export", () => {
     expect(csv).toContain("analysis_revision");
     expect(csv).toContain("'  =HYPERLINK");
     expect(csv.trim().split("\r\n")).toHaveLength(7);
+    // Exactly one UTF-8 BOM, immediately followed by the first quoted header cell.
+    expect(csv.startsWith('\ufeff"DEMO_ONLY_NOT_RESEARCH"')).toBe(true);
     project = updateRoi(project, "a-reference-1000", "band-1", {
       x: 49,
       y: 108,
