@@ -1,0 +1,312 @@
+{
+  "created_utc": "2026-11-08T10:18:02.315389+00:00",
+  "scope": "Uncommitted worktree snapshot. Baseline HEAD is not the modified implementation revision. Not a signed archive.",
+  "repositories": [
+    {
+      "repository": "pcr-workbench",
+      "baseline_head": "a0642a7b5eee6f576e3257f5c61efaabae1741ed",
+      "branch": "codex/validation-p0-20261108",
+      "tracked_diff_sha256": "dc37cda64e6c018c8cd2466a19901442bc8630ae5fbb67900f7ddc8248bf532a",
+      "changed_files": [
+        {
+          "path": "pcr-workbench/AGENTS.md",
+          "sha256": "c9c5a935218da4af90d044b766dcabdbb41f74fc7d891b542afff08a871140f7"
+        },
+        {
+          "path": "pcr-workbench/README.md",
+          "sha256": "8f850b5bc936d6c42a32e70d9d43cdc88588d6e2de392068fce143312b24df01"
+        },
+        {
+          "path": "pcr-workbench/api/server.ts",
+          "sha256": "29a75150313bdb07dc330d4ed9cc215e33e67a77a89e35e7cd446daa6fc2a10b"
+        },
+        {
+          "path": "pcr-workbench/playwright.config.ts",
+          "sha256": "cdbadfb7cac52a23adc37042dcd25301868aa0bd26e42bfd4e8e830956f7ab3f"
+        },
+        {
+          "path": "pcr-workbench/src/App.tsx",
+          "sha256": "3118c8edd0bbcefadb378366354e9f8b583a4b559a0aa1e32c39e626a624a683"
+        },
+        {
+          "path": "pcr-workbench/src/auto.test.ts",
+          "sha256": "35d473321d24b87b3a4e703c02c806375de4dd7835bacef4c3e28daaf73aa4b9"
+        },
+        {
+          "path": "pcr-workbench/src/core/ai.ts",
+          "sha256": "98cd11cad28dd75051344337c575ba95e90a0b3a596d1bc938d102aa065595db"
+        },
+        {
+          "path": "pcr-workbench/src/core/analysis.test.ts",
+          "sha256": "16b7e8caf0a276827f926e54e990c9135af57a9fe22a4569aef6274363f4bf6e"
+        },
+        {
+          "path": "pcr-workbench/src/core/analysis.ts",
+          "sha256": "ca1196291a2db586edd329edd23874a50e120c3302a7089d5d7c5cbb58e18a34"
+        },
+        {
+          "path": "pcr-workbench/src/core/auto.ts",
+          "sha256": "3c26cd5814388f9f2cfbc046aeb4b1c59f45a79bae1f6ea04f91d9cd3bc83fda"
+        },
+        {
+          "path": "pcr-workbench/src/core/chart-bars.ts",
+          "sha256": "ae931772a6426ba45d4be306debabd874e0e507288c1d0792304ee3f915a4113"
+        },
+        {
+          "path": "pcr-workbench/src/core/chart-data.test.ts",
+          "sha256": "c41bcd20d37a5109bebbaa164c9f99d321e1b913e255556a8c669576d8b4dee2"
+        },
+        {
+          "path": "pcr-workbench/src/core/chart-data.ts",
+          "sha256": "2d8581d674a8aa35cf74c032c534cb845c5fcd881c619e3241cf3af200b1742a"
+        },
+        {
+          "path": "pcr-workbench/src/core/chart.test.ts",
+          "sha256": "e3172a6537a94b67802d1020809f0480fa91ac7104d2da9ab71bd322937c95c8"
+        },
+        {
+          "path": "pcr-workbench/src/core/experimental-design.test.ts",
+          "sha256": "37a6e2c5a0999effdd466283a210bac8ebcc16bf649c996456f074d7641d5b5f"
+        },
+        {
+          "path": "pcr-workbench/src/core/export.test.ts",
+          "sha256": "30735ec775fa1aa43e0dbc3e701dd28b9301ef995c961d240a6d33ebce04e5f5"
+        },
+        {
+          "path": "pcr-workbench/src/core/export.ts",
+          "sha256": "f5e4165b4798b24928e92022957c28a084750b09d7e31ccf134c6dfb54176544"
+        },
+        {
+          "path": "pcr-workbench/src/core/merge.test.ts",
+          "sha256": "c4c98a8777a28418d03e0fc19cc727ebd99d2ebfd83c969b28cfcdd9bd433bb4"
+        },
+        {
+          "path": "pcr-workbench/src/core/pzfx.test.ts",
+          "sha256": "6ce0930f5d1e5e8a9c882cbf7034752ff29319c4b1994b29b37fec496039a3ca"
+        },
+        {
+          "path": "pcr-workbench/src/core/pzfx.ts",
+          "sha256": "d13ef70712b5cda8cead4c264f3a59b501398eaa079a479615b6871e9f3cafea"
+        },
+        {
+          "path": "pcr-workbench/src/core/qc.ts",
+          "sha256": "11c114bd28a72a6f9cdebe5fd4a388554b663eddbf6f7fb44c4d2d57490a1a9e"
+        },
+        {
+          "path": "pcr-workbench/src/core/types.ts",
+          "sha256": "7e2e7596b6913a82758717662a5f45f4f3a90c8fca20adc82a8740ef08391266"
+        },
+        {
+          "path": "pcr-workbench/src/i18n/design-messages.ts",
+          "sha256": "50fdc30ce537e3b3ddeb26d105812f4a8b967791aa57e329ee76752cbcb2a92c"
+        },
+        {
+          "path": "pcr-workbench/src/i18n/messages.ts",
+          "sha256": "be453a2923d941ca2156d43e049f807a40e6381aae8d03f2ef8fdb11b8f4f37c"
+        },
+        {
+          "path": "pcr-workbench/src/project-io.test.ts",
+          "sha256": "ece0df9a7e141344504cd5feb01a630279a4fc035a98589c468de99e9a1178ce"
+        },
+        {
+          "path": "pcr-workbench/src/project-io.ts",
+          "sha256": "c70daa34827d546eb92fa42c5069dd389bae502e656437f08b02bfa8cb2e225e"
+        },
+        {
+          "path": "pcr-workbench/src/ui/AiInterpretCard.tsx",
+          "sha256": "69fe9e7d159357cbf5801ca6d1722a7abc4d75c028515d5a6c854d8a7781c99e"
+        },
+        {
+          "path": "pcr-workbench/src/ui/ConfigPanel.tsx",
+          "sha256": "3b1991aff554a9c22250afda09b3f58197b3e99d450fd4adf66afd60cadc0e39"
+        },
+        {
+          "path": "pcr-workbench/src/ui/ExperimentalDesignPanel.tsx",
+          "sha256": "993e98d42b6fb8f88801adcf8b0e30a3be4df18a54e20263704b37742f8a50d2"
+        },
+        {
+          "path": "pcr-workbench/src/ui/ResultsPanel.tsx",
+          "sha256": "3d5aaff0d64650d68cf8c0392f465858dfa0456e18a407eb11bd0ee0456c71bc"
+        },
+        {
+          "path": "pcr-workbench/tests/e2e/experimental-design.spec.ts",
+          "sha256": "598e05b0350a6bb6e228147a6664fdcf32fdac2c25b21a8d5eb0f07d1d3c7e8b"
+        },
+        {
+          "path": "pcr-workbench/tests/e2e/language.spec.ts",
+          "sha256": "46aaad1769c93508a83f6120a0ab9437e60bb7eb3f3f4c6518de8a55bf693790"
+        },
+        {
+          "path": "pcr-workbench/tests/e2e/smoke.spec.ts",
+          "sha256": "8ca63098a1d739696f02db8f2a12a626b35761081fc16ded478cc3f2ec90fd38"
+        }
+      ]
+    },
+    {
+      "repository": "pathology-workbench",
+      "baseline_head": "bb9c45c0fc81fe7ea0c449d209e9d63e6eb66a2e",
+      "branch": "codex/validation-p0-20261108",
+      "tracked_diff_sha256": "54bbd94064f0e6a6c22af636053b3f4310902d749b126c67e431d0c48aa9025f",
+      "changed_files": [
+        {
+          "path": "pathology-workbench/playwright.config.ts",
+          "sha256": "25a16556723be679e6eb6a2a6f304514ed78a8e250aea55dceaadc8ef449f175"
+        },
+        {
+          "path": "pathology-workbench/src/App.tsx",
+          "sha256": "f41f0a84fc912294f6bf81e6c8b0c6125704e94a262b56e827eb1a2c2c4f7613"
+        },
+        {
+          "path": "pathology-workbench/src/core/ai/session.test.ts",
+          "sha256": "311ed180d2207fd82a6abf2acd6fec3a16c82edcd15fbd8f3400b506962c11a6"
+        },
+        {
+          "path": "pathology-workbench/src/core/ai/session.ts",
+          "sha256": "292dee071655c94c7457d19447dacaab46466977d7919e16769ef58cc1666219"
+        },
+        {
+          "path": "pathology-workbench/src/core/analysis-client.test.ts",
+          "sha256": "f4790c26e464d8fbe8f2527ca12ca0f6337a3b067b2707a7e2bf6d20b6e956dd"
+        },
+        {
+          "path": "pathology-workbench/src/core/analysis-client.ts",
+          "sha256": "bf58a5921f0846afb8c4bff55711280fd9f88b17bfae431f9d33ff0df87a7c0b"
+        },
+        {
+          "path": "pathology-workbench/src/core/analysis-validity.test.ts",
+          "sha256": "a9049abe45c66de373e935631b1bb03e5c22efe016006c8ef1477f26ea2d0252"
+        },
+        {
+          "path": "pathology-workbench/src/core/analysis-validity.ts",
+          "sha256": "5307911ae8b81e2762d9c6e88aa9d423d7e08647219cc8620ed98b59d97ed2d3"
+        },
+        {
+          "path": "pathology-workbench/src/core/analysis.worker.test.ts",
+          "sha256": "9806ff1b53c4809d24af3097521c9fc0c30d4758c42174f43e901d1e303af94c"
+        },
+        {
+          "path": "pathology-workbench/src/core/analysis.worker.ts",
+          "sha256": "55844303f019bc791d4626ed72cc8e3cc364a36950472b78efba6de847dbd114"
+        },
+        {
+          "path": "pathology-workbench/src/core/api.ts",
+          "sha256": "03906c4c9a29e76f335997f296e8e83418127c038bf2f8e9d604cf5fdb8e83ee"
+        },
+        {
+          "path": "pathology-workbench/src/core/methods.test.ts",
+          "sha256": "d43180bc315f7a822ef37c00faf9ae29e863fb1fd4c9caaffdacda5e0e1d626d"
+        },
+        {
+          "path": "pathology-workbench/src/core/methods.ts",
+          "sha256": "3567f1573c5683103d6ef29fe17ba376dfc69bdfccd57bbb5e168d8fcba2c2bf"
+        },
+        {
+          "path": "pathology-workbench/src/core/types.ts",
+          "sha256": "870de40419387642ffc5872dad62286f3b61e3f6caf5e94e0ca0d87b21e2db64"
+        },
+        {
+          "path": "pathology-workbench/src/i18n/messages.ts",
+          "sha256": "8b1b95af671ee8ff95f64f3eaf25b10bb6ae31da3234c8d51560b391db087a15"
+        },
+        {
+          "path": "pathology-workbench/src/project-io.test.ts",
+          "sha256": "c654a7642a0084aff3cf760afe2657983fa844296c79a2764f785cbf6ac329f1"
+        },
+        {
+          "path": "pathology-workbench/src/project-io.ts",
+          "sha256": "f2603dc8c236bba9a28bdfdd027d0a1b3fc70d7e195d1e278d45c88a45c5cffa"
+        },
+        {
+          "path": "pathology-workbench/tests/e2e/analysis-validity.spec.ts",
+          "sha256": "8f0cbe43ff25388dc4abc4212356d7968264e6dc7e076da62a670276e2b12b2e"
+        }
+      ]
+    },
+    {
+      "repository": "wisplab-cli",
+      "baseline_head": "714197daae7a99eac20c68871e9928f837e4ab66",
+      "branch": "codex/validation-p0-20261108",
+      "tracked_diff_sha256": "3af7740b65b26b075b3f50c054ec218c55f5dd2664737a1f68a141ea13b1ae1d",
+      "changed_files": [
+        {
+          "path": "wisplab-cli/README.en.md",
+          "sha256": "0d18d8970f7598d3f89b3a5834da2d4e391b0ad5f0375b13ed371b27fa7c012f"
+        },
+        {
+          "path": "wisplab-cli/README.md",
+          "sha256": "a26b2376ee7deb6e74faa8a393018853765391c06e2d3cfd39639cc3f72ebd24"
+        },
+        {
+          "path": "wisplab-cli/cli.mjs",
+          "sha256": "ec5a3d7020532df224444ecc20725962d476e35fc3b885e0d81b69cdb8d6ab41"
+        },
+        {
+          "path": "wisplab-cli/docs/qpcr-design.md",
+          "sha256": "ccb1de15c13478a9288f40d759f36f74e09dc71b3555e66b12beacd950762cc7"
+        },
+        {
+          "path": "wisplab-cli/docs/qpcr-qc.md",
+          "sha256": "e76ec0747ae0847e921f5dee33f0031e666c515f595ad73ae984287188a16865"
+        },
+        {
+          "path": "wisplab-cli/lib.mjs",
+          "sha256": "2e870c0afce164a09434204c28025dc159bf4cc68813fec77edd9d935a87099c"
+        },
+        {
+          "path": "wisplab-cli/mcp-server.mjs",
+          "sha256": "de0ba172b91dc672fd9e2dada6063744c40ffcbe499a5cd503d3a27679c65d24"
+        },
+        {
+          "path": "wisplab-cli/package.json",
+          "sha256": "88473aeb4fae5db44eb950709b998b910ea6ac81e1f1f727ec9c3e4ed6880dd8"
+        },
+        {
+          "path": "wisplab-cli/pcr-options.mjs",
+          "sha256": "93eb13d72bb7548e39038fba6a7adbb8f5aa47a42ce54e7e560f696c80c2ad92"
+        },
+        {
+          "path": "wisplab-cli/pcr-qc.mjs",
+          "sha256": "5d5e1daabaabafaacc68efbf0cbe02071bf8714e4ec566f5949d689b158c8d58"
+        },
+        {
+          "path": "wisplab-cli/pcr-result.mjs",
+          "sha256": "f57432e96088ac2ef1a0432cd2678ed57f14a4910254aad35d84ce6c378879fb"
+        },
+        {
+          "path": "wisplab-cli/provenance.mjs",
+          "sha256": "1934c22b2e9bb148a70ee05e047c4aff16c0f108679ddc8e0ebccdd688670d90"
+        },
+        {
+          "path": "wisplab-cli/runners/pcr-run.ts",
+          "sha256": "abdc5fbe11574fe6cbc8a38d57336cbdc67680892d95ddba08586cc4d805d794"
+        },
+        {
+          "path": "wisplab-cli/tests/cli.test.mjs",
+          "sha256": "e528852a0a98e810b4b65495e56d7991eee2a61bbb500d99d3137a71340e8fa1"
+        },
+        {
+          "path": "wisplab-cli/tests/mcp.test.mjs",
+          "sha256": "fe58c795f31532a4f33e877221023addc4714250d6a335c00e3df9f09c415046"
+        },
+        {
+          "path": "wisplab-cli/tests/pcr-qc.test.mjs",
+          "sha256": "a528e834bfdf76beffd8ad2562743e556362563e624c36083b17e5f87de91b78"
+        },
+        {
+          "path": "wisplab-cli/tests/pcr-result.test.mjs",
+          "sha256": "6cdbb44f34690fcade39d0e4019873e9699176538e55503c9d53e87e071865ae"
+        },
+        {
+          "path": "wisplab-cli/tests/runners.test.mjs",
+          "sha256": "183642acc227decb0a2492ee6647d7d7324eb208aeafc4ad8a80c8a77f6cca77"
+        }
+      ]
+    }
+  ],
+  "_public_export": {
+    "historical_snapshot": "2026-11-08",
+    "source_relative_path": "p0-implementation/source-state.json",
+    "original_sha256": "cd792f69703e015d30b85dd40cca64a3c1d1f654c160d616ada56c724214424c",
+    "scope": "Original validation branch, not later integration verification. Local filesystem paths are logical aliases; referenced binary artifacts are not included."
+  }
+}

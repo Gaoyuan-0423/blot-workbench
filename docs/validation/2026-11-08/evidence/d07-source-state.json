@@ -1,0 +1,673 @@
+{
+  "schema_version": "wisplab.d07-source-state/v1",
+  "captured_at_utc": "2026-11-08T12:40:45.492186+00:00",
+  "repository": "pathology-workbench",
+  "branch": "codex/validation-p0-20261108",
+  "baseline_head": "bb9c45c0fc81fe7ea0c449d209e9d63e6eb66a2e",
+  "current_head": "bb9c45c0fc81fe7ea0c449d209e9d63e6eb66a2e",
+  "scope": "Cumulative P0/D04/D07 working changes over the recorded Git baseline. D07 changes are separately compared to the retained pre-D07 archive. HEAD alone is not the tested source.",
+  "status": [
+    " M AGENTS.md",
+    " M README.md",
+    " M playwright.config.ts",
+    " M src/App.tsx",
+    " M src/core/advisor.test.ts",
+    " M src/core/advisor.ts",
+    " M src/core/ai/session.ts",
+    " M src/core/analysis-client.ts",
+    " M src/core/analysis.worker.ts",
+    " M src/core/analysis/colocalize.test.ts",
+    " M src/core/analysis/colocalize.ts",
+    " M src/core/analysis/engine.ts",
+    " M src/core/analysis/statistics.test.ts",
+    " M src/core/analysis/statistics.ts",
+    " M src/core/api.ts",
+    " M src/core/chart.ts",
+    " M src/core/export.ts",
+    " M src/core/methods.test.ts",
+    " M src/core/methods.ts",
+    " M src/core/types.ts",
+    " M src/i18n/messages.ts",
+    " M src/project-io.test.ts",
+    " M src/project-io.ts",
+    " M src/styles.css",
+    " M src/ui/AdvisorPanel.tsx",
+    " M src/ui/ResultsPanel.tsx",
+    " M src/ui/SamplesPanel.tsx",
+    " M src/ui/localize-report.ts",
+    " M tests/e2e/language.spec.ts",
+    " M tests/e2e/smoke.spec.ts",
+    "?? docs/experimental-units.md",
+    "?? docs/if-regions.md",
+    "?? src/core/ai/session.test.ts",
+    "?? src/core/analysis-client.test.ts",
+    "?? src/core/analysis-validity.test.ts",
+    "?? src/core/analysis-validity.ts",
+    "?? src/core/analysis.worker.test.ts",
+    "?? src/core/analysis/if-regions.test.ts",
+    "?? src/core/chart-units.test.ts",
+    "?? src/core/experimental-units.test.ts",
+    "?? src/core/experimental-units.ts",
+    "?? src/core/if-report.test.ts",
+    "?? src/core/sample-statistics.test.ts",
+    "?? src/core/sample-statistics.ts",
+    "?? src/core/source-identity.test.ts",
+    "?? src/core/source-identity.ts",
+    "?? src/i18n/if-messages.ts",
+    "?? src/i18n/unit-messages.ts",
+    "?? src/if-project-io.test.ts",
+    "?? src/if-project-validation.ts",
+    "?? src/ui/ExperimentalUnitsPanel.tsx",
+    "?? src/ui/IfResults.tsx",
+    "?? src/ui/IfSamplesPanel.tsx",
+    "?? src/ui/localize-report.test.ts",
+    "?? tests/e2e/analysis-validity.spec.ts",
+    "?? tests/e2e/experimental-units.spec.ts",
+    "?? tests/e2e/if-regions.spec.ts"
+  ],
+  "capture_status": "passed",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "2ca7ee19e9d4bc78cd22aa5dfadb0fab60aada8ec9a8451742b182bbbcf14b6e",
+      "size_bytes": 3896,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "d636b085e82acaa397ca3e08166fe44b7b2e0acaf4d77892d8f65bbfd429f410",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "README.md",
+      "sha256": "b2f739f64f748d08b7e06e59e30c4578ad9a44384d6b5cfd7343728c3dde0abd",
+      "size_bytes": 5757,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "99be7df4acbd3e502162cadd7f474ef56b3928af13f7966ff6d817381fbaed28",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "docs/experimental-units.md",
+      "sha256": "247460ca60c530f7991aa68968cbd1f1f9d577b0f9b93c8b865111a4ed22d6d9",
+      "size_bytes": 4967,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "ddaf4bedd13eb8846d3a77e381f63d0d6d52ffb7af5b78e862c35235b9051cbf",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "docs/if-regions.md",
+      "sha256": "799463d70bfab2d0668493f91d1824b4534d4c7bbe932639dc297e3893c47cf8",
+      "size_bytes": 4540,
+      "pre_d07_basis": "absent_before_d07",
+      "pre_d07_sha256": null,
+      "changed_during_d07": true,
+      "change_during_d07": "added"
+    },
+    {
+      "path": "playwright.config.ts",
+      "sha256": "25a16556723be679e6eb6a2a6f304514ed78a8e250aea55dceaadc8ef449f175",
+      "size_bytes": 564,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "25a16556723be679e6eb6a2a6f304514ed78a8e250aea55dceaadc8ef449f175",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/App.tsx",
+      "sha256": "a10bffd6130bfabfa1fdf76b2f03d8674b560b25c8b3ae0dd6eb72beec00be1c",
+      "size_bytes": 43875,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "a6edf9a18159f1e6ee7416a666e434b307462045da2525b15a983099cca380a7",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/core/advisor.test.ts",
+      "sha256": "9568a898c05128d8ba8bb1cdee6ec0b7bb12b351304dcf565f0538e787181f16",
+      "size_bytes": 13271,
+      "pre_d07_basis": "pre_d07_git_baseline",
+      "pre_d07_sha256": "3e74aa599d5a1d1a630f5d0d2a3f3a05a2224f7279b53b071b1743d1fba8f38d",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/core/advisor.ts",
+      "sha256": "76f7478fc51add35dbd81b05b5bf170bb5fd1df289076cc4b6aa82016cdfebf9",
+      "size_bytes": 12805,
+      "pre_d07_basis": "pre_d07_git_baseline",
+      "pre_d07_sha256": "2820f716917ade4f083aed7aa465e96fd0b30fad76ee92576a638bc38c377e76",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/core/ai/session.test.ts",
+      "sha256": "311ed180d2207fd82a6abf2acd6fec3a16c82edcd15fbd8f3400b506962c11a6",
+      "size_bytes": 2188,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "311ed180d2207fd82a6abf2acd6fec3a16c82edcd15fbd8f3400b506962c11a6",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/ai/session.ts",
+      "sha256": "292dee071655c94c7457d19447dacaab46466977d7919e16769ef58cc1666219",
+      "size_bytes": 4785,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "292dee071655c94c7457d19447dacaab46466977d7919e16769ef58cc1666219",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/analysis-client.test.ts",
+      "sha256": "f4790c26e464d8fbe8f2527ca12ca0f6337a3b067b2707a7e2bf6d20b6e956dd",
+      "size_bytes": 2803,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "f4790c26e464d8fbe8f2527ca12ca0f6337a3b067b2707a7e2bf6d20b6e956dd",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/analysis-client.ts",
+      "sha256": "bf58a5921f0846afb8c4bff55711280fd9f88b17bfae431f9d33ff0df87a7c0b",
+      "size_bytes": 2438,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "bf58a5921f0846afb8c4bff55711280fd9f88b17bfae431f9d33ff0df87a7c0b",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/analysis-validity.test.ts",
+      "sha256": "a9049abe45c66de373e935631b1bb03e5c22efe016006c8ef1477f26ea2d0252",
+      "size_bytes": 3983,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "a9049abe45c66de373e935631b1bb03e5c22efe016006c8ef1477f26ea2d0252",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/analysis-validity.ts",
+      "sha256": "5307911ae8b81e2762d9c6e88aa9d423d7e08647219cc8620ed98b59d97ed2d3",
+      "size_bytes": 2817,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "5307911ae8b81e2762d9c6e88aa9d423d7e08647219cc8620ed98b59d97ed2d3",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/analysis.worker.test.ts",
+      "sha256": "e967b92b408afc71efef070309e74cc590555ce6857f445e961fad277c9f4090",
+      "size_bytes": 4503,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "9806ff1b53c4809d24af3097521c9fc0c30d4758c42174f43e901d1e303af94c",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/core/analysis.worker.ts",
+      "sha256": "ca011e5261a91b05cd53410a8179c077e85c01699702439469c9936277195d24",
+      "size_bytes": 5116,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "55844303f019bc791d4626ed72cc8e3cc364a36950472b78efba6de847dbd114",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/core/analysis/colocalize.test.ts",
+      "sha256": "9ef5a84e88df0a611cdb474e50c8983bd558797792a04bfd2284a1b8c5782954",
+      "size_bytes": 4144,
+      "pre_d07_basis": "pre_d07_git_baseline",
+      "pre_d07_sha256": "3f4217918d51b2ac3f442700a2ce25eac06a050eaa7a5cc8ce6f7e81807e5744",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/core/analysis/colocalize.ts",
+      "sha256": "58546b97e69cef015c0f5e987c32669441c241b01b86893ee20196dc2bb146b4",
+      "size_bytes": 10919,
+      "pre_d07_basis": "pre_d07_git_baseline",
+      "pre_d07_sha256": "9957e265b76d2d4d63809f8ad31bc2882f244d070cdfe9aea8023437f6e43aef",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/core/analysis/engine.ts",
+      "sha256": "89169029e1909bc204e7f06b2e8dc4902639908222ec4b85da636165922571ae",
+      "size_bytes": 11700,
+      "pre_d07_basis": "pre_d07_git_baseline",
+      "pre_d07_sha256": "c04ee8baec1c5a71f7a7c01b9f1a3ef2453d0ca00baabe225fa77a975fe3195c",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/core/analysis/if-regions.test.ts",
+      "sha256": "39d79c3cc249b2952e7b4e4383282a4620c147681b8624cc0e68705afebc75ae",
+      "size_bytes": 8842,
+      "pre_d07_basis": "absent_before_d07",
+      "pre_d07_sha256": null,
+      "changed_during_d07": true,
+      "change_during_d07": "added"
+    },
+    {
+      "path": "src/core/analysis/statistics.test.ts",
+      "sha256": "f6580b9de097f8e4c6f0ae47f5a7617c138aa486f8e683a12b5b369fe6ff97a0",
+      "size_bytes": 7466,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "f6580b9de097f8e4c6f0ae47f5a7617c138aa486f8e683a12b5b369fe6ff97a0",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/analysis/statistics.ts",
+      "sha256": "970b0d852b4d46f16ec5d380688538cd492f7f1ce56cb6731c7364ac3648f57f",
+      "size_bytes": 9665,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "970b0d852b4d46f16ec5d380688538cd492f7f1ce56cb6731c7364ac3648f57f",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/api.ts",
+      "sha256": "b0962072b9c9ed024ab3d38bf96a8abe23dd7a03d66743e1470ac04fd03845c6",
+      "size_bytes": 6346,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "06aa52a144a800817355f9b0d6eae2e3edcdaa17216f08b0cd3ebd8b704ff519",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/core/chart-units.test.ts",
+      "sha256": "35d9f8f126494df910b705b4867737d8ab115d55231cb350f8f9c3ea5ababe07",
+      "size_bytes": 1961,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "35d9f8f126494df910b705b4867737d8ab115d55231cb350f8f9c3ea5ababe07",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/chart.ts",
+      "sha256": "e4530dd3cff0813e0e6c4864cde15c27818820edd0e64e2bf1a889702ea7f67c",
+      "size_bytes": 6222,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "e4530dd3cff0813e0e6c4864cde15c27818820edd0e64e2bf1a889702ea7f67c",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/experimental-units.test.ts",
+      "sha256": "2619985ae8856da0c1ad44a8a477eaa2b20a8ef2d687358fdc92a269d951a8a7",
+      "size_bytes": 11453,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "2619985ae8856da0c1ad44a8a477eaa2b20a8ef2d687358fdc92a269d951a8a7",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/experimental-units.ts",
+      "sha256": "4e4d4556aaab75464ba90cb6c05da08721dcdc9340a839214bed9098dfa435ea",
+      "size_bytes": 10650,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "4e4d4556aaab75464ba90cb6c05da08721dcdc9340a839214bed9098dfa435ea",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/export.ts",
+      "sha256": "0e973e5fcb0a173a4c926c141f7359ce0db589bcb21578560e9ed2c8f4ec0a81",
+      "size_bytes": 20858,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "ebeb038ef1f5843ee3b351401d2dac2e975941f6b9e55b2d388f7fe28bfd5eb2",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/core/if-report.test.ts",
+      "sha256": "f3ebf8e7b502d9fe6cbf5839bae74a923ca92fa5fd5ee8781f971bfbcd134c3d",
+      "size_bytes": 10455,
+      "pre_d07_basis": "absent_before_d07",
+      "pre_d07_sha256": null,
+      "changed_during_d07": true,
+      "change_during_d07": "added"
+    },
+    {
+      "path": "src/core/methods.test.ts",
+      "sha256": "fc3406b911c11df89513a887e624bcfdbfc6fbec2ef4b67ecc97a94dfde6fc1f",
+      "size_bytes": 6783,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "d9d3ffaf06e84f72546094d3ad5d02d0b24bb8bd87a4f4db707642250f56c285",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/core/methods.ts",
+      "sha256": "20b2afeab97d1808f4de365e0af60a46ba140ecb48a6a7a659a65f664a719d9c",
+      "size_bytes": 22274,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "3c7bea765efb3942f25c56782d78d358912cb63178444f6c4edcc6d80b398e5c",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/core/sample-statistics.test.ts",
+      "sha256": "b27e957245a37b17492702974ced31f6646b17a204502997121bc89b87b0d284",
+      "size_bytes": 12368,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "b27e957245a37b17492702974ced31f6646b17a204502997121bc89b87b0d284",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/sample-statistics.ts",
+      "sha256": "3edb1e88be840a35ae1e5542fcdea37998b4add4baaefbf51b6dbf962bb8b83a",
+      "size_bytes": 3551,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "3edb1e88be840a35ae1e5542fcdea37998b4add4baaefbf51b6dbf962bb8b83a",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/source-identity.test.ts",
+      "sha256": "254c6c5ef5ef68dcde59a3929446083aadddd6b9c4e295ced70594bcf5d3aadd",
+      "size_bytes": 595,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "254c6c5ef5ef68dcde59a3929446083aadddd6b9c4e295ced70594bcf5d3aadd",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/source-identity.ts",
+      "sha256": "af755022d9b1f1cc24232372310b174fb3158fd4c6868ad73464b7f82ff270ec",
+      "size_bytes": 599,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "af755022d9b1f1cc24232372310b174fb3158fd4c6868ad73464b7f82ff270ec",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/core/types.ts",
+      "sha256": "f41d385f3b15aca3d7592dcb92b41636f83e27755ba033100c56e97dc640c72d",
+      "size_bytes": 14052,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "3b9162d5697f5effe5594546972d6df47b321154c570f5dbc0becfb825838967",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/i18n/if-messages.ts",
+      "sha256": "10bd93421bb3e43183efe22b4f264882c535aaa9cfc51155a974541e860ccf54",
+      "size_bytes": 10903,
+      "pre_d07_basis": "absent_before_d07",
+      "pre_d07_sha256": null,
+      "changed_during_d07": true,
+      "change_during_d07": "added"
+    },
+    {
+      "path": "src/i18n/messages.ts",
+      "sha256": "99a75383c96624d58d6928caae7ef0001cdbc5a8de36e4d7d04d7f2eeab2102c",
+      "size_bytes": 26995,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "cb966cd9c85a0abc192eb52a8a45972c064cb582f0da48fb88f1534ce4e73d3b",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/i18n/unit-messages.ts",
+      "sha256": "c802d19922b8d4c3b255c7a24e9e17d3f9e73705d364f1fd51b7815de7883d5d",
+      "size_bytes": 19885,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "c802d19922b8d4c3b255c7a24e9e17d3f9e73705d364f1fd51b7815de7883d5d",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/if-project-io.test.ts",
+      "sha256": "8a0204b51491c95cbdd2f0081cec7134f09593ae1bde533e24a9f2294908d197",
+      "size_bytes": 7785,
+      "pre_d07_basis": "absent_before_d07",
+      "pre_d07_sha256": null,
+      "changed_during_d07": true,
+      "change_during_d07": "added"
+    },
+    {
+      "path": "src/if-project-validation.ts",
+      "sha256": "4e326f944be680f3c517aec71de093f14a8cd448bb69f52c2e385d067faffe76",
+      "size_bytes": 4027,
+      "pre_d07_basis": "absent_before_d07",
+      "pre_d07_sha256": null,
+      "changed_during_d07": true,
+      "change_during_d07": "added"
+    },
+    {
+      "path": "src/project-io.test.ts",
+      "sha256": "04a1cd294bfa6bb46029e0ecb9dc32ec60873d9019fb7816d23a8b4e8b9de499",
+      "size_bytes": 13175,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "04a1cd294bfa6bb46029e0ecb9dc32ec60873d9019fb7816d23a8b4e8b9de499",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/project-io.ts",
+      "sha256": "988a6dd10481ca5452afe16f72b5390f052bd799da9cebf09912150e50511ddd",
+      "size_bytes": 15449,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "b8eaeb30fbca30874a36c7f537c83e0794122a169de2ca6ca57c2b99da2c9841",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/styles.css",
+      "sha256": "11ddc71e0616e21dbad56ee8dec5410563387c6975eceea769997132cf202953",
+      "size_bytes": 24598,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "e6b061488d2d035ef6a6e63a3430aef3fc8499bd4585cbcc197b3d95738780c5",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/ui/AdvisorPanel.tsx",
+      "sha256": "b9193a765952c7162720262738ed13222adff0fe28de5c649fed03f8de4cff4e",
+      "size_bytes": 5760,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "b9193a765952c7162720262738ed13222adff0fe28de5c649fed03f8de4cff4e",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/ui/ExperimentalUnitsPanel.tsx",
+      "sha256": "5a0b10cea143bc7b2158550a56e35bba4c072eeffc33688afbb30780692f8f60",
+      "size_bytes": 6142,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "5a0b10cea143bc7b2158550a56e35bba4c072eeffc33688afbb30780692f8f60",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/ui/IfResults.tsx",
+      "sha256": "49fd4af1df4f57cfab4212d649182ceed1eafa102f573a3bc03553a7c36f1140",
+      "size_bytes": 3994,
+      "pre_d07_basis": "absent_before_d07",
+      "pre_d07_sha256": null,
+      "changed_during_d07": true,
+      "change_during_d07": "added"
+    },
+    {
+      "path": "src/ui/IfSamplesPanel.tsx",
+      "sha256": "a6b3cd87841a1d5a1989fa644dd2999bfae8282e201ac9bb9385c470f946823d",
+      "size_bytes": 3096,
+      "pre_d07_basis": "absent_before_d07",
+      "pre_d07_sha256": null,
+      "changed_during_d07": true,
+      "change_during_d07": "added"
+    },
+    {
+      "path": "src/ui/ResultsPanel.tsx",
+      "sha256": "f5877cfe1813c56dff92976788f3d999d7d1200e040475f07c2006949a2b5bee",
+      "size_bytes": 4456,
+      "pre_d07_basis": "pre_d07_git_baseline",
+      "pre_d07_sha256": "74af5f6cd97171a2cc8d3fbaa6485a21a01f5c15054ff675491767d183d17829",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/ui/SamplesPanel.tsx",
+      "sha256": "a4b1bc6726785017cbad51e033bf5c1107948d0062f31d3ec5cc10c4f561f275",
+      "size_bytes": 11408,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "88d57a3a03cce1cfdd5ca5194f74035c79ce6e6a0443ca3cde22853cd6720b7d",
+      "changed_during_d07": true,
+      "change_during_d07": "modified"
+    },
+    {
+      "path": "src/ui/localize-report.test.ts",
+      "sha256": "5f991515fd6eceff599828e30e71af7b6bc72c03ca80e22a3fa92b2d43531896",
+      "size_bytes": 2649,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "5f991515fd6eceff599828e30e71af7b6bc72c03ca80e22a3fa92b2d43531896",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "src/ui/localize-report.ts",
+      "sha256": "934a576ddde3a6541efa9022890ebedac73c7dfee5b92d9cb174532d664b9d0a",
+      "size_bytes": 2170,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "934a576ddde3a6541efa9022890ebedac73c7dfee5b92d9cb174532d664b9d0a",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "tests/e2e/analysis-validity.spec.ts",
+      "sha256": "3e868b70844231d6862834c178372341ab3e2b907be4e14d0e69842becca95fa",
+      "size_bytes": 7244,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "3e868b70844231d6862834c178372341ab3e2b907be4e14d0e69842becca95fa",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "tests/e2e/experimental-units.spec.ts",
+      "sha256": "51cb02f5d9c05354958668a7628e2d0eeea4837b77335da174be9b9147d74f27",
+      "size_bytes": 20916,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "51cb02f5d9c05354958668a7628e2d0eeea4837b77335da174be9b9147d74f27",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "tests/e2e/if-regions.spec.ts",
+      "sha256": "786d40769b2a40c6ef764f54a42055b31eb41c400577a90ad3efb4f0c8737cfc",
+      "size_bytes": 15848,
+      "pre_d07_basis": "absent_before_d07",
+      "pre_d07_sha256": null,
+      "changed_during_d07": true,
+      "change_during_d07": "added"
+    },
+    {
+      "path": "tests/e2e/language.spec.ts",
+      "sha256": "6b8e51cb812d05ee2982be197c9054cbbb51ab49fca7376c74572ef389f78190",
+      "size_bytes": 10766,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "6b8e51cb812d05ee2982be197c9054cbbb51ab49fca7376c74572ef389f78190",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    },
+    {
+      "path": "tests/e2e/smoke.spec.ts",
+      "sha256": "0752243bfd7e758a69422485348d0b8c6b05c1ca3a279707bb4fd31ed01e0b46",
+      "size_bytes": 3959,
+      "pre_d07_basis": "pre_d07_working_tree_snapshot",
+      "pre_d07_sha256": "0752243bfd7e758a69422485348d0b8c6b05c1ca3a279707bb4fd31ed01e0b46",
+      "changed_during_d07": false,
+      "change_during_d07": "unchanged"
+    }
+  ],
+  "file_count": 57,
+  "changed_during_d07": 30,
+  "archive": "working-tree-source.zip",
+  "archive_sha256": "35daedfbb45b198e7990e0ae8dfd95ec5d911890c21286db6f8ab57d9436bf46",
+  "pre_d07_archive": "validation-evidence/d07-implementation/pre-d07-working-tree-source.zip",
+  "pre_d07_archive_sha256": "98608896067e87faad172066c3be1b5aa7b7822f7fd85aceba8688b8830cc537",
+  "pre_d07_state_sha256": "b4c7dbdd127dd54617f2533f48d58f33ed3feb424d203d4dc8c7982ec6ec4f12",
+  "measurement_source_summary_sha256": "13bcb3e041bc523480ebfb0041a0a92acce9eafc04748fdcecd899e153818927",
+  "measurement_run_report_sha256": "870fc60ed0f1cc85c05ca4ca0e8165a9bebf5d87d2317e93db21592a968a17b7",
+  "measurement_core_hash_checks": {
+    "package-lock.json": {
+      "expected_sha256": "b6ecd589a1729487ed057ed26be35f400b47cef7a2f9f6d052b860b8479a42aa",
+      "current_sha256": "b6ecd589a1729487ed057ed26be35f400b47cef7a2f9f6d052b860b8479a42aa",
+      "matches": true
+    },
+    "package.json": {
+      "expected_sha256": "468891b2d9ea91a561856227c82849db407af1e9f2410884da9da1759b4f24a1",
+      "current_sha256": "468891b2d9ea91a561856227c82849db407af1e9f2410884da9da1759b4f24a1",
+      "matches": true
+    },
+    "src/core/analysis/colocalize.ts": {
+      "expected_sha256": "58546b97e69cef015c0f5e987c32669441c241b01b86893ee20196dc2bb146b4",
+      "current_sha256": "58546b97e69cef015c0f5e987c32669441c241b01b86893ee20196dc2bb146b4",
+      "matches": true
+    },
+    "src/core/analysis/engine.ts": {
+      "expected_sha256": "89169029e1909bc204e7f06b2e8dc4902639908222ec4b85da636165922571ae",
+      "current_sha256": "89169029e1909bc204e7f06b2e8dc4902639908222ec4b85da636165922571ae",
+      "matches": true
+    },
+    "src/core/analysis/metrics.ts": {
+      "expected_sha256": "5a18a639fcff6317474b310cfd715dd0683708834c5634cb331826d1ef048fa7",
+      "current_sha256": "5a18a639fcff6317474b310cfd715dd0683708834c5634cb331826d1ef048fa7",
+      "matches": true
+    },
+    "src/core/analysis/segment.ts": {
+      "expected_sha256": "f7d10c396f998df06379e2092c324b9f048c9e64f7827bdcff366cc4fcc1e40c",
+      "current_sha256": "f7d10c396f998df06379e2092c324b9f048c9e64f7827bdcff366cc4fcc1e40c",
+      "matches": true
+    },
+    "src/core/analysis/threshold.ts": {
+      "expected_sha256": "c82f076977e27d092a712a1addde83e18dea7855c326597e5d448780bd052ad5",
+      "current_sha256": "c82f076977e27d092a712a1addde83e18dea7855c326597e5d448780bd052ad5",
+      "matches": true
+    },
+    "src/core/image/color.ts": {
+      "expected_sha256": "1569c200b140dafb1c9cb1cb1f4d843f42661ef6e8960650fe6d381081193e8f",
+      "current_sha256": "1569c200b140dafb1c9cb1cb1f4d843f42661ef6e8960650fe6d381081193e8f",
+      "matches": true
+    },
+    "src/core/image/decode.ts": {
+      "expected_sha256": "d28a4c4aaac7bf3dd7240ed549fe0060fc548d735bf27a2ead2ab08c681a3fdc",
+      "current_sha256": "d28a4c4aaac7bf3dd7240ed549fe0060fc548d735bf27a2ead2ab08c681a3fdc",
+      "matches": true
+    },
+    "src/core/image/tiff.ts": {
+      "expected_sha256": "057d43385011fb1484a15a881f50e658ff8977fee0aa562f241152ea2efe1cce",
+      "current_sha256": "057d43385011fb1484a15a881f50e658ff8977fee0aa562f241152ea2efe1cce",
+      "matches": true
+    },
+    "src/core/types.ts": {
+      "expected_sha256": "f41d385f3b15aca3d7592dcb92b41636f83e27755ba033100c56e97dc640c72d",
+      "current_sha256": "f41d385f3b15aca3d7592dcb92b41636f83e27755ba033100c56e97dc640c72d",
+      "matches": true
+    }
+  },
+  "measurement_core_hash_matches_after_capture": {
+    "package-lock.json": true,
+    "package.json": true,
+    "src/core/analysis/colocalize.ts": true,
+    "src/core/analysis/engine.ts": true,
+    "src/core/analysis/metrics.ts": true,
+    "src/core/analysis/segment.ts": true,
+    "src/core/analysis/threshold.ts": true,
+    "src/core/image/color.ts": true,
+    "src/core/image/decode.ts": true,
+    "src/core/image/tiff.ts": true,
+    "src/core/types.ts": true
+  },
+  "measurement_core_hashes_match": true,
+  "changed_while_capturing": [],
+  "path_set_changed_while_capturing": [],
+  "limitations": "Local snapshot and unsigned hashes. Capturing source does not itself run software checks or validate biological conclusions.",
+  "_public_export": {
+    "historical_snapshot": "2026-11-08",
+    "source_relative_path": "d07-implementation/source-state.json",
+    "original_sha256": "fec773db0c75ad8c5e0b685fb9b3bfe7052a9a6000fa02032b3fd75988fc688f",
+    "scope": "Original validation branch, not later integration verification. Local filesystem paths are logical aliases; referenced binary artifacts are not included."
+  }
+}

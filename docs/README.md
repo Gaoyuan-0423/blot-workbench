@@ -33,6 +33,7 @@ This directory contains current workspace guides and historical version records.
 | [数据与隐私 / Data and privacy](privacy.md) | 浏览器存储、静态托管与可选服务数据流 / Browser storage, static hosting, and optional-service data flows |
 | [演示验证记录 / Demo validation](validation.md) | 已发布演示的运行证据与边界 / Released-demo evidence and limitations |
 | [真实图像验证 / Real-image validation](validation-real-images.md) | 格式、数值与交互测试范围 / Format, numeric, and workflow coverage |
+| [2026-11-08 跨模块验证快照 / Cross-module validation snapshot](validation/2026-11-08/README.md) | 原验证分支的计划、状态、实现和软件/数值摘要；不代表后续集成已通过 / Historical plans, status, implementation and software/numeric summaries; not certification of later integrations |
 | [API 接入验证 / API validation](validation-vision-api.md) | 开发版接口与模拟服务测试 / Development API and mock-provider checks |
 | [截图记录 / Screenshot record](screenshots/README.md) | 实际截图的版本和环境 / Versions and environments of actual screenshots |
 | [已发布版本说明 / Published release notes](releases/v0.1.0-alpha.1.md) | 已发布版本的范围和限制 / Scope and limitations of the published version |

@@ -1,0 +1,170 @@
+{
+  "schema_version": "wisplab.independent-if-statistics/v1",
+  "created_utc": "2026-11-08T13:23:34.897020+00:00",
+  "scope": "Fixed synthetic coefficient records and declared identities. No image file or biological experiment is measured. Synthetic source labels are not hashes of acquired images.",
+  "estimand": "Arithmetic mean of selected nonoverlapping ROI coefficients per field, then field mean per section, equal section mean per independent unit; group summaries use unit values. No Fisher z, pixel pooling, area weighting or intensity pooling.",
+  "missingness": "Any missing selected regional coefficient invalidates its field and unit; no redistribution of declared regional/field/section weights.",
+  "limitations": [
+    "Coefficient records are declared synthetic values, not measured image files or independent biological units.",
+    "Arithmetic averaging of correlations is the declared target; it is not Fisher z averaging or a pooled image coefficient.",
+    "Small n and bounded coefficients may make model-based inference scientifically inappropriate even when the software gate permits a test.",
+    "Dunnett uses five fixed-seed SciPy integrations and 5e-4 absolute agreement tolerance; extreme-tail accuracy is not established.",
+    "Mann-Whitney is an asymptotic tie-corrected comparison without continuity correction, matching the existing app convention; this does not validate the approximation for tiny samples."
+  ],
+  "versions": {
+    "python": "3.12.14",
+    "python_executable": "local-only/home/.cache/uv/builds-v0/.tmpXDNB8a/bin/python",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1"
+  },
+  "tolerances": {
+    "aggregation_absolute": 1e-12,
+    "welch_anova_kw_absolute": 1e-09,
+    "mann_whitney_holm_absolute": 5e-07,
+    "dunnett_adjusted_absolute": 0.0005
+  },
+  "summary": {
+    "scenario_count": 24,
+    "checks": 2767,
+    "passed": 2767,
+    "failed": 0,
+    "hand_calculated_anchors": 13,
+    "status": "passed",
+    "engine_run": true
+  },
+  "fixture_sha256": "5cfbea935996bc4d803003920c5958a54c2833cf163ef4e2f940294a5afffb3a",
+  "reference_sha256": "3eeb87ba2d48b4d34219ac595ccab2d2daed3a114573e7d2269bd6ba9dd415ac",
+  "runner_sha256": "732f20a07b7c49b3fde37e6aabd876a7a8501135433325575d32b6f6caa824c2",
+  "image_measurement_functions_match_d07": {
+    "src/core/analysis/colocalize.ts": true,
+    "src/core/analysis/engine.ts": true,
+    "src/core/analysis/metrics.ts": true,
+    "src/core/analysis/segment.ts": true,
+    "src/core/analysis/threshold.ts": true,
+    "src/core/image/color.ts": true,
+    "src/core/image/decode.ts": true,
+    "src/core/image/tiff.ts": true
+  },
+  "types_identity": {
+    "d07_sha256": "f41d385f3b15aca3d7592dcb92b41636f83e27755ba033100c56e97dc640c72d",
+    "current_sha256": "356f553b1fbe5ceb08ebfb808364469759e3c935beb7f5046e475b44717e3807",
+    "scope": "Types may change for IF statistics; this is a new statistical-layer source identity, not reuse of the D07 complete source hash."
+  },
+  "engine": {
+    "directory": "pathology-workbench",
+    "git_head": "bb9c45c0fc81fe7ea0c449d209e9d63e6eb66a2e",
+    "source_sha256": {
+      "src/core/if-statistics.ts": "8e36e3d020cb702861fba55fa8245d0294744caaa245da69639f41fd11c92036",
+      "src/core/experimental-units.ts": "df6ac2556b6e820da271e678026c424a6f886861e66dc854402da3f607b7b0f2",
+      "src/core/sample-statistics.ts": "3edb1e88be840a35ae1e5542fcdea37998b4add4baaefbf51b6dbf962bb8b83a",
+      "src/core/analysis/statistics.ts": "970b0d852b4d46f16ec5d380688538cd492f7f1ce56cb6731c7364ac3648f57f",
+      "src/core/stats.ts": "5f9c3d9d320af70920fecb7b172c85d30a2734ab0a97dd20891ad4f2f676b90e",
+      "src/core/types.ts": "356f553b1fbe5ceb08ebfb808364469759e3c935beb7f5046e475b44717e3807"
+    },
+    "node": "v24.14.1"
+  },
+  "recorded_worktree_was_modified": true,
+  "failed_checks": [],
+  "maximum_recorded_absolute_error": 3.298832243639471e-05,
+  "finite_numeric_check_count": 692,
+  "anchors": [
+    {
+      "case": "equal_rois_two_group",
+      "anchor": "C1_unit_value",
+      "expected": -0.325,
+      "actual": -0.32500000000000007,
+      "passed": true
+    },
+    {
+      "case": "equal_rois_two_group",
+      "anchor": "C1_field_weighted_mean_NOT_USED",
+      "expected": -0.34,
+      "actual": -0.34,
+      "passed": true
+    },
+    {
+      "case": "equal_rois_two_group",
+      "anchor": "nBio",
+      "expected": 6,
+      "actual": 6,
+      "passed": true
+    },
+    {
+      "case": "equal_rois_two_group",
+      "anchor": "nImages",
+      "expected": 30,
+      "actual": 30,
+      "passed": true
+    },
+    {
+      "case": "equal_rois_two_group",
+      "anchor": "nFields",
+      "expected": 30,
+      "actual": 30,
+      "passed": true
+    },
+    {
+      "case": "equal_rois_two_group",
+      "anchor": "nSections",
+      "expected": 12,
+      "actual": 12,
+      "passed": true
+    },
+    {
+      "case": "equal_rois_two_group",
+      "anchor": "nRegions",
+      "expected": 60,
+      "actual": 60,
+      "passed": true
+    },
+    {
+      "case": "whole_image_two_group",
+      "anchor": "C1_unit_value",
+      "expected": -0.295,
+      "actual": -0.29500000000000004,
+      "passed": true
+    },
+    {
+      "case": "whole_image_two_group",
+      "anchor": "nRegions",
+      "expected": 30,
+      "actual": 30,
+      "passed": true
+    },
+    {
+      "case": "missing_roi_value",
+      "anchor": "C1_unit_value",
+      "expected": null,
+      "actual": null,
+      "passed": true
+    },
+    {
+      "case": "missing_roi_value",
+      "anchor": "nBio",
+      "expected": 5,
+      "actual": 5,
+      "passed": true
+    },
+    {
+      "case": "missing_roi_value",
+      "anchor": "nRegions",
+      "expected": 60,
+      "actual": 60,
+      "passed": true
+    },
+    {
+      "case": "missing_two_units",
+      "anchor": "nBio",
+      "expected": 4,
+      "actual": 4,
+      "passed": true
+    }
+  ],
+  "_public_export": {
+    "source_relative_path": "d04-if-implementation/independent-if-statistics-numerics-v2.json",
+    "original_sha256": "aa60440886543fc467fae5c2ab893d488561c7737070ae0d5d196325701f8b86",
+    "historical_snapshot": "2026-11-08",
+    "complete_original_distributed": false,
+    "scope": "Selected original summary/identity fields only. This export does not rerun tests and does not certify later integrated PR commits."
+  }
+}

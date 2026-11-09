@@ -1,0 +1,53 @@
+{
+  "schema_version": "wisplab.independent-pathology-numerics/v1",
+  "checked_at_utc": "2026-11-08T13:24:17.817381+00:00",
+  "scope": "Synthetic metadata/field metrics; software checks of field-to-section-to-unit aggregation and statistics. No image measurement pipeline or external biological validation.",
+  "limitations": [
+    "Input source identities are declared synthetic labels, not hashes of real image files.",
+    "The 15-field-per-group cases contain three declared units per group; fields are not independent biological replicates.",
+    "Dunnett comparison uses five fixed-seed SciPy randomized integrations with absolute tolerance 0.0005; extreme-tail precision is not established.",
+    "The current hashed working tree is tested, not a pristine release or subsequent code revision.",
+    "Correct user identification of sources and independence, real-image metric accuracy and GUI behavior are outside this check."
+  ],
+  "versions": {
+    "python": "3.12.14",
+    "python_executable": "local-only/home/.cache/uv/builds-v0/.tmpOmJQnB/bin/python",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "node": "v24.14.1",
+    "tsx": "4.23.15"
+  },
+  "tolerances": {
+    "aggregation_absolute": 1e-10,
+    "welch_anova_raw_p_absolute": 1e-09,
+    "dunnett_adjusted_p_absolute": 0.0005
+  },
+  "summary": {
+    "case_count": 4,
+    "checks": 205,
+    "passed": 205,
+    "failed": 0,
+    "status": "passed"
+  },
+  "engine": {
+    "directory": "pathology-workbench",
+    "git_head": "bb9c45c0fc81fe7ea0c449d209e9d63e6eb66a2e",
+    "source_sha256": {
+      "src/core/experimental-units.ts": "df6ac2556b6e820da271e678026c424a6f886861e66dc854402da3f607b7b0f2",
+      "src/core/analysis/statistics.ts": "970b0d852b4d46f16ec5d380688538cd492f7f1ce56cb6731c7364ac3648f57f",
+      "src/core/stats.ts": "5f9c3d9d320af70920fecb7b172c85d30a2734ab0a97dd20891ad4f2f676b90e",
+      "src/core/types.ts": "356f553b1fbe5ceb08ebfb808364469759e3c935beb7f5046e475b44717e3807"
+    }
+  },
+  "recorded_worktree_was_modified": true,
+  "failed_checks": [],
+  "maximum_recorded_absolute_error": 8.678924978695532e-05,
+  "finite_numeric_check_count": 98,
+  "_public_export": {
+    "source_relative_path": "d04-if-implementation/independent-stain-statistics-regression.json",
+    "original_sha256": "950dc4dc134363e8a839092c931e8a3f60acc2d1ce4fe950acb8c0aa94ff88c4",
+    "historical_snapshot": "2026-11-08",
+    "complete_original_distributed": false,
+    "scope": "Selected original summary/identity fields only. This export does not rerun tests and does not certify later integrated PR commits."
+  }
+}

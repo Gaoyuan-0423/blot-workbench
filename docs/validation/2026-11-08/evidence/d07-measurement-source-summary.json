@@ -1,0 +1,62 @@
+{
+  "schema_version": "wisplab.d07-measurement-source-summary/v1",
+  "source_claim_scope": "This captured measurement dependency graph only. UI/API integration may still change; a separate final application snapshot and full software suite are required.",
+  "run_report": "validation-evidence/d07-implementation/engine-and-if-reference-2026-11-08-core/run-report.json",
+  "run_report_sha256": "870fc60ed0f1cc85c05ca4ca0e8165a9bebf5d87d2317e93db21592a968a17b7",
+  "source_snapshot_sha256": "a4228715c1c73d7567705dcbcc1cbb91f8651b50b1db29c08ad1d12a42302631",
+  "measurement_dependency_files": [
+    "package-lock.json",
+    "package.json",
+    "src/core/analysis/colocalize.ts",
+    "src/core/analysis/engine.ts",
+    "src/core/analysis/metrics.ts",
+    "src/core/analysis/segment.ts",
+    "src/core/analysis/threshold.ts",
+    "src/core/image/color.ts",
+    "src/core/image/decode.ts",
+    "src/core/image/tiff.ts",
+    "src/core/types.ts"
+  ],
+  "measurement_core_sha256": {
+    "package-lock.json": "b6ecd589a1729487ed057ed26be35f400b47cef7a2f9f6d052b860b8479a42aa",
+    "package.json": "468891b2d9ea91a561856227c82849db407af1e9f2410884da9da1759b4f24a1",
+    "src/core/analysis/colocalize.ts": "58546b97e69cef015c0f5e987c32669441c241b01b86893ee20196dc2bb146b4",
+    "src/core/analysis/engine.ts": "89169029e1909bc204e7f06b2e8dc4902639908222ec4b85da636165922571ae",
+    "src/core/analysis/metrics.ts": "5a18a639fcff6317474b310cfd715dd0683708834c5634cb331826d1ef048fa7",
+    "src/core/analysis/segment.ts": "f7d10c396f998df06379e2092c324b9f048c9e64f7827bdcff366cc4fcc1e40c",
+    "src/core/analysis/threshold.ts": "c82f076977e27d092a712a1addde83e18dea7855c326597e5d448780bd052ad5",
+    "src/core/image/color.ts": "1569c200b140dafb1c9cb1cb1f4d843f42661ef6e8960650fe6d381081193e8f",
+    "src/core/image/decode.ts": "d28a4c4aaac7bf3dd7240ed549fe0060fc548d735bf27a2ead2ab08c681a3fdc",
+    "src/core/image/tiff.ts": "057d43385011fb1484a15a881f50e658ff8977fee0aa562f241152ea2efe1cce",
+    "src/core/types.ts": "f41d385f3b15aca3d7592dcb92b41636f83e27755ba033100c56e97dc640c72d"
+  },
+  "measurement_dependencies_changed_after_snapshot": [],
+  "snapshot_changed_during_run": [],
+  "live_nonmeasurement_changes": [
+    "src/project-io.ts"
+  ],
+  "protected_historical_files": 76,
+  "protected_evidence_unchanged": true,
+  "original_inputs": 35,
+  "input_hashes_unchanged_during_run": true,
+  "environment": {
+    "python": "3.9.6",
+    "platform": "macOS-27.0.1-arm64-arm-64bit",
+    "node": "v24.14.1",
+    "browser_channel": "chrome",
+    "packages": {
+      "vite": "8.3.4",
+      "playwright": "1.64.0",
+      "typescript": "6.0.3"
+    },
+    "browser_version": "156.0.8078.81"
+  },
+  "started_utc": "2026-11-08T12:24:38.770729+00:00",
+  "finished_utc": "2026-11-08T12:24:42.750324+00:00",
+  "_public_export": {
+    "historical_snapshot": "2026-11-08",
+    "source_relative_path": "d07-implementation/measurement-source-summary.json",
+    "original_sha256": "13bcb3e041bc523480ebfb0041a0a92acce9eafc04748fdcecd899e153818927",
+    "scope": "Original validation branch, not later integration verification. Local filesystem paths are logical aliases; referenced binary artifacts are not included."
+  }
+}

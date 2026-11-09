@@ -1,0 +1,49 @@
+{
+  "checks": {
+    "capture_passed": true,
+    "archive_matches": true,
+    "source_entries_match": true,
+    "zip_entries_match": true,
+    "patch_matches": true,
+    "image_measurement_functions_unchanged": true,
+    "statistical_core_matches": true,
+    "stain_regression_sources_match": true,
+    "all_software_checks_pass": true,
+    "software_helper_matches": true
+  },
+  "archive_sha256": "6c07add68e0f7c54581ed62868de8130ee1f2c16d1a18892b5a26548a5064637",
+  "file_count": 65,
+  "changed_during_d04_if": 30,
+  "inventory_summary": {
+    "input_count": 52,
+    "input_existing": 48,
+    "artifact_count": 42,
+    "artifact_existing": 42,
+    "hash_matches": 90,
+    "hash_mismatches": 0,
+    "expected_missing_inputs": 4,
+    "errors": 0,
+    "warnings": 5,
+    "duplicate_input_groups": [
+      [
+        "wb-synthetic-repeat-01",
+        "wb-synthetic-repeat-02"
+      ]
+    ]
+  },
+  "backlog_counts": {
+    "planned": 6,
+    "partially_implemented": 1,
+    "implemented_software_validated": 5
+  },
+  "challenge_counts": {
+    "not_run": 8,
+    "software_regression_only": 14
+  },
+  "_public_export": {
+    "historical_snapshot": "2026-11-08",
+    "source_relative_path": "d04-if-implementation/final-consistency-audit.json",
+    "original_sha256": "75a944a5672062b85637722a6ef0eb417fe67f7cd415f9c688c38ff61556e64b",
+    "scope": "Original validation branch, not later integration verification. Local filesystem paths are logical aliases; referenced binary artifacts are not included."
+  }
+}
