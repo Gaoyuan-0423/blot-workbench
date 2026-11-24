@@ -1,0 +1,64 @@
+# Install as .github/workflows/wisplab-transition.yml in each existing Pages repository at cutover.
+name: WispLab export window and redirect
+on:
+  workflow_dispatch:
+    inputs:
+      suite_sha:
+        description: Owner-approved full wisplab-cli commit with transition tooling
+        required: true
+      baseline:
+        description: Legacy web tag that produced the frozen project site
+        required: true
+      cutover:
+        description: Actual cutover timestamp with UTC offset
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main' && github.repository_owner == 'Gaoyuan-0423'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require immutable suite ref
+        env:
+          REF: ${{ inputs.suite_sha }}
+        run: '[[ "$REF" =~ ^[0-9a-f]{40}$ ]]'
+      - uses: actions/checkout@v4
+        with:
+          repository: Gaoyuan-0423/wisplab-cli
+          ref: ${{ inputs.suite_sha }}
+          persist-credentials: false
+      - name: Stage the original Pages application at its original URL
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASELINE: ${{ inputs.baseline }}
+          CUTOVER: ${{ inputs.cutover }}
+        run: |
+          case "$GITHUB_REPOSITORY" in
+            Gaoyuan-0423/blot-workbench) SITE=wb ;;
+            Gaoyuan-0423/pathology-workbench) SITE=pathology ;;
+            Gaoyuan-0423/pcr-workbench) SITE=pcr ;;
+            *) exit 1 ;;
+          esac
+          [[ "$BASELINE" == wisplab-deploy-* ]]
+          gh release download "$BASELINE" --repo Gaoyuan-0423/blot-workbench --dir "$RUNNER_TEMP/frozen"
+          python3 apps/wb/deployment/wisplab/legacy_pages.py --site "$SITE" --previous "$RUNNER_TEMP/frozen" --cutover "$CUTOVER" --output "$RUNNER_TEMP/site"
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/site/
+  deploy:
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.publish.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: publish
